@@ -7,21 +7,30 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/constants';
-import { ExpenseWithDetails } from '@/lib/services';
+import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
 import { getCategoryIcon } from '@/components/common';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Wallet, Users } from 'lucide-react';
+
+type ExpenseType = ExpenseWithDetails | UnifiedExpense;
+
+// Type guard
+function isUnifiedExpense(expense: ExpenseType): expense is UnifiedExpense {
+  return 'userShare' in expense;
+}
 
 interface ExpenseSummaryProps {
-  expenses: ExpenseWithDetails[] | undefined;
+  expenses: ExpenseType[] | undefined;
   isLoading: boolean;
   currency?: string;
+  showUserShare?: boolean;  // Use userShare for totals
 }
 
 export function ExpenseSummary({
   expenses,
   isLoading,
   currency = 'ILS',
+  showUserShare = false,
 }: ExpenseSummaryProps) {
   if (isLoading) {
     return (
@@ -49,8 +58,27 @@ export function ExpenseSummary({
     return null;
   }
 
+  // Helper to get display amount
+  const getAmount = (expense: ExpenseType) => {
+    if (showUserShare && isUnifiedExpense(expense)) {
+      return expense.userShare;
+    }
+    return expense.amount;
+  };
+
   // Calculate total
-  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const total = expenses.reduce((sum, e) => sum + getAmount(e), 0);
+
+  // Calculate personal vs group breakdown (for unified view)
+  const personalTotal = expenses.reduce((sum, e) => {
+    if (isUnifiedExpense(e) && e.isPersonal) {
+      return sum + e.userShare;
+    } else if (!isUnifiedExpense(e) && !e.groupId) {
+      return sum + e.amount;
+    }
+    return sum;
+  }, 0);
+  const groupTotal = total - personalTotal;
 
   // Calculate by category
   const byCategory = expenses.reduce((acc, expense) => {
@@ -63,7 +91,7 @@ export function ExpenseSummary({
         count: 0,
       };
     }
-    acc[categoryId].total += expense.amount;
+    acc[categoryId].total += getAmount(expense);
     acc[categoryId].count += 1;
     return acc;
   }, {} as Record<string, { category: typeof expenses[0]['category']; total: number; count: number }>);
@@ -80,23 +108,37 @@ export function ExpenseSummary({
       expenseDate.getFullYear() === now.getFullYear()
     );
   });
-  const thisMonthTotal = thisMonth.reduce((sum, e) => sum + e.amount, 0);
+  const thisMonthTotal = thisMonth.reduce((sum, e) => sum + getAmount(e), 0);
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Total Spending
+          {showUserShare ? 'Your Total Spending' : 'Total Spending'}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold mb-1">
           {formatCurrency(total, currency)}
         </div>
-        <p className="text-xs text-muted-foreground mb-4">
+        <p className="text-xs text-muted-foreground mb-2">
           {expenses.length} expense{expenses.length !== 1 ? 's' : ''} •{' '}
           {formatCurrency(thisMonthTotal, currency)} this month
         </p>
+        
+        {/* Personal vs Group breakdown */}
+        {showUserShare && (personalTotal > 0 || groupTotal > 0) && (
+          <div className="flex gap-4 text-xs mb-4 pb-3 border-b">
+            <span className="flex items-center gap-1">
+              <Wallet className="h-3 w-3" />
+              Personal: {formatCurrency(personalTotal, currency)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              Group: {formatCurrency(groupTotal, currency)}
+            </span>
+          </div>
+        )}
 
         {/* Category Breakdown */}
         <div className="space-y-2">

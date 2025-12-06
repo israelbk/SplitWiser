@@ -22,6 +22,13 @@ export interface ExpenseWithDetails extends Expense {
   splits: (ExpenseSplit & { user?: User })[];
 }
 
+// Unified expense view showing user's actual share
+export interface UnifiedExpense extends ExpenseWithDetails {
+  userShare: number;           // User's portion of the expense
+  isPersonal: boolean;         // true if personal, false if group
+  groupName?: string;          // Group name if group expense
+}
+
 export class ExpenseService {
   constructor(private repository: ExpenseRepository = expenseRepository) {}
 
@@ -106,6 +113,38 @@ export class ExpenseService {
    */
   async getExpenseSplits(expenseId: string): Promise<ExpenseSplit[]> {
     return this.repository.getSplits(expenseId);
+  }
+
+  /**
+   * Get ALL expenses for a user (personal + group) with their share calculated
+   */
+  async getAllUserExpenses(userId: string): Promise<UnifiedExpense[]> {
+    const expenses = await this.repository.findAllUserExpenses(userId);
+    const enriched = await this.enrichExpenses(expenses);
+    
+    // Import group service dynamically to avoid circular dependency
+    const { groupService } = await import('./group.service');
+    
+    // Get all unique group IDs
+    const groupIds = [...new Set(expenses.filter(e => e.groupId).map(e => e.groupId!))];
+    const groups = await Promise.all(groupIds.map(id => groupService.getGroupById(id)));
+    const groupMap = new Map(groups.filter(g => g !== null).map(g => [g!.id, g!]));
+
+    // Map to unified expenses with user's share
+    return enriched.map(expense => {
+      // Find user's split to get their share
+      const userSplit = expense.splits.find(s => s.userId === userId);
+      const userShare = userSplit?.amount ?? expense.amount;
+      
+      const group = expense.groupId ? groupMap.get(expense.groupId) : undefined;
+      
+      return {
+        ...expense,
+        userShare,
+        isPersonal: !expense.groupId,
+        groupName: group?.name,
+      };
+    });
   }
 
   /**

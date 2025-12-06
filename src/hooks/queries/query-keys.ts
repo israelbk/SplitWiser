@@ -29,6 +29,7 @@ export const queryKeys = {
 
   // Expenses
   expenses: {
+    all: (userId: string) => ['expenses', 'all', userId] as const,
     personal: (userId: string) => ['expenses', 'personal', userId] as const,
     group: (groupId: string) => ['expenses', 'group', groupId] as const,
     detail: (id: string) => ['expenses', id] as const,

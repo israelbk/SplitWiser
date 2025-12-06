@@ -241,6 +241,59 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
   }
 
   /**
+   * Get all expenses where a user has a split (both personal and group)
+   */
+  async findAllUserExpenses(userId: string): Promise<Expense[]> {
+    // Get expense IDs where user has a split
+    const { data: splitData, error: splitError } = await this.client
+      .from('expense_splits')
+      .select('expense_id')
+      .eq('user_id', userId);
+
+    if (splitError) {
+      throw new Error(`Failed to fetch user splits: ${splitError.message}`);
+    }
+
+    if (!splitData || splitData.length === 0) {
+      return [];
+    }
+
+    const expenseIds = splitData.map((s) => s.expense_id);
+
+    // Get all those expenses
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .in('id', expenseIds)
+      .order('date', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch user expenses: ${error.message}`);
+    }
+
+    return (data as ExpenseRow[]).map((row) => this.fromRow(row));
+  }
+
+  /**
+   * Get user's split for a specific expense
+   */
+  async getUserSplit(expenseId: string, userId: string): Promise<ExpenseSplit | null> {
+    const { data, error } = await this.client
+      .from('expense_splits')
+      .select('*')
+      .eq('expense_id', expenseId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw new Error(`Failed to fetch user split: ${error.message}`);
+    }
+
+    return splitFromRow(data as ExpenseSplitRow);
+  }
+
+  /**
    * Get all contributions for a group (for balance calculation)
    */
   async getGroupContributions(groupId: string): Promise<ExpenseContribution[]> {

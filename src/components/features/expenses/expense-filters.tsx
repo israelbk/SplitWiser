@@ -16,12 +16,15 @@ import {
 } from '@/components/ui/select';
 import { useCategories } from '@/hooks/queries';
 import { getCategoryIcon } from '@/components/common';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Wallet, Users, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+export type ExpenseTypeFilter = 'all' | 'personal' | 'group';
 
 export interface ExpenseFilters {
   categoryId?: string;
   dateRange?: 'all' | 'week' | 'month' | 'year';
+  type?: ExpenseTypeFilter;
 }
 
 interface ExpenseFiltersProps {
@@ -30,19 +33,32 @@ interface ExpenseFiltersProps {
   className?: string;
 }
 
+interface ExpenseFiltersBarProps extends ExpenseFiltersProps {
+  showTypeFilter?: boolean;
+}
+
 export function ExpenseFiltersBar({
   filters,
   onChange,
   className,
-}: ExpenseFiltersProps) {
+  showTypeFilter = false,
+}: ExpenseFiltersBarProps) {
   const { data: categories } = useCategories();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const hasFilters = filters.categoryId || (filters.dateRange && filters.dateRange !== 'all');
+  const hasFilters = filters.categoryId || 
+    (filters.dateRange && filters.dateRange !== 'all') ||
+    (filters.type && filters.type !== 'all');
 
   const clearFilters = () => {
-    onChange({ categoryId: undefined, dateRange: 'all' });
+    onChange({ categoryId: undefined, dateRange: 'all', type: 'all' });
   };
+
+  const activeFilterCount = [
+    filters.categoryId, 
+    filters.dateRange !== 'all',
+    filters.type && filters.type !== 'all'
+  ].filter(Boolean).length;
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -56,9 +72,9 @@ export function ExpenseFiltersBar({
         >
           <Filter className="h-4 w-4 mr-2" />
           Filters
-          {hasFilters && (
+          {activeFilterCount > 0 && (
             <span className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-              {[filters.categoryId, filters.dateRange !== 'all'].filter(Boolean).length}
+              {activeFilterCount}
             </span>
           )}
         </Button>
@@ -83,6 +99,40 @@ export function ExpenseFiltersBar({
           !isExpanded && 'hidden sm:flex'
         )}
       >
+        {/* Type Filter (Personal/Group/All) */}
+        {showTypeFilter && (
+          <Select
+            value={filters.type || 'all'}
+            onValueChange={(value) =>
+              onChange({ ...filters, type: value as ExpenseTypeFilter })
+            }
+          >
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <span className="flex items-center gap-2">
+                  <LayoutGrid size={16} />
+                  All Types
+                </span>
+              </SelectItem>
+              <SelectItem value="personal">
+                <span className="flex items-center gap-2">
+                  <Wallet size={16} />
+                  Personal
+                </span>
+              </SelectItem>
+              <SelectItem value="group">
+                <span className="flex items-center gap-2">
+                  <Users size={16} />
+                  Group
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+
         {/* Category Filter */}
         <Select
           value={filters.categoryId || 'all'}

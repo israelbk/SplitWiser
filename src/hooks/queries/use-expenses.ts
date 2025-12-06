@@ -10,6 +10,17 @@ import { CreateExpenseInput, UpdateExpenseInput } from '@/lib/types';
 import { queryKeys } from './query-keys';
 
 /**
+ * Get ALL expenses for a user (personal + group shares)
+ */
+export function useAllExpenses(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.expenses.all(userId!),
+    queryFn: () => expenseService.getAllUserExpenses(userId!),
+    enabled: !!userId,
+  });
+}
+
+/**
  * Get personal expenses for a user
  */
 export function usePersonalExpenses(userId: string | undefined) {
@@ -62,6 +73,11 @@ export function useCreateExpense() {
   return useMutation({
     mutationFn: (input: CreateExpenseInput) => expenseService.createExpense(input),
     onSuccess: (expense) => {
+      // Always invalidate "all" expenses
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.expenses.all(expense.createdBy),
+      });
+      
       // Invalidate relevant queries based on whether it's a group or personal expense
       if (expense.groupId) {
         queryClient.invalidateQueries({
@@ -89,6 +105,10 @@ export function useUpdateExpense() {
     mutationFn: ({ id, input }: { id: string; input: UpdateExpenseInput }) =>
       expenseService.updateExpense(id, input),
     onSuccess: async (expense) => {
+      // Invalidate "all" expenses
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.expenses.all(expense.createdBy),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.detail(expense.id),
       });
@@ -125,13 +145,18 @@ export function useDeleteExpense() {
       createdBy,
     }: {
       id: string;
-      groupId?: string;
+      groupId?: string | null;
       createdBy: string;
     }) => {
       await expenseService.deleteExpense(id);
       return { groupId, createdBy };
     },
     onSuccess: (result) => {
+      // Invalidate "all" expenses
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.expenses.all(result.createdBy),
+      });
+
       if (result.groupId) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.expenses.group(result.groupId),

@@ -5,31 +5,35 @@
  * Displays a list of expenses with optional filtering
  */
 
-import { ExpenseWithDetails } from '@/lib/services';
+import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
 import { ExpenseCard, EmptyState, ExpenseListSkeleton } from '@/components/common';
 import { Receipt } from 'lucide-react';
 
-interface ExpenseListProps {
-  expenses: ExpenseWithDetails[] | undefined;
+type ExpenseType = ExpenseWithDetails | UnifiedExpense;
+
+interface ExpenseListProps<T extends ExpenseType> {
+  expenses: T[] | undefined;
   isLoading: boolean;
-  onEdit?: (expense: ExpenseWithDetails) => void;
-  onDelete?: (expense: ExpenseWithDetails) => void;
+  onEdit?: (expense: T) => void;
+  onDelete?: (expense: T) => void;
   showPayer?: boolean;
+  showUserShare?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
   onAddClick?: () => void;
 }
 
-export function ExpenseList({
+export function ExpenseList<T extends ExpenseType>({
   expenses,
   isLoading,
   onEdit,
   onDelete,
   showPayer = false,
+  showUserShare = false,
   emptyTitle = 'No expenses yet',
   emptyDescription = 'Add your first expense to start tracking.',
   onAddClick,
-}: ExpenseListProps) {
+}: ExpenseListProps<T>) {
   if (isLoading) {
     return <ExpenseListSkeleton count={5} />;
   }
@@ -61,6 +65,7 @@ export function ExpenseList({
           onEdit={onEdit ? () => onEdit(expense) : undefined}
           onDelete={onDelete ? () => onDelete(expense) : undefined}
           showPayer={showPayer}
+          showUserShare={showUserShare}
         />
       ))}
     </div>

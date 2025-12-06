@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Personal expenses page
- * Main page for tracking personal spending
+ * All Expenses page
+ * Main page showing all expenses (personal + group share)
  */
 
 import { useState, useMemo } from 'react';
@@ -15,8 +15,8 @@ import {
   ExpenseSummary,
 } from '@/components/features/expenses';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { usePersonalExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/queries';
-import { ExpenseWithDetails } from '@/lib/services';
+import { useAllExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/queries';
+import { UnifiedExpense } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,23 +32,33 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export default function PersonalExpensesPage() {
+export default function AllExpensesPage() {
   const { currentUser } = useCurrentUser();
-  const { data: expenses, isLoading } = usePersonalExpenses(currentUser?.id);
+  const { data: expenses, isLoading } = useAllExpenses(currentUser?.id);
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<ExpenseWithDetails | null>(null);
-  const [deletingExpense, setDeletingExpense] = useState<ExpenseWithDetails | null>(null);
-  const [filters, setFilters] = useState<ExpenseFilters>({});
+  const [editingExpense, setEditingExpense] = useState<UnifiedExpense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<UnifiedExpense | null>(null);
+  const [filters, setFilters] = useState<ExpenseFilters>({ type: 'all' });
 
   // Filter expenses
   const filteredExpenses = useMemo(() => {
     if (!expenses) return undefined;
 
     return expenses.filter((expense) => {
+      // Type filter (personal/group/all)
+      if (filters.type && filters.type !== 'all') {
+        if (filters.type === 'personal' && !expense.isPersonal) {
+          return false;
+        }
+        if (filters.type === 'group' && expense.isPersonal) {
+          return false;
+        }
+      }
+
       // Category filter
       if (filters.categoryId && expense.categoryId !== filters.categoryId) {
         return false;
@@ -87,12 +97,22 @@ export default function PersonalExpensesPage() {
     setIsFormOpen(true);
   };
 
-  const handleEditExpense = (expense: ExpenseWithDetails) => {
+  const handleEditExpense = (expense: UnifiedExpense) => {
+    // Only allow editing personal expenses for now
+    if (!expense.isPersonal) {
+      toast.error('Group expenses can only be edited from the group page');
+      return;
+    }
     setEditingExpense(expense);
     setIsFormOpen(true);
   };
 
-  const handleDeleteExpense = (expense: ExpenseWithDetails) => {
+  const handleDeleteExpense = (expense: UnifiedExpense) => {
+    // Only allow deleting personal expenses for now
+    if (!expense.isPersonal) {
+      toast.error('Group expenses can only be deleted from the group page');
+      return;
+    }
     setDeletingExpense(expense);
   };
 
@@ -162,30 +182,39 @@ export default function PersonalExpensesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Personal Expenses</h1>
+            <h1 className="text-2xl font-bold">All Expenses</h1>
             <p className="text-sm text-muted-foreground">
-              Track your daily spending
+              Personal + your share of group expenses
             </p>
           </div>
           <Button onClick={handleAddExpense} className="hidden sm:flex">
             <Plus className="h-4 w-4 mr-2" />
-            Add Expense
+            Add Personal
           </Button>
         </div>
 
-        {/* Summary Card */}
-        <ExpenseSummary expenses={filteredExpenses} isLoading={isLoading} />
+        {/* Summary Card - shows user's actual spending */}
+        <ExpenseSummary 
+          expenses={filteredExpenses} 
+          isLoading={isLoading} 
+          showUserShare={true}
+        />
 
-        {/* Filters */}
-        <ExpenseFiltersBar filters={filters} onChange={setFilters} />
+        {/* Filters with type filter enabled */}
+        <ExpenseFiltersBar 
+          filters={filters} 
+          onChange={setFilters}
+          showTypeFilter={true}
+        />
 
-        {/* Expense List */}
+        {/* Expense List - shows user's share */}
         <ExpenseList
           expenses={filteredExpenses}
           isLoading={isLoading}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
           onAddClick={handleAddExpense}
+          showUserShare={true}
           emptyTitle="No expenses yet"
           emptyDescription="Start tracking your spending by adding your first expense."
         />

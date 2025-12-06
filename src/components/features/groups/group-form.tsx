@@ -5,6 +5,7 @@
  * Create/edit group dialog
  */
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -83,17 +84,28 @@ export function GroupForm({
 
   const selectedMemberIds = form.watch('memberIds');
 
+  // Ensure current user is always included in memberIds when available
+  useEffect(() => {
+    if (currentUser && open) {
+      const currentMemberIds = form.getValues('memberIds');
+      if (!currentMemberIds.includes(currentUser.id)) {
+        form.setValue('memberIds', [currentUser.id, ...currentMemberIds]);
+      }
+    }
+  }, [currentUser, open, form]);
+
   const handleSubmit = (data: GroupFormData) => {
     onSubmit(data);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
+    // Reset form when opening or closing
+    if (currentUser) {
       form.reset({
         name: group?.name || '',
         description: group?.description || '',
         type: (group?.type as GroupType) || 'trip',
-        memberIds: currentUser ? [currentUser.id] : [],
+        memberIds: [currentUser.id],
       });
     }
     onOpenChange(newOpen);
@@ -183,10 +195,9 @@ export function GroupForm({
                   const isCurrentUser = user.id === currentUser?.id;
 
                   return (
-                    <div
+                    <label
                       key={user.id}
                       className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer"
-                      onClick={() => toggleMember(user.id)}
                     >
                       <Checkbox
                         checked={isSelected}
@@ -200,7 +211,7 @@ export function GroupForm({
                           <span className="text-muted-foreground ml-1">(you)</span>
                         )}
                       </span>
-                    </div>
+                    </label>
                   );
                 })}
               </div>

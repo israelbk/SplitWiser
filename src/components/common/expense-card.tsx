@@ -6,13 +6,14 @@
  */
 
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CategoryBadge, getCategoryIcon } from './category-badge';
 import { UserAvatar } from './user-avatar';
-import { ExpenseWithDetails } from '@/lib/services';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
+import { MoreVertical, Pencil, Trash2, Users } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +23,17 @@ import {
 import { Button } from '@/components/ui/button';
 
 interface ExpenseCardProps {
-  expense: ExpenseWithDetails;
+  expense: ExpenseWithDetails | UnifiedExpense;
   onEdit?: () => void;
   onDelete?: () => void;
   showPayer?: boolean;
+  showUserShare?: boolean;  // Show user's portion instead of total
   className?: string;
+}
+
+// Type guard to check if expense is a UnifiedExpense
+function isUnifiedExpense(expense: ExpenseWithDetails | UnifiedExpense): expense is UnifiedExpense {
+  return 'userShare' in expense;
 }
 
 export function ExpenseCard({
@@ -34,10 +41,17 @@ export function ExpenseCard({
   onEdit,
   onDelete,
   showPayer = false,
+  showUserShare = false,
   className,
 }: ExpenseCardProps) {
   const payer = expense.contributions?.[0]?.user;
   const Icon = expense.category ? getCategoryIcon(expense.category.icon) : null;
+  
+  // Determine display amount
+  const unified = isUnifiedExpense(expense);
+  const displayAmount = showUserShare && unified ? expense.userShare : expense.amount;
+  const isGroupExpense = unified ? !expense.isPersonal : !!expense.groupId;
+  const groupName = unified ? expense.groupName : undefined;
 
   return (
     <Card
@@ -68,6 +82,12 @@ export function ExpenseCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="font-medium truncate">{expense.description}</h4>
+            {isGroupExpense && (
+              <Badge variant="secondary" className="flex-shrink-0 text-xs gap-1">
+                <Users className="h-3 w-3" />
+                {groupName || 'Group'}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>{format(expense.date, 'MMM d')}</span>
@@ -80,13 +100,24 @@ export function ExpenseCard({
                 </span>
               </>
             )}
+            {showUserShare && isGroupExpense && (
+              <>
+                <span>•</span>
+                <span className="text-xs">
+                  Total: {formatCurrency(expense.amount, expense.currency)}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
         {/* Amount */}
         <div className="flex-shrink-0 text-right">
           <div className="font-semibold">
-            {formatCurrency(expense.amount, expense.currency)}
+            {showUserShare && isGroupExpense && (
+              <span className="text-xs text-muted-foreground mr-1">Your share:</span>
+            )}
+            {formatCurrency(displayAmount, expense.currency)}
           </div>
           {expense.category && (
             <CategoryBadge category={expense.category} size="sm" showIcon={false} />
