@@ -1,0 +1,114 @@
+'use client';
+
+/**
+ * Groups list page
+ * List all groups the user is part of
+ */
+
+import { useState, useEffect } from 'react';
+import { AppShell } from '@/components/layout';
+import { GroupList, GroupForm } from '@/components/features/groups';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useGroups, useCreateGroup, useGroupBalances } from '@/hooks/queries';
+import { groupService, GroupWithMembers } from '@/lib/services';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function GroupsPage() {
+  const { currentUser } = useCurrentUser();
+  const { data: groups, isLoading } = useGroups();
+  const createGroup = useCreateGroup();
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [groupsWithMembers, setGroupsWithMembers] = useState<GroupWithMembers[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(true);
+
+  // Load groups with members
+  useEffect(() => {
+    async function loadGroupsWithMembers() {
+      if (!groups) {
+        setGroupsWithMembers([]);
+        setLoadingMembers(false);
+        return;
+      }
+
+      try {
+        const enriched = await Promise.all(
+          groups.map((group) => groupService.getGroupWithMembers(group.id))
+        );
+        setGroupsWithMembers(enriched.filter((g): g is GroupWithMembers => g !== null));
+      } catch (error) {
+        console.error('Failed to load group members:', error);
+      } finally {
+        setLoadingMembers(false);
+      }
+    }
+
+    setLoadingMembers(true);
+    loadGroupsWithMembers();
+  }, [groups]);
+
+  const handleAddGroup = () => {
+    setIsFormOpen(true);
+  };
+
+  const handleFormSubmit = async (data: {
+    name: string;
+    description?: string;
+    type: 'trip' | 'household' | 'couple' | 'other';
+    memberIds: string[];
+  }) => {
+    if (!currentUser) return;
+
+    try {
+      await createGroup.mutateAsync({
+        name: data.name,
+        description: data.description,
+        type: data.type,
+        createdBy: currentUser.id,
+        memberIds: data.memberIds,
+      });
+      toast.success('Group created');
+      setIsFormOpen(false);
+    } catch (error) {
+      toast.error('Failed to create group');
+    }
+  };
+
+  return (
+    <AppShell onAddClick={handleAddGroup}>
+      <div className="container px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Groups</h1>
+            <p className="text-sm text-muted-foreground">
+              Split expenses with friends
+            </p>
+          </div>
+          <Button onClick={handleAddGroup} className="hidden sm:flex">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Group
+          </Button>
+        </div>
+
+        {/* Group List */}
+        <GroupList
+          groups={groupsWithMembers}
+          isLoading={isLoading || loadingMembers}
+          onAddClick={handleAddGroup}
+        />
+      </div>
+
+      {/* Create Group Form */}
+      <GroupForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSubmit={handleFormSubmit}
+        isLoading={createGroup.isPending}
+      />
+    </AppShell>
+  );
+}
+
