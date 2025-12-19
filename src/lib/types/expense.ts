@@ -106,6 +106,7 @@ export interface UpdateExpenseInput {
   categoryId?: string;
   date?: Date;
   notes?: string;
+  splitConfig?: SplitConfiguration;  // Update splits and contributions
 }
 
 // Database row types (snake_case)

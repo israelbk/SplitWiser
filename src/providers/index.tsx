@@ -8,6 +8,7 @@
 import { ReactNode } from 'react';
 import { QueryProvider } from './query-provider';
 import { UserProvider } from './user-provider';
+import { AuthGuard } from '@/components/layout/auth-guard';
 import { Toaster } from '@/components/ui/sonner';
 
 interface ProvidersProps {
@@ -18,7 +19,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryProvider>
       <UserProvider>
-        {children}
+        <AuthGuard>
+          {children}
+        </AuthGuard>
         <Toaster position="top-center" />
       </UserProvider>
     </QueryProvider>

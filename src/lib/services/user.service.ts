@@ -40,8 +40,9 @@ export class UserService {
 
   /**
    * Create a new user
+   * @param input - User data, optionally including ID for auth-linked users
    */
-  async createUser(input: CreateUserInput): Promise<User> {
+  async createUser(input: CreateUserInput & { id?: string }): Promise<User> {
     return this.repository.createUser(input);
   }
 

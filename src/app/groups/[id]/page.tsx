@@ -29,7 +29,7 @@ import {
   useGroupWithMembers,
   useUpdateExpense,
 } from '@/hooks/queries';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { ExpenseWithDetails } from '@/lib/services';
 import { ArrowLeft, Plus, Receipt, Scale } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
@@ -42,6 +42,7 @@ export default function GroupDetailPage() {
   const groupId = params.id as string;
 
   const { currentUser } = useCurrentUser();
+  const { canWrite } = useAuth();
   const { data: group, isLoading: groupLoading } = useGroupWithMembers(groupId);
   const { data: expenses, isLoading: expensesLoading } = useGroupExpenses(groupId);
   const createExpense = useCreateExpense();
@@ -89,6 +90,7 @@ export default function GroupDetailPage() {
             categoryId: data.categoryId,
             date: data.date,
             notes: data.notes,
+            splitConfig: data.splitConfig,  // Update splits when editing
           },
         });
         toast.success('Expense updated');
@@ -212,7 +214,11 @@ export default function GroupDetailPage() {
               )}
             </div>
           </div>
-          <Button onClick={handleAddExpense} className="hidden sm:flex">
+          <Button 
+            onClick={handleAddExpense} 
+            className="hidden sm:flex"
+            disabled={!canWrite}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Expense
           </Button>
@@ -239,6 +245,8 @@ export default function GroupDetailPage() {
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
               showPayer={true}
+              showUserShare={true}
+              currentUserId={currentUser?.id}
               emptyTitle="No expenses in this group"
               emptyDescription="Add the first expense to start splitting costs."
               onAddClick={handleAddExpense}

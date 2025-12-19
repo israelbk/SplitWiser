@@ -9,6 +9,7 @@ import { ReactNode } from 'react';
 import { Header } from './header';
 import { NavTabs } from './nav-tabs';
 import { MobileNav } from './mobile-nav';
+import { useAuth } from '@/hooks/use-current-user';
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,6 +17,8 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, onAddClick }: AppShellProps) {
+  const { canWrite } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
@@ -31,8 +34,8 @@ export function AppShell({ children, onAddClick }: AppShellProps) {
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileNav onAddClick={onAddClick} />
+      {/* Mobile Bottom Navigation - only show add button if canWrite */}
+      <MobileNav onAddClick={canWrite ? onAddClick : undefined} />
     </div>
   );
 }

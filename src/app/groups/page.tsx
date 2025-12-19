@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout';
 import { GroupList, GroupForm } from '@/components/features/groups';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { useGroups, useCreateGroup, useGroupBalances } from '@/hooks/queries';
 import { groupService, GroupWithMembers } from '@/lib/services';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 
 export default function GroupsPage() {
   const { currentUser } = useCurrentUser();
+  const { canWrite } = useAuth();
   const { data: groups, isLoading } = useGroups();
   const createGroup = useCreateGroup();
 
@@ -87,7 +88,11 @@ export default function GroupsPage() {
               Split expenses with friends
             </p>
           </div>
-          <Button onClick={handleAddGroup} className="hidden sm:flex">
+          <Button 
+            onClick={handleAddGroup} 
+            className="hidden sm:flex"
+            disabled={!canWrite}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Group
           </Button>

@@ -189,7 +189,67 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
     if (input.date !== undefined) updateData.date = input.date.toISOString().split('T')[0];
     if (input.notes !== undefined) updateData.notes = input.notes;
 
-    return this.update(id, updateData);
+    const expense = await this.update(id, updateData);
+
+    // Update splits and contributions if provided
+    if (input.splitConfig) {
+      const { payments, splits, splitType } = input.splitConfig;
+      
+      // Delete existing contributions and splits
+      await this.deleteContributions(id);
+      await this.deleteSplits(id);
+      
+      // Create new contributions (who paid)
+      for (const payment of payments) {
+        await this.createContribution({
+          expense_id: id,
+          user_id: payment.userId,
+          amount: payment.amount,
+        });
+      }
+      
+      // Create new splits (who owes)
+      for (const split of splits) {
+        await this.createSplit({
+          expense_id: id,
+          user_id: split.userId,
+          amount: split.amount,
+          split_type: splitType,
+          percentage: split.percentage,
+          shares: split.shares,
+        });
+      }
+    }
+
+    return expense;
+  }
+  
+  /**
+   * Delete all contributions for an expense
+   */
+  private async deleteContributions(expenseId: string): Promise<void> {
+    const { error } = await this.client
+      .from('expense_contributions')
+      .delete()
+      .eq('expense_id', expenseId);
+    
+    if (error) {
+      throw new Error(`Failed to delete contributions: ${error.message}`);
+    }
+  }
+  
+  /**
+   * Delete all splits for an expense
+   */
+  private async deleteSplits(expenseId: string): Promise<void> {
+    const { error } = await this.client
+      .from('expense_splits')
+      .delete()
+      .eq('expense_id', expenseId);
+    
+    if (error) {
+      throw new Error(`Failed to delete splits: ${error.message}`);
+    }
   }
 
   /**

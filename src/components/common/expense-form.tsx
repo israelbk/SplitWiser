@@ -6,13 +6,7 @@
  * Supports both personal expenses and group expenses with split configuration
  */
 
-import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -21,15 +15,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { CategoryPicker } from './category-picker';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useCurrencyPreferences } from '@/hooks/queries';
+import { DEFAULT_CATEGORY_ID, DEFAULT_CURRENCY } from '@/lib/constants';
+import { Expense, SplitConfiguration, User } from '@/lib/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { AmountInput } from './amount-input';
+import { CategoryPicker } from './category-picker';
 import { CurrencyPicker } from './currency-picker';
 import { DatePicker } from './date-picker';
 import { SplitConfig, SplitConfigTrigger } from './split-config';
-import { DEFAULT_CATEGORY_ID, DEFAULT_CURRENCY } from '@/lib/constants';
-import { Expense, User, SplitConfiguration } from '@/lib/types';
-import { useCurrencyPreferences } from '@/hooks/queries';
-import { Loader2 } from 'lucide-react';
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -100,6 +100,7 @@ export function ExpenseForm({
   useEffect(() => {
     if (open) {
       const initialAmount = expense?.amount || 0;
+      
       form.reset({
         description: expense?.description || '',
         amount: initialAmount,
@@ -112,22 +113,71 @@ export function ExpenseForm({
       // Update local amount state
       setCurrentAmount(initialAmount);
       
-      // Reset split config for group expenses
+      // Initialize split config for group expenses
       if (isGroupExpense && groupMembers && currentUserId) {
-        const perPerson = initialAmount / groupMembers.length;
-        setSplitConfig({
-          payments: [{ userId: currentUserId, amount: initialAmount }],
-          splitType: 'equal',
-          splits: groupMembers.map(m => ({
-            userId: m.id,
-            amount: perPerson,
-          })),
-        });
+        // Check if editing an existing expense with splits/contributions
+        const hasExistingSplits = expense?.splits && expense.splits.length > 0;
+        const hasExistingContributions = expense?.contributions && expense.contributions.length > 0;
+        
+        if (hasExistingSplits || hasExistingContributions) {
+          // Restore split config from existing expense data
+          const existingSplitType = expense.splits?.[0]?.splitType || 'equal';
+          
+          setSplitConfig({
+            payments: hasExistingContributions 
+              ? expense.contributions!.map(c => ({ userId: c.userId, amount: c.amount }))
+              : [{ userId: currentUserId, amount: initialAmount }],
+            splitType: existingSplitType,
+            splits: hasExistingSplits
+              ? expense.splits!.map(s => ({
+                  userId: s.userId,
+                  amount: s.amount,
+                  percentage: s.percentage,
+                  shares: s.shares,
+                }))
+              : groupMembers.map(m => ({
+                  userId: m.id,
+                  amount: initialAmount / groupMembers.length,
+                })),
+          });
+        } else {
+          // New expense: create default equal split
+          const perPerson = initialAmount / groupMembers.length;
+          setSplitConfig({
+            payments: [{ userId: currentUserId, amount: initialAmount }],
+            splitType: 'equal',
+            splits: groupMembers.map(m => ({
+              userId: m.id,
+              amount: perPerson,
+            })),
+          });
+        }
       } else {
         setSplitConfig(undefined);
       }
     }
   }, [open, expense, form, isGroupExpense, groupMembers, currentUserId, displayCurrency]);
+
+  // Update split amounts when amount changes (for equal split type only)
+  // Don't update while the split sheet is open - it manages its own state
+  useEffect(() => {
+    if (!open || !isGroupExpense || !splitConfig || currentAmount <= 0 || splitConfigOpen) return;
+    if (splitConfig.splitType !== 'equal') return;
+    
+    const numPeople = splitConfig.splits.length || groupMembers?.length || 1;
+    const perPerson = currentAmount / numPeople;
+    
+    setSplitConfig(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        payments: prev.payments.length === 1
+          ? [{ ...prev.payments[0], amount: currentAmount }]
+          : prev.payments,
+        splits: prev.splits.map(s => ({ ...s, amount: perPerson })),
+      };
+    });
+  }, [currentAmount, open, isGroupExpense, splitConfig?.splitType, groupMembers?.length, splitConfigOpen]);
 
   const handleSubmit = (data: ExpenseFormData) => {
     onSubmit({

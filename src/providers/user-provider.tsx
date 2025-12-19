@@ -1,78 +1,197 @@
 'use client';
 
 /**
- * User provider for mock user selection
- * POC: Allows switching between mock users
- * Future: Will integrate with Supabase Auth
+ * Auth provider with admin view-as functionality
+ * Integrates with Supabase Auth for Google OAuth
  */
 
-import { ReactNode, useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { CurrentUserContext } from '@/hooks/use-current-user';
+import { supabase } from '@/config/supabase';
+import { AuthContext } from '@/hooks/use-current-user';
+import { ViewAsContext } from '@/hooks/use-view-as';
+import { authService, userService } from '@/lib/services';
 import { User } from '@/lib/types';
-import { useUsers } from '@/hooks/queries';
+import { Session } from '@supabase/supabase-js';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
-const STORAGE_KEY = 'splitwiser-current-user-id';
+const VIEW_AS_STORAGE_KEY = 'splitwiser-view-as-user-id';
 
 interface UserProviderProps {
   children: ReactNode;
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const [currentUser, setCurrentUserState] = useState<User | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const { data: users, isLoading: usersLoading } = useUsers();
-  const hasInitialized = useRef(false);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewingAs, setViewingAsState] = useState<User | null>(null);
 
-  // Load saved user ID from localStorage only once when users are first available
-  useEffect(() => {
-    // Only run once when users become available
-    if (hasInitialized.current || !users || users.length === 0) {
-      return;
-    }
-
-    hasInitialized.current = true;
+  // Get or create user record with timeout
+  const getOrCreateUser = async (session: Session): Promise<User | null> => {
+    const authUserInfo = authService.extractAuthUser(session.user);
+    console.log('[Auth] getOrCreateUser for:', authUserInfo.email);
     
-    const savedUserId = localStorage.getItem(STORAGE_KEY);
-    
-    if (savedUserId) {
-      const user = users.find((u) => u.id === savedUserId);
-      if (user) {
-        setCurrentUserState(user);
-      } else {
-        // Saved user not found, default to first user
-        setCurrentUserState(users[0]);
-        localStorage.setItem(STORAGE_KEY, users[0].id);
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<null>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout fetching user')), 5000)
+      );
+      
+      const userPromise = userService.getUserById(authUserInfo.id);
+      let user = await Promise.race([userPromise, timeoutPromise]);
+      
+      console.log('[Auth] getUserById result:', user ? 'found' : 'not found');
+      
+      if (!user) {
+        console.log('[Auth] Creating new user...');
+        const createPromise = userService.createUser({
+          id: authUserInfo.id,
+          name: authUserInfo.name,
+          email: authUserInfo.email,
+          avatarUrl: authUserInfo.avatarUrl,
+          avatarColor: authService.generateAvatarColor(),
+        } as Parameters<typeof userService.createUser>[0] & { id: string });
+        
+        user = await Promise.race([createPromise, timeoutPromise]);
+        console.log('[Auth] User created:', user?.email);
       }
-    } else {
-      // No saved user, default to first user
-      setCurrentUserState(users[0]);
-      localStorage.setItem(STORAGE_KEY, users[0].id);
+      
+      return user;
+    } catch (error) {
+      console.error('[Auth] Error in getOrCreateUser:', error);
+      // Don't return null on error - try to return partial user info
+      return null;
     }
-    
-    setIsInitialized(true);
-  }, [users]);
+  };
 
-  const setCurrentUser = useCallback((user: User | null) => {
-    setCurrentUserState(user);
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, user.id);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+  useEffect(() => {
+    let mounted = true;
+    console.log('[Auth] useEffect starting...');
+
+    const handleSession = async (session: Session | null) => {
+      console.log('[Auth] handleSession called, session:', session?.user?.email || 'none');
+      
+      if (!mounted) {
+        console.log('[Auth] Component unmounted, skipping');
+        return;
+      }
+
+      if (session?.user) {
+        try {
+          const user = await getOrCreateUser(session);
+          console.log('[Auth] Got user:', user?.email || 'null');
+          
+          if (mounted) {
+            setAuthUser(user);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error('[Auth] Error handling session:', error);
+          if (mounted) {
+            setAuthUser(null);
+            setIsLoading(false);
+          }
+        }
+      } else {
+        console.log('[Auth] No session, clearing user');
+        if (mounted) {
+          setAuthUser(null);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Set up auth listener
+    console.log('[Auth] Setting up onAuthStateChange listener...');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('[Auth] onAuthStateChange fired:', event);
+        handleSession(session);
+      }
+    );
+
+    // Also check session immediately (with timeout)
+    console.log('[Auth] Checking initial session...');
+    const sessionTimeout = setTimeout(() => {
+      console.log('[Auth] Session check timed out, stopping loading');
+      if (mounted && isLoading) {
+        setIsLoading(false);
+      }
+    }, 5000);
+
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        clearTimeout(sessionTimeout);
+        console.log('[Auth] getSession result:', session?.user?.email || 'no session', error?.message || '');
+        // Only handle if onAuthStateChange hasn't already handled it
+        if (mounted && isLoading) {
+          handleSession(session);
+        }
+      })
+      .catch((error) => {
+        clearTimeout(sessionTimeout);
+        console.error('[Auth] getSession error:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      console.log('[Auth] Cleanup');
+      mounted = false;
+      clearTimeout(sessionTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const isLoading = usersLoading || (!isInitialized && !hasInitialized.current);
+  const signIn = useCallback(async () => {
+    await authService.signInWithGoogle();
+  }, []);
 
-  const contextValue = useMemo(() => ({
-    currentUser,
-    setCurrentUser,
+  const signOut = useCallback(async () => {
+    await authService.signOut();
+    setAuthUser(null);
+    setViewingAsState(null);
+    localStorage.removeItem(VIEW_AS_STORAGE_KEY);
+  }, []);
+
+  const setViewingAs = useCallback((user: User | null) => {
+    if (!authUser || authUser.role !== 'admin') return;
+    setViewingAsState(user);
+    if (user && user.id !== authUser.id) {
+      localStorage.setItem(VIEW_AS_STORAGE_KEY, user.id);
+    } else {
+      localStorage.removeItem(VIEW_AS_STORAGE_KEY);
+    }
+  }, [authUser]);
+
+  const isAdmin = authUser?.role === 'admin';
+  const isViewingAsOther = viewingAs !== null && viewingAs.id !== authUser?.id;
+  const effectiveUser = isViewingAsOther ? viewingAs : authUser;
+  const canWrite = !isViewingAsOther;
+
+  const authContextValue = useMemo(() => ({
+    authUser,
     isLoading,
-  }), [currentUser, setCurrentUser, isLoading]);
+    signIn,
+    signOut,
+    viewingAs,
+    setViewingAs,
+    isViewingAsOther,
+    effectiveUser,
+    canWrite,
+    isAdmin,
+  }), [authUser, isLoading, signIn, signOut, viewingAs, setViewingAs, isViewingAsOther, effectiveUser, canWrite, isAdmin]);
+
+  const viewAsContextValue = useMemo(() => ({
+    viewingAs,
+    setViewingAs,
+    isViewingAsOther,
+  }), [viewingAs, setViewingAs, isViewingAsOther]);
 
   return (
-    <CurrentUserContext.Provider value={contextValue}>
-      {children}
-    </CurrentUserContext.Provider>
+    <AuthContext.Provider value={authContextValue}>
+      <ViewAsContext.Provider value={viewAsContextValue}>
+        {children}
+      </ViewAsContext.Provider>
+    </AuthContext.Provider>
   );
 }
-

@@ -20,6 +20,7 @@ interface ExpenseListProps<T extends ExpenseType> {
   onDelete?: (expense: T) => void;
   showPayer?: boolean;
   showUserShare?: boolean;
+  currentUserId?: string;  // Required when showUserShare is true
   emptyTitle?: string;
   emptyDescription?: string;
   onAddClick?: () => void;
@@ -36,6 +37,7 @@ export function ExpenseList<T extends ExpenseType>({
   onDelete,
   showPayer = false,
   showUserShare = false,
+  currentUserId,
   emptyTitle = 'No expenses yet',
   emptyDescription = 'Add your first expense to start tracking.',
   onAddClick,
@@ -77,6 +79,7 @@ export function ExpenseList<T extends ExpenseType>({
             onDelete={onDelete ? () => onDelete(expense) : undefined}
             showPayer={showPayer}
             showUserShare={showUserShare}
+            currentUserId={currentUserId}
             conversion={conversion}
             conversionMode={conversionMode}
           />

@@ -37,6 +37,7 @@ interface ExpenseCardProps {
   onDelete?: () => void;
   showPayer?: boolean;
   showUserShare?: boolean;  // Show user's portion instead of total
+  currentUserId?: string;   // Required when showUserShare is true for ExpenseWithDetails
   className?: string;
   // Currency conversion props
   conversion?: ConvertedAmount | null;
@@ -55,6 +56,7 @@ export function ExpenseCard({
   onDelete,
   showPayer = false,
   showUserShare = false,
+  currentUserId,
   className,
   conversion,
   conversionMode = 'off',
@@ -64,9 +66,24 @@ export function ExpenseCard({
   
   // Determine display amount
   const unified = isUnifiedExpense(expense);
-  const baseAmount = showUserShare && unified ? expense.userShare : expense.amount;
   const isGroupExpense = unified ? !expense.isPersonal : !!expense.groupId;
   const groupName = unified ? expense.groupName : undefined;
+  
+  // Calculate user share from splits for ExpenseWithDetails
+  const getUserShare = (): number => {
+    if (unified) {
+      return expense.userShare;
+    }
+    // For ExpenseWithDetails, find the user's split
+    if (currentUserId && expense.splits) {
+      const userSplit = expense.splits.find(s => s.userId === currentUserId);
+      return userSplit?.amount ?? 0;
+    }
+    return expense.amount;
+  };
+  
+  const userShareAmount = showUserShare && isGroupExpense ? getUserShare() : expense.amount;
+  const baseAmount = showUserShare && isGroupExpense ? userShareAmount : expense.amount;
 
   // Check if conversion should be shown (only when mode is not 'off' AND conversion exists)
   const isConverted = conversionMode !== 'off' && conversion?.converted && conversion.converted.currency !== expense.currency;

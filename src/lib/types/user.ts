@@ -9,12 +9,15 @@ import {
   DEFAULT_CURRENCY_PREFERENCES 
 } from './currency';
 
+export type UserRole = 'user' | 'admin';
+
 export interface User {
   id: string;
   email?: string;
   name: string;
   avatarUrl?: string;
   avatarColor: string;
+  role: UserRole;
   currencyPreferences: CurrencyPreferences;
   createdAt: Date;
 }
@@ -45,6 +48,7 @@ export interface UserRow {
   name: string;
   avatar_url: string | null;
   avatar_color: string | null;
+  role: string | null;
   currency_preferences: CurrencyPreferencesRow | null;
   created_at: string;
 }
@@ -57,6 +61,7 @@ export function userFromRow(row: UserRow): User {
     name: row.name,
     avatarUrl: row.avatar_url ?? undefined,
     avatarColor: row.avatar_color ?? '#6366f1',
+    role: (row.role as UserRole) ?? 'user',
     currencyPreferences: currencyPreferencesFromRow(row.currency_preferences),
     createdAt: new Date(row.created_at),
   };

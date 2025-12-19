@@ -11,7 +11,7 @@
  * - No refs, no race conditions, clean data flow
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,9 +81,15 @@ export function SplitConfig({
   const [splitType, setSplitType] = useState<InternalSplitType>('equal');
   const [splits, setSplits] = useState<InternalSplitEntry[]>([]);
   
-  // Initialize state when sheet opens
+  // Track previous open state to detect open transition
+  const wasOpenRef = useRef(false);
+  
+  // Initialize state only when sheet OPENS (not on every initialConfig change while open)
   useEffect(() => {
-    if (open && amount > 0) {
+    const isOpening = open && !wasOpenRef.current;
+    wasOpenRef.current = open;
+    
+    if (isOpening && amount > 0) {
       const currentSplitType = (initialConfig?.splitType as InternalSplitType) || 'equal';
       setPayments(initializePayments(initialConfig, members, currentUserId, amount));
       setSplitType(currentSplitType);
@@ -550,23 +556,33 @@ function initializePayments(
   amount: number
 ): InternalPaymentEntry[] {
   if (config?.payments && config.payments.length > 0) {
-    // Restore from saved config
-    // If single payer and it's current user, update amount
-    if (config.payments.length === 1 && config.payments[0].userId === currentUserId) {
+    // Single payer case - always use the current total amount
+    if (config.payments.length === 1) {
+      const payerId = config.payments[0].userId;
       return members.map(m => ({
         userId: m.id,
-        amount: m.id === currentUserId ? amount : 0,
-        selected: m.id === currentUserId,
+        amount: m.id === payerId ? amount : 0,
+        selected: m.id === payerId,
       }));
     }
     
-    // For multiple payers or different payer, use saved structure but may need adjustment
+    // Multiple payers - calculate proportionally if total doesn't match
+    const savedTotal = config.payments.reduce((sum, p) => sum + p.amount, 0);
+    const needsAdjustment = Math.abs(savedTotal - amount) > 0.01 && savedTotal > 0;
+    
     return members.map(m => {
       const existing = config.payments.find(p => p.userId === m.id);
+      if (!existing) {
+        return { userId: m.id, amount: 0, selected: false };
+      }
+      // If amounts don't match, scale proportionally
+      const adjustedAmount = needsAdjustment 
+        ? (existing.amount / savedTotal) * amount 
+        : existing.amount;
       return {
         userId: m.id,
-        amount: existing?.amount || 0,
-        selected: !!existing,
+        amount: adjustedAmount,
+        selected: true,
       };
     });
   }

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useAllExpenses, useConvertedExpenses, useCreateExpense, useCurrencyPreferences, useDeleteExpense, useUpdateExpense } from '@/hooks/queries';
-import { useCurrentUser } from '@/hooks/use-current-user';
+import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { UnifiedExpense } from '@/lib/services';
 import { isAfter, startOfMonth, startOfWeek, startOfYear } from 'date-fns';
 import { Plus } from 'lucide-react';
@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 export default function AllExpensesPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
+  const { canWrite } = useAuth();
   const { data: expenses, isLoading } = useAllExpenses(currentUser?.id);
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
@@ -216,7 +217,11 @@ export default function AllExpensesPage() {
               Personal + your share of group expenses
             </p>
           </div>
-          <Button onClick={handleAddExpense} className="hidden sm:flex">
+          <Button 
+            onClick={handleAddExpense} 
+            className="hidden sm:flex"
+            disabled={!canWrite}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Personal
           </Button>

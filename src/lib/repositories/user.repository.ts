@@ -14,6 +14,7 @@ import {
 import { CurrencyPreferences, CurrencyPreferencesRow } from '../types/currency';
 
 interface UserCreateRow {
+  id?: string;
   name: string;
   email?: string;
   avatar_url?: string;
@@ -40,8 +41,9 @@ export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow,
   /**
    * Create a user with domain input type
    */
-  async createUser(input: CreateUserInput): Promise<User> {
+  async createUser(input: CreateUserInput & { id?: string }): Promise<User> {
     return this.create({
+      id: input.id,
       name: input.name,
       email: input.email,
       avatar_url: input.avatarUrl,
