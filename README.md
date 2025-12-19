@@ -28,11 +28,12 @@ A **mobile-first** expense tracking and splitting application built with Next.js
 ### Multi-Currency Support
 - Add expenses in 8 different currencies (ILS, USD, EUR, GBP, JPY, CHF, CAD, AUD)
 - **Currency conversion modes**:
-  - **Off**: View expenses in their original currencies
-  - **Simple**: Convert all expenses using current exchange rates
-  - **Smart**: Convert using historical rates from each expense's date
-- Powered by Frankfurter API (ECB data)
+  - **Original**: View expenses in their original currencies (percentages still calculated accurately via conversion)
+  - **Current Rate**: Convert all expenses using today's exchange rates
+  - **Historical Rate**: Convert using the rate from each expense's date
+- Powered by Frankfurter API (European Central Bank data)
 - Currency preferences stored per user
+- New expenses default to user's display currency
 
 ## Tech Stack
 
@@ -103,7 +104,12 @@ This provides:
    # Copy and paste the contents of supabase/schema.sql
    ```
    
-   c. Run the seed data:
+   c. Run the migrations (for multi-currency support):
+   ```bash
+   # Copy and paste the contents of supabase/migrations/001_add_multi_currency.sql
+   ```
+   
+   d. Run the seed data:
    ```bash
    # Copy and paste the contents of supabase/seed.sql
    ```

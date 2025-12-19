@@ -193,10 +193,16 @@ const createExpense = useMutation({
 const { displayCurrency, conversionMode } = useCurrencyPreferences();
 
 // Convert expenses to display currency
-const { conversions, isConverting } = useConvertedExpenses({ expenses });
+// Always pass conversionMode override for percentage calculations when mode is 'off'
+const { conversions, isConverting } = useConvertedExpenses({ 
+  expenses,
+  conversionMode: conversionMode === 'smart' ? 'smart' : 'simple', // Force conversion for percentages
+});
 
-// Use converted amount
-const amount = conversion?.converted?.amount ?? expense.amount;
+// Use converted amount (only when mode is not 'off')
+const displayAmount = conversionMode !== 'off' && conversion?.converted 
+  ? conversion.converted.amount 
+  : expense.amount;
 
 // Currency service for direct conversions
 await currencyService.fetchCurrentRate('USD', 'ILS');     // Current rate
@@ -204,9 +210,11 @@ await currencyService.fetchHistoricalRate('USD', 'ILS', date);  // Historical
 ```
 
 **Conversion modes:**
-- `off` - Show original currencies
-- `simple` - Use current exchange rate
-- `smart` - Use historical rate from expense date (ECB data via Frankfurter API)
+- `off` (Original) - Show original currencies, but still calculate percentages using current rates
+- `simple` (Current Rate) - Convert all to display currency using today's rate
+- `smart` (Historical Rate) - Convert using rate from expense date (ECB data via Frankfurter API)
+
+**Important:** Percentage calculations ALWAYS convert to display currency for accuracy, even when displaying original currencies. This ensures category breakdowns show meaningful percentages when expenses are in multiple currencies.
 
 ### Forms with Zod
 
@@ -351,6 +359,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 | Add type | `src/lib/types/` |
 | Add currency | `src/lib/constants/currencies.ts` |
 | Currency conversion | `src/lib/services/currency.service.ts` |
+| Currency preferences hook | `src/hooks/queries/use-currency-preferences.ts` |
+| DB migrations | `supabase/migrations/` |
 | Run dev server | `pnpm dev` (port 3333) |
 | Build | `pnpm build` |
 
