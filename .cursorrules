@@ -1,0 +1,306 @@
+# SplitWiser - Cursor AI Rules
+
+## Project Context
+
+You are working on **SplitWiser**, a Next.js expense tracking and splitting application. This is a **proof-of-concept** (POC) with intentional simplifications.
+
+**IMPORTANT**: Always read `ARCHITECTURE.md` first for comprehensive project understanding.
+
+---
+
+## 🔄 Documentation Maintenance (REQUIRED)
+
+**After completing ANY feature, bug fix, or significant change, ALWAYS consider updating documentation:**
+
+### Checklist (ask yourself these questions):
+
+1. **README.md** - Does the feature list, setup instructions, or project description need updating?
+2. **ARCHITECTURE.md** - Did I add new:
+   - Directories or files that should be documented?
+   - Data flows or patterns?
+   - Database tables or relationships?
+   - Services, repositories, or hooks?
+3. **.cursorrules** (this file) - Should I update:
+   - Code conventions or patterns?
+   - POC limitations list?
+   - Quick reference table?
+   - Common tasks section?
+4. **Type definitions** - Are new types documented with JSDoc comments?
+
+### When to Update:
+
+| Change Type | Update Required |
+|-------------|-----------------|
+| New page/route | README (features), ARCHITECTURE (directory structure) |
+| New component pattern | .cursorrules (component patterns) |
+| New service/repository | ARCHITECTURE (layers diagram, data flows) |
+| Database schema change | ARCHITECTURE (schema section), supabase/schema.sql |
+| New environment variable | README, ARCHITECTURE, env.example |
+| Bug fix with learnings | .cursorrules (add to relevant section) |
+| POC limitation removed | .cursorrules (update POC limitations) |
+| New dependency | README (tech stack if major) |
+
+### How to Propose Updates:
+
+At the end of a feature implementation, say:
+> "Feature complete. Based on the changes, I recommend updating [specific docs] with [specific changes]. Should I proceed?"
+
+**Keep documentation in sync with code. Outdated docs are worse than no docs.**
+
+---
+
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router, React 19
+- **Database**: Supabase (PostgreSQL)
+- **State**: TanStack Query v5
+- **UI**: shadcn/ui + Radix UI + Tailwind CSS v4
+- **Forms**: react-hook-form + Zod
+- **Package Manager**: pnpm
+
+## Key Conventions
+
+### File Organization
+
+```
+src/
+├── app/           → Pages (App Router)
+├── components/
+│   ├── ui/        → shadcn primitives (DON'T EDIT DIRECTLY)
+│   ├── common/    → Reusable business components
+│   ├── features/  → Feature-specific components
+│   └── layout/    → App shell, navigation
+├── hooks/queries/ → TanStack Query hooks
+├── lib/
+│   ├── services/  → Business logic
+│   ├── repositories/ → Data access (Supabase)
+│   └── types/     → TypeScript definitions
+└── providers/     → Context providers
+```
+
+### Architecture Pattern
+
+**Always follow the layer pattern:**
+```
+Page → Component → Hook → Service → Repository → Supabase
+```
+
+**Never skip layers** (e.g., don't call repository directly from component).
+
+### Imports
+
+Use path aliases:
+```typescript
+import { Button } from '@/components/ui/button';
+import { expenseService } from '@/lib/services';
+import { useCreateExpense } from '@/hooks/queries';
+import { cn } from '@/lib/utils';
+```
+
+### Component Patterns
+
+1. **Client components** must have `'use client'` directive
+2. **Always handle loading states** with `<LoadingSkeleton />`
+3. **Always handle empty states** with `<EmptyState />`
+4. **Use `cn()` for conditional classes**
+
+```typescript
+'use client';
+
+import { cn } from '@/lib/utils';
+
+export function MyComponent({ variant }: Props) {
+  const { data, isLoading } = useMyQuery();
+  
+  if (isLoading) return <LoadingSkeleton />;
+  if (!data?.length) return <EmptyState />;
+  
+  return (
+    <div className={cn(
+      "base-class",
+      variant === "active" && "active-class"
+    )}>
+      {/* content */}
+    </div>
+  );
+}
+```
+
+### Type Conventions
+
+1. **Domain types** use camelCase: `categoryId`, `groupId`
+2. **Database row types** use snake_case: `category_id`, `group_id`
+3. **Always use transform functions**: `expenseFromRow(row)`
+
+```typescript
+// Domain type
+interface Expense {
+  categoryId: string;
+  date: Date;
+}
+
+// Database row
+interface ExpenseRow {
+  category_id: string;
+  date: string; // ISO string
+}
+
+// Transform (always provided in types file)
+const expense = expenseFromRow(row);
+```
+
+### Query Keys
+
+Always use centralized query keys from `src/hooks/queries/query-keys.ts`:
+
+```typescript
+import { queryKeys } from './query-keys';
+
+// ✅ Correct
+queryKey: queryKeys.expenses.personal(userId)
+
+// ❌ Wrong
+queryKey: ['expenses', 'personal', userId]
+```
+
+### Mutations & Cache Invalidation
+
+**Always invalidate related queries after mutations:**
+
+```typescript
+const createExpense = useMutation({
+  mutationFn: (input) => expenseService.createExpense(input),
+  onSuccess: (expense) => {
+    // Invalidate all related queries
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.expenses.all(expense.createdBy),
+    });
+    if (expense.groupId) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groups.balances(expense.groupId),
+      });
+    }
+  },
+});
+```
+
+### Forms with Zod
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  description: z.string().min(1, 'Required'),
+  amount: z.number().positive('Must be positive'),
+});
+
+type FormData = z.infer<typeof schema>;
+
+const form = useForm<FormData>({
+  resolver: zodResolver(schema),
+  defaultValues: { description: '', amount: 0 },
+});
+```
+
+## POC Limitations (Do NOT Over-Engineer)
+
+The current POC intentionally has these limitations:
+
+1. **No real auth** - Uses mock user selector
+2. **Equal splits only** - No percentage/shares splits yet
+3. **Single currency** - ILS only
+4. **No charts** - Basic summaries only
+
+**Don't add complexity beyond current scope unless explicitly requested.**
+
+## Common Tasks
+
+### Adding a New Feature
+
+1. Add types in `src/lib/types/`
+2. Add repository methods in `src/lib/repositories/`
+3. Add service logic in `src/lib/services/`
+4. Add query hooks in `src/hooks/queries/`
+5. Add UI components in `src/components/`
+
+### Adding shadcn Component
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+### Database Changes
+
+1. Update `supabase/schema.sql`
+2. Run SQL in Supabase dashboard
+3. Update TypeScript types
+4. Update repository/service
+
+## Code Quality
+
+- Use TypeScript strictly (no `any`)
+- Format with Prettier
+- Follow existing patterns in codebase
+- Keep components focused and small
+- Prefer composition over inheritance
+- Use semantic HTML elements
+
+## Testing Approach
+
+Test manually using:
+1. Switch between mock users via header dropdown
+2. Test personal expense flow
+3. Test group expense flow
+4. Verify balance calculations
+
+## Error Handling
+
+```typescript
+// In services
+async getExpense(id: string): Promise<Expense | null> {
+  try {
+    return await this.repository.findById(id);
+  } catch (error) {
+    console.error('Failed to get expense:', error);
+    throw error; // Let UI handle
+  }
+}
+
+// In components
+const { error } = useQuery(...);
+if (error) {
+  toast.error('Failed to load data');
+}
+```
+
+## Styling Notes
+
+- Use Tailwind CSS v4 with CSS variables
+- Colors defined in `src/app/globals.css`
+- Dark mode supported via `.dark` class
+- Mobile-first responsive design
+- Use `safe-area-inset-*` for notched devices
+
+## Environment Variables
+
+Required in `.env.local`:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+```
+
+## Quick Reference
+
+| Task | Location |
+|------|----------|
+| Add page | `src/app/[route]/page.tsx` |
+| Add component | `src/components/[category]/` |
+| Add query hook | `src/hooks/queries/` |
+| Add service method | `src/lib/services/` |
+| Add repository method | `src/lib/repositories/` |
+| Add type | `src/lib/types/` |
+| Run dev server | `pnpm dev` (port 3333) |
+| Build | `pnpm build` |
+

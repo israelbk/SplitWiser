@@ -1,0 +1,181 @@
+{
+  "folders": [
+    {
+      "name": "📱 SplitWiser",
+      "path": "."
+    }
+  ],
+  "settings": {
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    
+    // TypeScript
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    
+    // Files
+    "files.associations": {
+      "*.css": "tailwindcss"
+    },
+    "files.exclude": {
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/.vercel": true
+    },
+    
+    // Search exclusions
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/pnpm-lock.yaml": true,
+      "**/.vercel": true
+    },
+    
+    // Tailwind CSS
+    "tailwindCSS.experimental.classRegex": [
+      ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+      ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    ],
+    "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript"
+    },
+    
+    // ESLint
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact"
+    ],
+    
+    // Emmet
+    "emmet.includeLanguages": {
+      "javascript": "javascriptreact",
+      "typescript": "typescriptreact"
+    },
+    
+    // Terminal
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.env.osx": {
+      "NODE_ENV": "development"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      // Essential
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      
+      // TypeScript/React
+      "dsznajder.es7-react-js-snippets",
+      "formulahendry.auto-rename-tag",
+      "naumovs.color-highlight",
+      
+      // Git
+      "eamodio.gitlens",
+      "mhutchie.git-graph",
+      
+      // Utilities
+      "christian-kohler.path-intellisense",
+      "mikestead.dotenv",
+      
+      // AI
+      "github.copilot"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "🚀 Dev Server",
+        "type": "shell",
+        "command": "pnpm dev",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "isBackground": true,
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "🔨 Build",
+        "type": "shell",
+        "command": "pnpm build",
+        "problemMatcher": ["$tsc"],
+        "presentation": {
+          "reveal": "always"
+        },
+        "group": "build"
+      },
+      {
+        "label": "🧹 Lint",
+        "type": "shell",
+        "command": "pnpm lint",
+        "problemMatcher": ["$eslint-stylish"],
+        "presentation": {
+          "reveal": "always"
+        }
+      },
+      {
+        "label": "📦 Install Dependencies",
+        "type": "shell",
+        "command": "pnpm install",
+        "problemMatcher": []
+      },
+      {
+        "label": "🔄 Reset & Reinstall",
+        "type": "shell",
+        "command": "rm -rf node_modules .next && pnpm install",
+        "problemMatcher": []
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Next.js: debug server-side",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "pnpm dev"
+      },
+      {
+        "name": "Next.js: debug client-side",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3333"
+      },
+      {
+        "name": "Next.js: debug full stack",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "pnpm dev",
+        "serverReadyAction": {
+          "pattern": "- Local:.+(https?://.+)",
+          "uriFormat": "%s",
+          "action": "debugWithChrome"
+        }
+      }
+    ]
+  }
+}
+
