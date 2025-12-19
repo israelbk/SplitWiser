@@ -12,4 +12,5 @@ export * from './expense-form';
 export * from './empty-state';
 export * from './loading-skeleton';
 export * from './balance-display';
+export * from './split-config';
 

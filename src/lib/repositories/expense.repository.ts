@@ -102,7 +102,7 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
   /**
    * Create an expense with contributions and splits
-   * For POC: single payer, equal split
+   * Supports both simple mode (paidById + splitAmongUserIds) and advanced mode (splitConfig)
    */
   async createExpense(input: CreateExpenseInput): Promise<Expense> {
     // Create the expense
@@ -127,22 +127,48 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
     const expense = this.fromRow(expenseData as ExpenseRow);
 
-    // Create contribution (who paid)
-    await this.createContribution({
-      expense_id: expense.id,
-      user_id: input.paidById,
-      amount: input.amount,
-    });
+    // Check if using advanced split configuration
+    if (input.splitConfig) {
+      // Advanced mode: use full split configuration
+      const { payments, splits, splitType } = input.splitConfig;
 
-    // Create splits (who owes)
-    const splitAmount = input.amount / input.splitAmongUserIds.length;
-    for (const userId of input.splitAmongUserIds) {
-      await this.createSplit({
+      // Create contributions (who paid)
+      for (const payment of payments) {
+        await this.createContribution({
+          expense_id: expense.id,
+          user_id: payment.userId,
+          amount: payment.amount,
+        });
+      }
+
+      // Create splits (who owes)
+      for (const split of splits) {
+        await this.createSplit({
+          expense_id: expense.id,
+          user_id: split.userId,
+          amount: split.amount,
+          split_type: splitType,
+          percentage: split.percentage,
+          shares: split.shares,
+        });
+      }
+    } else if (input.paidById && input.splitAmongUserIds) {
+      // Simple mode: single payer, equal split (legacy/personal expenses)
+      await this.createContribution({
         expense_id: expense.id,
-        user_id: userId,
-        amount: splitAmount,
-        split_type: 'equal',
+        user_id: input.paidById,
+        amount: input.amount,
       });
+
+      const splitAmount = input.amount / input.splitAmongUserIds.length;
+      for (const userId of input.splitAmongUserIds) {
+        await this.createSplit({
+          expense_id: expense.id,
+          user_id: userId,
+          amount: splitAmount,
+          split_type: 'equal',
+        });
+      }
     }
 
     return expense;

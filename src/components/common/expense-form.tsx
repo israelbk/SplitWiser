@@ -3,8 +3,10 @@
 /**
  * Expense form component
  * Reusable form for creating/editing expenses
+ * Supports both personal expenses and group expenses with split configuration
  */
 
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,8 +24,9 @@ import {
 import { CategoryPicker } from './category-picker';
 import { AmountInput } from './amount-input';
 import { DatePicker } from './date-picker';
+import { SplitConfig } from './split-config';
 import { DEFAULT_CATEGORY_ID } from '@/lib/constants';
-import { Expense } from '@/lib/types';
+import { Expense, User, SplitConfiguration } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 const expenseSchema = z.object({
@@ -36,14 +39,21 @@ const expenseSchema = z.object({
 
 type ExpenseFormData = z.infer<typeof expenseSchema>;
 
+export interface ExpenseFormSubmitData extends ExpenseFormData {
+  splitConfig?: SplitConfiguration;
+}
+
 interface ExpenseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: ExpenseFormData) => void;
+  onSubmit: (data: ExpenseFormSubmitData) => void;
   expense?: Partial<Expense>;
   title?: string;
   description?: string;
   isLoading?: boolean;
+  // Group expense props
+  groupMembers?: User[];
+  currentUserId?: string;
 }
 
 export function ExpenseForm({
@@ -54,7 +64,11 @@ export function ExpenseForm({
   title = 'Add Expense',
   description = 'Enter the details of your expense.',
   isLoading = false,
+  groupMembers,
+  currentUserId,
 }: ExpenseFormProps) {
+  const isGroupExpense = !!groupMembers && groupMembers.length > 0 && !!currentUserId;
+  
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -66,21 +80,49 @@ export function ExpenseForm({
     },
   });
 
-  const handleSubmit = (data: ExpenseFormData) => {
-    onSubmit(data);
-  };
+  // Split configuration state for group expenses
+  const [splitConfig, setSplitConfig] = useState<SplitConfiguration | undefined>(undefined);
 
-  // Reset form when dialog opens with new expense
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
+  // Reset form when expense prop changes (for edit mode) or when dialog opens
+  useEffect(() => {
+    if (open) {
+      const initialAmount = expense?.amount || 0;
       form.reset({
         description: expense?.description || '',
-        amount: expense?.amount || 0,
+        amount: initialAmount,
         categoryId: expense?.categoryId || DEFAULT_CATEGORY_ID,
         date: expense?.date || new Date(),
         notes: expense?.notes || '',
       });
+      
+      // Reset split config for group expenses
+      if (isGroupExpense && groupMembers && currentUserId) {
+        const perPerson = initialAmount / groupMembers.length;
+        setSplitConfig({
+          payments: [{ userId: currentUserId, amount: initialAmount }],
+          splitType: 'equal',
+          splits: groupMembers.map(m => ({
+            userId: m.id,
+            amount: perPerson,
+          })),
+        });
+      } else {
+        setSplitConfig(undefined);
+      }
     }
+  }, [open, expense, form, isGroupExpense, groupMembers, currentUserId]);
+
+  // Watch the amount for reactive updates
+  const watchedAmount = form.watch('amount');
+
+  const handleSubmit = (data: ExpenseFormData) => {
+    onSubmit({
+      ...data,
+      splitConfig: isGroupExpense ? splitConfig : undefined,
+    });
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
   };
 
@@ -98,8 +140,8 @@ export function ExpenseForm({
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
               <AmountInput
-                value={form.watch('amount')}
-                onChange={(value) => form.setValue('amount', value)}
+                value={watchedAmount}
+                onChange={(value) => form.setValue('amount', value, { shouldDirty: true })}
               />
               {form.formState.errors.amount && (
                 <p className="text-sm text-destructive">
@@ -160,6 +202,20 @@ export function ExpenseForm({
                 {...form.register('notes')}
               />
             </div>
+
+            {/* Split Configuration (for group expenses) */}
+            {isGroupExpense && groupMembers && currentUserId && (
+              <div className="space-y-2">
+                <Label>Split</Label>
+                <SplitConfig
+                  amount={watchedAmount}
+                  currentUserId={currentUserId}
+                  members={groupMembers}
+                  value={splitConfig}
+                  onChange={setSplitConfig}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

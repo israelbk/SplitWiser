@@ -14,6 +14,7 @@ type ExpenseType = ExpenseWithDetails | UnifiedExpense;
 interface ExpenseListProps<T extends ExpenseType> {
   expenses: T[] | undefined;
   isLoading: boolean;
+  onClick?: (expense: T) => void;
   onEdit?: (expense: T) => void;
   onDelete?: (expense: T) => void;
   showPayer?: boolean;
@@ -26,6 +27,7 @@ interface ExpenseListProps<T extends ExpenseType> {
 export function ExpenseList<T extends ExpenseType>({
   expenses,
   isLoading,
+  onClick,
   onEdit,
   onDelete,
   showPayer = false,
@@ -62,6 +64,7 @@ export function ExpenseList<T extends ExpenseType>({
         <ExpenseCard
           key={expense.id}
           expense={expense}
+          onClick={onClick ? () => onClick(expense) : undefined}
           onEdit={onEdit ? () => onEdit(expense) : undefined}
           onDelete={onDelete ? () => onDelete(expense) : undefined}
           showPayer={showPayer}

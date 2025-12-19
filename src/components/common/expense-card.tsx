@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 
 interface ExpenseCardProps {
   expense: ExpenseWithDetails | UnifiedExpense;
+  onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   showPayer?: boolean;
@@ -38,6 +39,7 @@ function isUnifiedExpense(expense: ExpenseWithDetails | UnifiedExpense): expense
 
 export function ExpenseCard({
   expense,
+  onClick,
   onEdit,
   onDelete,
   showPayer = false,
@@ -53,12 +55,17 @@ export function ExpenseCard({
   const isGroupExpense = unified ? !expense.isPersonal : !!expense.groupId;
   const groupName = unified ? expense.groupName : undefined;
 
+  const handleCardClick = () => {
+    onClick?.();
+  };
+
   return (
     <Card
       className={cn(
         'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
         className
       )}
+      onClick={handleCardClick}
     >
       <div className="flex items-center gap-3">
         {/* Category Icon */}
@@ -100,25 +107,25 @@ export function ExpenseCard({
                 </span>
               </>
             )}
-            {showUserShare && isGroupExpense && (
-              <>
-                <span>•</span>
-                <span className="text-xs">
-                  Total: {formatCurrency(expense.amount, expense.currency)}
-                </span>
-              </>
-            )}
           </div>
         </div>
 
         {/* Amount */}
         <div className="flex-shrink-0 text-right">
-          <div className="font-semibold">
-            {showUserShare && isGroupExpense && (
-              <span className="text-xs text-muted-foreground mr-1">Your share:</span>
-            )}
-            {formatCurrency(displayAmount, expense.currency)}
-          </div>
+          {showUserShare && isGroupExpense ? (
+            <>
+              <div className="font-semibold text-primary">
+                {formatCurrency(displayAmount, expense.currency)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {Math.round((displayAmount / expense.amount) * 100)}% of {formatCurrency(expense.amount, expense.currency)}
+              </div>
+            </>
+          ) : (
+            <div className="font-semibold">
+              {formatCurrency(displayAmount, expense.currency)}
+            </div>
+          )}
           {expense.category && (
             <CategoryBadge category={expense.category} size="sm" showIcon={false} />
           )}
@@ -128,20 +135,25 @@ export function ExpenseCard({
         {(onEdit || onDelete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onEdit && (
-                <DropdownMenuItem onClick={onEdit}>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </DropdownMenuItem>
               )}
               {onDelete && (
                 <DropdownMenuItem
-                  onClick={onDelete}
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />

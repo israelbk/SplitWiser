@@ -59,6 +59,29 @@ export interface RecurrenceRule {
   endDate?: Date;
 }
 
+// Payment configuration - who paid and how much
+export interface PaymentEntry {
+  userId: string;
+  amount: number;
+}
+
+// Split configuration - who owes and how much
+export interface SplitEntry {
+  userId: string;
+  amount: number;       // Calculated final amount
+  percentage?: number;  // If split type is percentage
+  shares?: number;      // If split type is shares
+}
+
+// Full split configuration for group expenses
+export interface SplitConfiguration {
+  // Payment: who paid
+  payments: PaymentEntry[];
+  // Split: who owes
+  splitType: SplitType;
+  splits: SplitEntry[];
+}
+
 // Input types for creating/updating
 export interface CreateExpenseInput {
   description: string;
@@ -69,10 +92,11 @@ export interface CreateExpenseInput {
   date: Date;
   createdBy: string;
   notes?: string;
-  // For POC: single payer (full amount)
-  paidById: string;
-  // For POC: equal split among these users (or just the payer for personal)
-  splitAmongUserIds: string[];
+  // Simple mode (legacy): single payer, equal split
+  paidById?: string;
+  splitAmongUserIds?: string[];
+  // Advanced mode: full configuration
+  splitConfig?: SplitConfiguration;
 }
 
 export interface UpdateExpenseInput {

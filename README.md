@@ -1,6 +1,8 @@
 # SplitWiser
 
-A modern expense tracking and splitting application built with Next.js, combining personal expense management with group expense splitting capabilities.
+A **mobile-first** expense tracking and splitting application built with Next.js, combining personal expense management with group expense splitting capabilities.
+
+> **📱 Mobile-First**: This app is designed primarily for mobile use, with responsive desktop support. All UI decisions prioritize the mobile experience.
 
 > **🤖 For AI Assistants**: See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for comprehensive technical documentation and [`/.cursorrules`](./.cursorrules) for coding guidelines.
 
@@ -20,11 +22,13 @@ A modern expense tracking and splitting application built with Next.js, combinin
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **UI Components**: shadcn/ui + Tailwind CSS
+- **Framework**: Next.js 16 (App Router), React 19
+- **UI Components**: shadcn/ui + Radix UI + Tailwind CSS v4
 - **Database**: Supabase (PostgreSQL)
-- **State Management**: TanStack Query (React Query)
+- **State Management**: TanStack Query v5
+- **Forms**: react-hook-form + Zod
 - **Deployment**: Vercel
+- **Design**: Mobile-first responsive design with safe area support
 
 ## Quick Start (Development)
 

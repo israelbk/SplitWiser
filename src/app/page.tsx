@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout';
 import { ExpenseForm } from '@/components/common';
 import {
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function AllExpensesPage() {
+  const router = useRouter();
   const { currentUser } = useCurrentUser();
   const { data: expenses, isLoading } = useAllExpenses(currentUser?.id);
   const createExpense = useCreateExpense();
@@ -91,6 +93,18 @@ export default function AllExpensesPage() {
       return true;
     });
   }, [expenses, filters]);
+
+  // Handle clicking on an expense card
+  const handleExpenseClick = (expense: UnifiedExpense) => {
+    if (expense.isPersonal) {
+      // Personal expense - open edit modal with pre-filled data
+      setEditingExpense(expense);
+      setIsFormOpen(true);
+    } else if (expense.groupId) {
+      // Group expense - navigate to the group page
+      router.push(`/groups/${expense.groupId}`);
+    }
+  };
 
   const handleAddExpense = () => {
     setEditingExpense(null);
@@ -211,6 +225,7 @@ export default function AllExpensesPage() {
         <ExpenseList
           expenses={filteredExpenses}
           isLoading={isLoading}
+          onClick={handleExpenseClick}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
           onAddClick={handleAddExpense}

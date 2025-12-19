@@ -73,6 +73,7 @@ export default function GroupDetailPage() {
     categoryId: string;
     date: Date;
     notes?: string;
+    splitConfig?: import('@/lib/types').SplitConfiguration;
   }) => {
     if (!currentUser || !group) return;
 
@@ -90,20 +91,33 @@ export default function GroupDetailPage() {
         });
         toast.success('Expense updated');
       } else {
-        // Get all member IDs for equal split
-        const memberIds = group.members.map((m) => m.userId);
-
-        await createExpense.mutateAsync({
-          description: data.description,
-          amount: data.amount,
-          categoryId: data.categoryId,
-          date: data.date,
-          notes: data.notes,
-          groupId: groupId,
-          createdBy: currentUser.id,
-          paidById: currentUser.id, // Current user paid
-          splitAmongUserIds: memberIds, // Split among all members
-        });
+        // Use split config if provided (advanced mode), otherwise fallback to simple mode
+        if (data.splitConfig) {
+          await createExpense.mutateAsync({
+            description: data.description,
+            amount: data.amount,
+            categoryId: data.categoryId,
+            date: data.date,
+            notes: data.notes,
+            groupId: groupId,
+            createdBy: currentUser.id,
+            splitConfig: data.splitConfig,
+          });
+        } else {
+          // Fallback: simple mode with equal split
+          const memberIds = group.members.map((m) => m.userId);
+          await createExpense.mutateAsync({
+            description: data.description,
+            amount: data.amount,
+            categoryId: data.categoryId,
+            date: data.date,
+            notes: data.notes,
+            groupId: groupId,
+            createdBy: currentUser.id,
+            paidById: currentUser.id,
+            splitAmongUserIds: memberIds,
+          });
+        }
         toast.success('Expense added');
       }
       setIsFormOpen(false);
@@ -217,6 +231,7 @@ export default function GroupDetailPage() {
             <ExpenseList
               expenses={expenses}
               isLoading={expensesLoading}
+              onClick={handleEditExpense}
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
               showPayer={true}
@@ -239,8 +254,10 @@ export default function GroupDetailPage() {
         onSubmit={handleFormSubmit}
         expense={editingExpense ?? undefined}
         title={editingExpense ? 'Edit Expense' : 'Add Group Expense'}
-        description="This expense will be split equally among all group members."
+        description={editingExpense ? 'Update the expense details.' : 'Configure who paid and how to split.'}
         isLoading={createExpense.isPending || updateExpense.isPending}
+        groupMembers={group?.members.map(m => m.user).filter((u): u is NonNullable<typeof u> => !!u)}
+        currentUserId={currentUser?.id}
       />
 
       {/* Delete Confirmation Dialog */}
