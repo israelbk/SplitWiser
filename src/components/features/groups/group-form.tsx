@@ -5,7 +5,7 @@
  * Create/edit group dialog
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,12 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useUsers } from '@/hooks/queries';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { UserAvatar } from '@/components/common';
-import { Group, GroupType } from '@/lib/types';
+import { MemberPicker } from '@/components/common';
+import { Group, GroupMember, GroupType, User } from '@/lib/types';
 import { Loader2, Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
+
+// Extended Group type that includes populated members (from GroupWithMembers)
+interface GroupWithPopulatedMembers extends Partial<Group> {
+  members?: (GroupMember & { user: User })[];
+}
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -47,7 +50,7 @@ interface GroupFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: GroupFormData) => void;
-  group?: Partial<Group>;
+  group?: GroupWithPopulatedMembers;
   title?: string;
   description?: string;
   isLoading?: boolean;
@@ -70,7 +73,9 @@ export function GroupForm({
   isLoading = false,
 }: GroupFormProps) {
   const { currentUser } = useCurrentUser();
-  const { data: users } = useUsers();
+  
+  // Track selected member IDs separately for the MemberPicker
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
   const form = useForm<GroupFormData>({
     resolver: zodResolver(groupSchema),
@@ -82,47 +87,52 @@ export function GroupForm({
     },
   });
 
-  const selectedMemberIds = form.watch('memberIds');
+  // Extract users from populated members
+  const existingMemberUsers = useMemo(() => {
+    if (!group?.members) return [];
+    return group.members
+      .filter(m => m.user)
+      .map(m => m.user);
+  }, [group?.members]);
 
-  // Ensure current user is always included in memberIds when available
+  // Initialize selected members when dialog opens
   useEffect(() => {
-    if (currentUser && open) {
-      const currentMemberIds = form.getValues('memberIds');
-      if (!currentMemberIds.includes(currentUser.id)) {
-        form.setValue('memberIds', [currentUser.id, ...currentMemberIds]);
+    if (open && currentUser) {
+      const initialIds = group?.members?.map(m => m.userId) || [currentUser.id];
+      // Ensure current user is always included
+      if (!initialIds.includes(currentUser.id)) {
+        initialIds.unshift(currentUser.id);
       }
+      setSelectedMemberIds(initialIds);
+      form.setValue('memberIds', initialIds);
     }
-  }, [currentUser, open, form]);
+  }, [open, currentUser, group, form]);
+
+  // Sync memberIds with form when selection changes
+  const handleMemberSelectionChange = (ids: string[]) => {
+    setSelectedMemberIds(ids);
+    form.setValue('memberIds', ids);
+  };
 
   const handleSubmit = (data: GroupFormData) => {
     onSubmit(data);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    // Reset form when opening or closing
-    if (currentUser) {
-      form.reset({
-        name: group?.name || '',
-        description: group?.description || '',
-        type: (group?.type as GroupType) || 'trip',
-        memberIds: [currentUser.id],
-      });
+    if (!newOpen) {
+      // Reset form when closing
+      if (currentUser) {
+        const defaultIds = [currentUser.id];
+        form.reset({
+          name: '',
+          description: '',
+          type: 'trip',
+          memberIds: defaultIds,
+        });
+        setSelectedMemberIds(defaultIds);
+      }
     }
     onOpenChange(newOpen);
-  };
-
-  const toggleMember = (userId: string) => {
-    const current = form.getValues('memberIds');
-    if (current.includes(userId)) {
-      // Don't allow removing the current user
-      if (userId === currentUser?.id) return;
-      form.setValue(
-        'memberIds',
-        current.filter((id) => id !== userId)
-      );
-    } else {
-      form.setValue('memberIds', [...current, userId]);
-    }
   };
 
   return (
@@ -189,32 +199,14 @@ export function GroupForm({
             {/* Members */}
             <div className="space-y-2">
               <Label>Members</Label>
-              <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
-                {users?.map((user) => {
-                  const isSelected = selectedMemberIds.includes(user.id);
-                  const isCurrentUser = user.id === currentUser?.id;
-
-                  return (
-                    <label
-                      key={user.id}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={isCurrentUser}
-                        onCheckedChange={() => toggleMember(user.id)}
-                      />
-                      <UserAvatar user={user} size="sm" />
-                      <span className="flex-1 text-sm">
-                        {user.name}
-                        {isCurrentUser && (
-                          <span className="text-muted-foreground ml-1">(you)</span>
-                        )}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
+              {currentUser && (
+                <MemberPicker
+                  currentUser={currentUser}
+                  selectedIds={selectedMemberIds}
+                  onSelectionChange={handleMemberSelectionChange}
+                  existingMembers={existingMemberUsers}
+                />
+              )}
               {form.formState.errors.memberIds && (
                 <p className="text-sm text-destructive">
                   {form.formState.errors.memberIds.message}

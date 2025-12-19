@@ -25,6 +25,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const [viewingAs, setViewingAsState] = useState<User | null>(null);
 
   // Get or create user record with timeout
+  // This also handles linking shadow users when they sign up
   const getOrCreateUser = async (session: Session): Promise<User | null> => {
     const authUserInfo = authService.extractAuthUser(session.user);
     console.log('[Auth] getOrCreateUser for:', authUserInfo.email);
@@ -35,23 +36,25 @@ export function UserProvider({ children }: UserProviderProps) {
         setTimeout(() => reject(new Error('Timeout fetching user')), 5000)
       );
       
-      const userPromise = userService.getUserById(authUserInfo.id);
+      // First, try to find user by auth ID (returning user)
+      const userPromise = userService.getUserByAuthId(authUserInfo.id);
       let user = await Promise.race([userPromise, timeoutPromise]);
       
-      console.log('[Auth] getUserById result:', user ? 'found' : 'not found');
+      console.log('[Auth] getUserByAuthId result:', user ? 'found' : 'not found');
       
       if (!user) {
-        console.log('[Auth] Creating new user...');
-        const createPromise = userService.createUser({
-          id: authUserInfo.id,
-          name: authUserInfo.name,
-          email: authUserInfo.email,
-          avatarUrl: authUserInfo.avatarUrl,
-          avatarColor: authService.generateAvatarColor(),
-        } as Parameters<typeof userService.createUser>[0] & { id: string });
+        // No user with this auth ID - check if there's a shadow user with this email
+        console.log('[Auth] Checking for shadow user with email:', authUserInfo.email);
         
-        user = await Promise.race([createPromise, timeoutPromise]);
-        console.log('[Auth] User created:', user?.email);
+        const linkPromise = userService.linkShadowUser(
+          authUserInfo.email,
+          authUserInfo.id,
+          authUserInfo.name,
+          authUserInfo.avatarUrl
+        );
+        
+        user = await Promise.race([linkPromise, timeoutPromise]);
+        console.log('[Auth] User linked/created:', user?.email, user?.isShadow ? '(was shadow)' : '(new)');
       }
       
       return user;

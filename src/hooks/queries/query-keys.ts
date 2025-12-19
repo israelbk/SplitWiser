@@ -8,6 +8,8 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     detail: (id: string) => ['users', id] as const,
+    contacts: (userId: string) => ['users', 'contacts', userId] as const,
+    shadowUsers: (userId: string) => ['users', 'shadow', userId] as const,
   },
 
   // Categories

@@ -4,11 +4,12 @@
  */
 
 import { userRepository, UserRepository } from '../repositories';
-import { 
-  User, 
-  CreateUserInput, 
-  UpdateUserInput,
+import {
+  CreateShadowUserInput,
+  CreateUserInput,
   UpdateCurrencyPreferencesInput,
+  UpdateUserInput,
+  User,
 } from '../types';
 import { CurrencyPreferences, DEFAULT_CURRENCY_PREFERENCES } from '../types/currency';
 
@@ -86,6 +87,71 @@ export class UserService {
     preferences: UpdateCurrencyPreferencesInput
   ): Promise<User> {
     return this.repository.updateCurrencyPreferences(userId, preferences);
+  }
+
+  // ============================================================================
+  // Shadow User Methods
+  // ============================================================================
+
+  /**
+   * Get user by auth ID (Supabase auth)
+   */
+  async getUserByAuthId(authId: string): Promise<User | null> {
+    return this.repository.findByAuthId(authId);
+  }
+
+  /**
+   * Create a shadow user (invited by email, hasn't signed up yet)
+   * If user already exists with this email, returns existing user
+   */
+  async createShadowUser(input: CreateShadowUserInput): Promise<User> {
+    // Check if user already exists with this email
+    const existingUser = await this.repository.findByEmail(input.email);
+    if (existingUser) {
+      return existingUser;
+    }
+    
+    return this.repository.createShadowUser(input);
+  }
+
+  /**
+   * Get or create a user by email
+   * If user exists, returns them. Otherwise creates a shadow user.
+   */
+  async getOrCreateUserByEmail(email: string, invitedBy: string, name?: string): Promise<User> {
+    const existingUser = await this.repository.findByEmail(email);
+    if (existingUser) {
+      return existingUser;
+    }
+    
+    return this.repository.createShadowUser({
+      email,
+      name,
+      invitedBy,
+    });
+  }
+
+  /**
+   * Get users the current user can add to groups (contacts)
+   * These are users they've been in groups with before
+   */
+  async getContactableUsers(userId: string): Promise<User[]> {
+    return this.repository.getContactableUsers(userId);
+  }
+
+  /**
+   * Get shadow users created by a specific user
+   */
+  async getShadowUsersCreatedBy(userId: string): Promise<User[]> {
+    return this.repository.getShadowUsersCreatedBy(userId);
+  }
+
+  /**
+   * Link a shadow user to an auth account when they sign up
+   * This transfers all expenses and group memberships to the authenticated account
+   */
+  async linkShadowUser(email: string, authId: string, name?: string, avatarUrl?: string): Promise<User> {
+    return this.repository.linkShadowUser(email, authId, name, avatarUrl);
   }
 }
 
