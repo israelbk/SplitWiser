@@ -2,6 +2,8 @@
 
 A modern expense tracking and splitting application built with Next.js, combining personal expense management with group expense splitting capabilities.
 
+> **🤖 For AI Assistants**: See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for comprehensive technical documentation and [`/.cursorrules`](./.cursorrules) for coding guidelines.
+
 ## Features
 
 ### Personal Expenses
@@ -24,7 +26,36 @@ A modern expense tracking and splitting application built with Next.js, combinin
 - **State Management**: TanStack Query (React Query)
 - **Deployment**: Vercel
 
-## Getting Started
+## Quick Start (Development)
+
+```bash
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp env.example .env.local
+# Edit .env.local with your Supabase credentials
+
+# Run development server
+pnpm dev
+# → http://localhost:3333
+```
+
+### VS Code Workspace
+
+For the best development experience, open the workspace file:
+
+```bash
+code splitwiser.code-workspace
+```
+
+This provides:
+- Pre-configured tasks (⌘+⇧+B to build)
+- Recommended extensions
+- Debug configurations
+- Tailwind CSS IntelliSense
+
+## Getting Started (Full Setup)
 
 ### Prerequisites
 
@@ -134,6 +165,25 @@ The architecture is ready for:
 - [ ] Custom categories
 - [ ] Multi-currency support
 - [ ] Receipt scanning
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [`README.md`](./README.md) | Project overview and setup |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Technical architecture, layers, patterns |
+| [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Vercel deployment guide |
+| [`.cursorrules`](./.cursorrules) | AI coding assistant guidelines |
+| [`supabase/schema.sql`](./supabase/schema.sql) | Database schema |
+
+## Scripts
+
+```bash
+pnpm dev          # Start dev server (port 3333)
+pnpm build        # Production build
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
+```
 
 ## License
 

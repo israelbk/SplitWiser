@@ -60,3 +60,43 @@ logs
 *.tmp
 *.temp
 .cache/
+
+# Cursor AI
+.cursorignore
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Environment check files
+.env.check
+
+# Lock files (keep pnpm-lock.yaml, ignore others)
+package-lock.json
+yarn.lock
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Turbo
+.turbo
+
+# PWA generated files
+public/sw.js
+public/workbox-*.js
