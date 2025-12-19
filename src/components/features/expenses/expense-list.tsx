@@ -5,8 +5,9 @@
  * Displays a list of expenses with optional filtering
  */
 
+import { EmptyState, ExpenseCard, ExpenseListSkeleton } from '@/components/common';
 import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
-import { ExpenseCard, EmptyState, ExpenseListSkeleton } from '@/components/common';
+import { ConversionMode, ConvertedAmount } from '@/lib/types';
 import { Receipt } from 'lucide-react';
 
 type ExpenseType = ExpenseWithDetails | UnifiedExpense;
@@ -22,6 +23,9 @@ interface ExpenseListProps<T extends ExpenseType> {
   emptyTitle?: string;
   emptyDescription?: string;
   onAddClick?: () => void;
+  // Currency conversion props
+  conversions?: Map<string, ConvertedAmount>;
+  conversionMode?: ConversionMode;
 }
 
 export function ExpenseList<T extends ExpenseType>({
@@ -35,6 +39,8 @@ export function ExpenseList<T extends ExpenseType>({
   emptyTitle = 'No expenses yet',
   emptyDescription = 'Add your first expense to start tracking.',
   onAddClick,
+  conversions,
+  conversionMode = 'off',
 }: ExpenseListProps<T>) {
   if (isLoading) {
     return <ExpenseListSkeleton count={5} />;
@@ -60,17 +66,22 @@ export function ExpenseList<T extends ExpenseType>({
 
   return (
     <div className="space-y-2">
-      {expenses.map((expense) => (
-        <ExpenseCard
-          key={expense.id}
-          expense={expense}
-          onClick={onClick ? () => onClick(expense) : undefined}
-          onEdit={onEdit ? () => onEdit(expense) : undefined}
-          onDelete={onDelete ? () => onDelete(expense) : undefined}
-          showPayer={showPayer}
-          showUserShare={showUserShare}
-        />
-      ))}
+      {expenses.map((expense) => {
+        const conversion = conversions?.get(expense.id);
+        return (
+          <ExpenseCard
+            key={expense.id}
+            expense={expense}
+            onClick={onClick ? () => onClick(expense) : undefined}
+            onEdit={onEdit ? () => onEdit(expense) : undefined}
+            onDelete={onDelete ? () => onDelete(expense) : undefined}
+            showPayer={showPayer}
+            showUserShare={showUserShare}
+            conversion={conversion}
+            conversionMode={conversionMode}
+          />
+        );
+      })}
     </div>
   );
 }

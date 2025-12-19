@@ -38,10 +38,8 @@ SplitWiser is a **proof-of-concept** expense tracking and splitting app built wi
 ### POC Limitations (intentional simplifications)
 
 1. **No Authentication** - Mock user selector dropdown instead of real auth
-2. **Equal Splits Only** - Expenses split equally among all group members
-3. **Single Currency** - ILS (Israeli Shekel) only
-4. **No Charts** - Basic summary only
-5. **No Recurring Expenses** - Schema ready, UI not implemented
+2. **No Charts** - Basic summary only
+3. **No Recurring Expenses** - Schema ready, UI not implemented
 
 ---
 
@@ -69,6 +67,7 @@ SplitWiser is a **proof-of-concept** expense tracking and splitting app built wi
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  useAllExpenses, useGroupExpenses, useCreateExpense   │  │
 │  │  useGroups, useCreateGroup, useGroupBalances          │  │
+│  │  useCurrencyPreferences, useConvertedExpenses         │  │
 │  │  useCategories, useUsers                              │  │
 │  └───────────────────────────────────────────────────────┘  │
 │        TanStack Query: Caching, Mutations, Invalidation      │
@@ -81,6 +80,7 @@ SplitWiser is a **proof-of-concept** expense tracking and splitting app built wi
 │  │  expenseService  - Business logic for expenses        │  │
 │  │  groupService    - Groups and membership              │  │
 │  │  balanceService  - Balance calculation & debt         │  │
+│  │  currencyService - Exchange rates & conversion        │  │
 │  │  categoryService - Expense categories                 │  │
 │  │  userService     - User management                    │  │
 │  └───────────────────────────────────────────────────────┘  │
@@ -93,6 +93,7 @@ SplitWiser is a **proof-of-concept** expense tracking and splitting app built wi
 │  │  BaseRepository - Generic CRUD operations             │  │
 │  │  ExpenseRepository - Expense + contributions + splits │  │
 │  │  GroupRepository - Groups + members                   │  │
+│  │  CurrencyRepository - Exchange rate caching           │  │
 │  │  CategoryRepository, UserRepository                   │  │
 │  └───────────────────────────────────────────────────────┘  │
 │              Supabase client (src/config/supabase.ts)        │
@@ -125,7 +126,9 @@ src/
 │   ├── common/                  # Reusable business components
 │   │   ├── expense-card.tsx    # Single expense display
 │   │   ├── expense-form.tsx    # Add/edit expense modal
+│   │   ├── split-config.tsx    # Payment & split configuration (Sheet)
 │   │   ├── category-picker.tsx # Category selector
+│   │   ├── currency-picker.tsx # Currency selector with priority
 │   │   ├── date-picker.tsx     # Calendar date picker
 │   │   ├── amount-input.tsx    # Currency-formatted input
 │   │   ├── user-avatar.tsx     # User initials/avatar
@@ -145,7 +148,8 @@ src/
 │   │
 │   └── layout/                 # App shell components
 │       ├── app-shell.tsx       # Main layout wrapper
-│       ├── header.tsx          # Top header with user selector
+│       ├── header.tsx          # Top header with user/currency selector
+│       ├── currency-selector.tsx # Currency conversion settings
 │       ├── nav-tabs.tsx        # Desktop navigation
 │       ├── mobile-nav.tsx      # Mobile bottom nav
 │       └── user-selector.tsx   # Mock user dropdown
@@ -260,11 +264,42 @@ ExpenseForm → useCreateExpense → expenseService.createExpense
 ExpenseForm → useCreateExpense → expenseService.createExpense
     → expenseRepository.createExpense
         → INSERT expense (group_id = <uuid>)
-        → INSERT contribution (payer, full amount)
-        → INSERT splits (each member, amount / memberCount)
+        → INSERT contributions (from splitConfig.payments)
+        → INSERT splits (from splitConfig.splits)
     → invalidateQueries(['expenses', 'group', groupId])
     → invalidateQueries(['groups', groupId, 'balances'])
 ```
+
+### Split Configuration (SplitConfig Component)
+
+The `SplitConfig` component handles complex payment and split configuration:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ExpenseForm                                                 │
+│   State: currentAmount, splitConfig, splitConfigOpen        │
+│                                                             │
+│   ┌──────────────────┐     ┌────────────────────────────┐  │
+│   │SplitConfigTrigger│────►│ SplitConfig (Sheet)        │  │
+│   │ disabled when    │     │                            │  │
+│   │ amount <= 0      │     │ Tabs: "Paid by" | "Split"  │  │
+│   └──────────────────┘     │                            │  │
+│                            │ Split types:               │  │
+│                            │  - Equal                   │  │
+│                            │  - Exact amounts           │  │
+│                            │  - Percentage              │  │
+│                            │  - Shares (ratio)          │  │
+│                            │                            │  │
+│                            │ onSave → setSplitConfig    │  │
+│                            └────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Data flow:** Fully controlled component pattern
+- Parent passes `amount` and `initialConfig` as props
+- Child initializes internal state from props when opened
+- On save, child calls `onSave(config)` callback
+- No refs, no race conditions
 
 ### 3. Calculating Group Balances
 
@@ -495,13 +530,13 @@ npx shadcn@latest add [component-name]
 Ready in schema, needs UI implementation:
 
 - [ ] **Supabase Auth** - Replace mock users
-- [ ] **Unequal Splits** - Percentage, shares, exact amounts
-- [ ] **Multi-payer Expenses** - Multiple people paid
+- [x] ~~**Unequal Splits** - Percentage, shares, exact amounts~~ ✅ Implemented
+- [x] ~~**Multi-payer Expenses** - Multiple people paid~~ ✅ Implemented
+- [x] ~~**Multi-currency** - Exchange rate support~~ ✅ Implemented
 - [ ] **Recurring Expenses** - Monthly bills, subscriptions
 - [ ] **Settlements** - Track debt payments
 - [ ] **Charts** - Spending visualizations
 - [ ] **Receipt Scanning** - OCR integration
-- [ ] **Multi-currency** - Exchange rate support
 
 ---
 

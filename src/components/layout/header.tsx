@@ -2,10 +2,11 @@
 
 /**
  * App header component
- * Logo, title, and user selector
+ * Logo, title, user selector, and currency settings
  */
 
 import { UserSelector } from './user-selector';
+import { CurrencySelector } from './currency-selector';
 import { Wallet } from 'lucide-react';
 
 export function Header() {
@@ -22,6 +23,12 @@ export function Header() {
 
         {/* Spacer */}
         <div className="flex-1" />
+
+        {/* Currency Selector */}
+        <CurrencySelector />
+
+        {/* Separator */}
+        <div className="h-6 w-px bg-border mx-2" />
 
         {/* User Selector */}
         <UserSelector />

@@ -35,5 +35,15 @@ export const queryKeys = {
     detail: (id: string) => ['expenses', id] as const,
     withDetails: (id: string) => ['expenses', id, 'details'] as const,
   },
+
+  // Currency
+  currency: {
+    preferences: (userId: string) => ['currency', 'preferences', userId] as const,
+    currentRate: (from: string, to: string) => ['currency', 'rate', 'current', from, to] as const,
+    historicalRate: (from: string, to: string, date: string) => 
+      ['currency', 'rate', 'historical', from, to, date] as const,
+    conversions: (expenseIds: string[], mode: string, target: string) => 
+      ['currency', 'conversions', mode, target, ...expenseIds] as const,
+  },
 } as const;
 

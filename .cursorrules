@@ -184,6 +184,30 @@ const createExpense = useMutation({
 });
 ```
 
+### Currency Handling
+
+**Multi-currency support is built-in.** Key patterns:
+
+```typescript
+// Get user's currency preferences
+const { displayCurrency, conversionMode } = useCurrencyPreferences();
+
+// Convert expenses to display currency
+const { conversions, isConverting } = useConvertedExpenses({ expenses });
+
+// Use converted amount
+const amount = conversion?.converted?.amount ?? expense.amount;
+
+// Currency service for direct conversions
+await currencyService.fetchCurrentRate('USD', 'ILS');     // Current rate
+await currencyService.fetchHistoricalRate('USD', 'ILS', date);  // Historical
+```
+
+**Conversion modes:**
+- `off` - Show original currencies
+- `simple` - Use current exchange rate
+- `smart` - Use historical rate from expense date (ECB data via Frankfurter API)
+
 ### Forms with Zod
 
 ```typescript
@@ -204,14 +228,38 @@ const form = useForm<FormData>({
 });
 ```
 
+### Controlled Component Pattern (for complex sub-forms)
+
+For complex child components that manage their own state (like `SplitConfig`):
+
+```typescript
+// Parent component
+const [childOpen, setChildOpen] = useState(false);
+const [childData, setChildData] = useState<ChildData>();
+
+<ChildComponent
+  open={childOpen}
+  onOpenChange={setChildOpen}
+  initialData={childData}    // Pass current state when opening
+  onSave={setChildData}       // Update parent state on save
+/>
+
+// Child component initializes internal state from props when opened
+useEffect(() => {
+  if (open) {
+    setInternalState(initializeFromProps(initialData, otherProps));
+  }
+}, [open, initialData, otherProps]);
+```
+
+This pattern avoids race conditions and ref complexity.
+
 ## POC Limitations (Do NOT Over-Engineer)
 
 The current POC intentionally has these limitations:
 
 1. **No real auth** - Uses mock user selector
-2. **Equal splits only** - No percentage/shares splits yet
-3. **Single currency** - ILS only
-4. **No charts** - Basic summaries only
+2. **No charts** - Basic summaries only
 
 **Don't add complexity beyond current scope unless explicitly requested.**
 
@@ -301,6 +349,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 | Add service method | `src/lib/services/` |
 | Add repository method | `src/lib/repositories/` |
 | Add type | `src/lib/types/` |
+| Add currency | `src/lib/constants/currencies.ts` |
+| Currency conversion | `src/lib/services/currency.service.ts` |
 | Run dev server | `pnpm dev` (port 3333) |
 | Build | `pnpm build` |
 

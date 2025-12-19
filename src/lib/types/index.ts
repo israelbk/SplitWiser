@@ -17,3 +17,6 @@ export * from './expense';
 // Balance types
 export * from './balance';
 
+// Currency types
+export * from './currency';
+

@@ -3,14 +3,21 @@
 /**
  * Group balances component
  * Shows balance summary and simplified debts for a group
+ * Supports currency conversion display
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useGroupBalances } from '@/hooks/queries';
 import { UserBalanceRow, DebtDisplay, BalanceSummarySkeleton } from '@/components/common';
 import { formatCurrency } from '@/lib/constants';
-import { Scale, ArrowRightLeft } from 'lucide-react';
+import { Scale, ArrowRightLeft, Clock, Zap } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface GroupBalancesProps {
   groupId: string;
@@ -28,24 +35,60 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
     return null;
   }
 
-  const { totalExpenses, userBalances, simplifiedDebts } = balanceSummary;
+  const { 
+    totalExpenses, 
+    userBalances, 
+    simplifiedDebts,
+    displayCurrency,
+    conversionMode,
+  } = balanceSummary;
+
+  // Use display currency from balance summary if available, otherwise fall back to prop
+  const effectiveCurrency = displayCurrency || currency;
+  const isConverting = conversionMode && conversionMode !== 'off';
 
   return (
     <div className="space-y-4">
       {/* Total Expenses */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Scale className="h-4 w-4" />
-            Group Total
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Scale className="h-4 w-4" />
+              Group Total
+            </CardTitle>
+            {isConverting && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="secondary" className="text-xs gap-1 font-normal">
+                      {conversionMode === 'smart' ? (
+                        <Clock className="h-3 w-3" />
+                      ) : (
+                        <Zap className="h-3 w-3" />
+                      )}
+                      {conversionMode === 'smart' ? 'Historical' : 'Current'}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      {conversionMode === 'smart' 
+                        ? 'Using historical rates from expense dates'
+                        : 'Using current exchange rates'}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {formatCurrency(totalExpenses, currency)}
+            {formatCurrency(totalExpenses, effectiveCurrency)}
           </div>
           <p className="text-xs text-muted-foreground">
             Split among {userBalances.length} members
+            {isConverting && ` • Converted to ${effectiveCurrency}`}
           </p>
         </CardContent>
       </Card>
@@ -65,7 +108,7 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
                   key={balance.userId}
                   user={balance.user}
                   balance={balance.netBalance}
-                  currency={currency}
+                  currency={effectiveCurrency}
                 />
               ) : null
             )}
@@ -91,7 +134,7 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
                     fromUser={debt.fromUser}
                     toUser={debt.toUser}
                     amount={debt.amount}
-                    currency={currency}
+                    currency={effectiveCurrency}
                   />
                 ) : null
               )}
@@ -102,10 +145,10 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
 
       {/* All Settled */}
       {simplifiedDebts.length === 0 && totalExpenses > 0 && (
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
           <CardContent className="pt-6 text-center">
-            <p className="text-green-700 font-medium">All settled up!</p>
-            <p className="text-sm text-green-600">
+            <p className="text-green-700 dark:text-green-400 font-medium">All settled up!</p>
+            <p className="text-sm text-green-600 dark:text-green-500">
               Everyone&apos;s expenses are balanced.
             </p>
           </CardContent>
@@ -114,4 +157,3 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
     </div>
   );
 }
-

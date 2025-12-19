@@ -4,7 +4,13 @@
  */
 
 import { userRepository, UserRepository } from '../repositories';
-import { User, CreateUserInput, UpdateUserInput } from '../types';
+import { 
+  User, 
+  CreateUserInput, 
+  UpdateUserInput,
+  UpdateCurrencyPreferencesInput,
+} from '../types';
+import { CurrencyPreferences, DEFAULT_CURRENCY_PREFERENCES } from '../types/currency';
 
 export class UserService {
   constructor(private repository: UserRepository = userRepository) {}
@@ -61,6 +67,24 @@ export class UserService {
       ids.map((id) => this.repository.findById(id))
     );
     return users.filter((u): u is User => u !== null);
+  }
+
+  /**
+   * Get user's currency preferences
+   */
+  async getCurrencyPreferences(userId: string): Promise<CurrencyPreferences> {
+    const prefs = await this.repository.getCurrencyPreferences(userId);
+    return prefs ?? DEFAULT_CURRENCY_PREFERENCES;
+  }
+
+  /**
+   * Update user's currency preferences
+   */
+  async updateCurrencyPreferences(
+    userId: string,
+    preferences: UpdateCurrencyPreferencesInput
+  ): Promise<User> {
+    return this.repository.updateCurrencyPreferences(userId, preferences);
   }
 }
 

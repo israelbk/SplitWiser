@@ -189,7 +189,7 @@ export function SplitConfig({
   const isSplitValid = Math.abs(splitTotal - amount) < 0.01;
   const hasSelectedSplits = splits.some(s => s.selected);
   const hasSelectedPayments = payments.some(p => p.selected);
-  const isValid = amount > 0 && isPaymentValid && isSplitValid && hasSelectedSplits && hasSelectedPayments;
+  const isValid = isPaymentValid && isSplitValid && hasSelectedSplits && hasSelectedPayments;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -200,10 +200,7 @@ export function SplitConfig({
         <SheetHeader className="text-left flex-shrink-0">
           <SheetTitle>Split Options</SheetTitle>
           <SheetDescription>
-            {amount > 0 
-              ? `Total: ${formatCurrency(amount, currency)}`
-              : 'Enter an amount to configure the split'
-            }
+            Total: {formatCurrency(amount, currency)}
           </SheetDescription>
         </SheetHeader>
 
@@ -412,7 +409,7 @@ export function SplitConfig({
         {/* Footer - always visible at bottom */}
         <SheetFooter className="flex-shrink-0 pt-4 border-t mt-4 flex-col gap-2">
           {/* Validation messages */}
-          {amount > 0 && (!isPaymentValid || !isSplitValid) && (
+          {(!isPaymentValid || !isSplitValid) && (
             <div className="w-full text-sm text-center">
               {!isPaymentValid && hasSelectedPayments && (
                 <p className="text-destructive">
@@ -426,12 +423,8 @@ export function SplitConfig({
               )}
             </div>
           )}
-          <Button
-            onClick={handleSave}
-            disabled={!isValid}
-            className="w-full"
-          >
-            {amount <= 0 ? 'Enter amount first' : 'Save'}
+          <Button onClick={handleSave} disabled={!isValid} className="w-full">
+            Save
           </Button>
         </SheetFooter>
       </SheetContent>

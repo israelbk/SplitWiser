@@ -16,9 +16,23 @@ A **mobile-first** expense tracking and splitting application built with Next.js
 
 ### Group Expenses
 - Create groups for trips, households, or any shared spending
-- Split expenses equally among group members
+- **Flexible expense splitting**:
+  - Equal splits among all or selected members
+  - Exact amounts per person
+  - Percentage-based splits
+  - Share-based splits (e.g., 2:1:1 ratio)
+- **Multi-payer support**: Record when multiple people paid for an expense
 - Automatic balance calculation
 - Simplified debt view (who owes whom)
+
+### Multi-Currency Support
+- Add expenses in 8 different currencies (ILS, USD, EUR, GBP, JPY, CHF, CAD, AUD)
+- **Currency conversion modes**:
+  - **Off**: View expenses in their original currencies
+  - **Simple**: Convert all expenses using current exchange rates
+  - **Smart**: Convert using historical rates from each expense's date
+- Powered by Frankfurter API (ECB data)
+- Currency preferences stored per user
 
 ## Tech Stack
 
@@ -152,8 +166,6 @@ This separation allows for easy testing, maintainability, and future expansion.
 This is a proof-of-concept with the following simplifications:
 
 - **Mock Users**: No real authentication (user selector dropdown for demo)
-- **Equal Splits Only**: Expenses are split equally among all group members
-- **Single Currency**: ILS by default (schema supports multi-currency)
 - **No Recurring Expenses**: Schema ready, UI not implemented
 - **No Charts**: Basic summary only
 
@@ -161,13 +173,13 @@ This is a proof-of-concept with the following simplifications:
 
 The architecture is ready for:
 - [ ] Real authentication (Supabase Auth)
-- [ ] Unequal splits (percentage, shares, exact amounts)
-- [ ] Multi-payer expenses
+- [x] ~~Unequal splits (percentage, shares, exact amounts)~~ ✅ Implemented
+- [x] ~~Multi-payer expenses~~ ✅ Implemented
+- [x] ~~Multi-currency support~~ ✅ Implemented
 - [ ] Recurring expenses
 - [ ] Charts and visualizations
 - [ ] Settlement tracking
 - [ ] Custom categories
-- [ ] Multi-currency support
 - [ ] Receipt scanning
 
 ## Documentation

@@ -3,24 +3,32 @@
 /**
  * Expense card component
  * Displays a single expense with details
+ * Supports currency conversion display
  */
 
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/constants';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CategoryBadge, getCategoryIcon } from './category-badge';
-import { UserAvatar } from './user-avatar';
-import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
-import { MoreVertical, Pencil, Trash2, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { formatCurrency } from '@/lib/constants';
+import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
+import { ConversionMode, ConvertedAmount } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ArrowRightLeft, MoreVertical, Pencil, Trash2, Users } from 'lucide-react';
+import { CategoryBadge, getCategoryIcon } from './category-badge';
+import { UserAvatar } from './user-avatar';
 
 interface ExpenseCardProps {
   expense: ExpenseWithDetails | UnifiedExpense;
@@ -30,6 +38,9 @@ interface ExpenseCardProps {
   showPayer?: boolean;
   showUserShare?: boolean;  // Show user's portion instead of total
   className?: string;
+  // Currency conversion props
+  conversion?: ConvertedAmount | null;
+  conversionMode?: ConversionMode;
 }
 
 // Type guard to check if expense is a UnifiedExpense
@@ -45,15 +56,22 @@ export function ExpenseCard({
   showPayer = false,
   showUserShare = false,
   className,
+  conversion,
+  conversionMode = 'off',
 }: ExpenseCardProps) {
   const payer = expense.contributions?.[0]?.user;
   const Icon = expense.category ? getCategoryIcon(expense.category.icon) : null;
   
   // Determine display amount
   const unified = isUnifiedExpense(expense);
-  const displayAmount = showUserShare && unified ? expense.userShare : expense.amount;
+  const baseAmount = showUserShare && unified ? expense.userShare : expense.amount;
   const isGroupExpense = unified ? !expense.isPersonal : !!expense.groupId;
   const groupName = unified ? expense.groupName : undefined;
+
+  // Check if conversion should be shown (only when mode is not 'off' AND conversion exists)
+  const isConverted = conversionMode !== 'off' && conversion?.converted && conversion.converted.currency !== expense.currency;
+  const displayAmount = isConverted ? conversion.converted!.amount : baseAmount;
+  const displayCurrency = isConverted ? conversion.converted!.currency : expense.currency;
 
   const handleCardClick = () => {
     onClick?.();
@@ -114,16 +132,61 @@ export function ExpenseCard({
         <div className="flex-shrink-0 text-right">
           {showUserShare && isGroupExpense ? (
             <>
-              <div className="font-semibold text-primary">
-                {formatCurrency(displayAmount, expense.currency)}
+              <div className="font-semibold text-primary flex items-center justify-end gap-1">
+                {isConverted && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <ConversionTooltip 
+                          conversion={conversion!} 
+                          mode={conversionMode} 
+                        />
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {formatCurrency(displayAmount, displayCurrency)}
               </div>
               <div className="text-xs text-muted-foreground">
-                {Math.round((displayAmount / expense.amount) * 100)}% of {formatCurrency(expense.amount, expense.currency)}
+                {isConverted ? (
+                  <span>
+                    {formatCurrency(baseAmount, expense.currency)} @ {conversion!.converted!.rate.toFixed(4)}
+                  </span>
+                ) : (
+                  <span>
+                    {Math.round((baseAmount / expense.amount) * 100)}% of {formatCurrency(expense.amount, expense.currency)}
+                  </span>
+                )}
+              </div>
+            </>
+          ) : isConverted ? (
+            <>
+              <div className="font-semibold flex items-center justify-end gap-1">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <ConversionTooltip 
+                        conversion={conversion!} 
+                        mode={conversionMode} 
+                      />
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {formatCurrency(displayAmount, displayCurrency)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {formatCurrency(baseAmount, expense.currency)} @ {conversion!.converted!.rate.toFixed(4)}
               </div>
             </>
           ) : (
             <div className="font-semibold">
-              {formatCurrency(displayAmount, expense.currency)}
+              {formatCurrency(displayAmount, displayCurrency)}
             </div>
           )}
           {expense.category && (
@@ -168,3 +231,34 @@ export function ExpenseCard({
   );
 }
 
+/**
+ * Tooltip content showing conversion details
+ */
+function ConversionTooltip({ 
+  conversion, 
+  mode 
+}: { 
+  conversion: ConvertedAmount; 
+  mode: ConversionMode;
+}) {
+  if (!conversion.converted) return null;
+  
+  return (
+    <div className="text-xs">
+      <div className="font-medium mb-1">
+        {mode === 'smart' ? 'Historical Rate' : 'Current Rate'}
+      </div>
+      <div>
+        {formatCurrency(conversion.original.amount, conversion.original.currency)}
+        {' → '}
+        {formatCurrency(conversion.converted.amount, conversion.converted.currency)}
+      </div>
+      <div className="text-muted-foreground mt-1">
+        Rate: {conversion.converted.rate.toFixed(4)}
+        {mode === 'smart' && conversion.converted.rateDate && (
+          <span> ({format(conversion.converted.rateDate, 'MMM d, yyyy')})</span>
+        )}
+      </div>
+    </div>
+  );
+}

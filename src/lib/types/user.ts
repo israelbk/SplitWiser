@@ -2,12 +2,20 @@
  * User types
  */
 
+import { 
+  CurrencyPreferences, 
+  CurrencyPreferencesRow, 
+  currencyPreferencesFromRow,
+  DEFAULT_CURRENCY_PREFERENCES 
+} from './currency';
+
 export interface User {
   id: string;
   email?: string;
   name: string;
   avatarUrl?: string;
   avatarColor: string;
+  currencyPreferences: CurrencyPreferences;
   createdAt: Date;
 }
 
@@ -25,6 +33,11 @@ export interface UpdateUserInput {
   avatarColor?: string;
 }
 
+export interface UpdateCurrencyPreferencesInput {
+  displayCurrency?: string;
+  conversionMode?: 'off' | 'simple' | 'smart';
+}
+
 // Database row type (snake_case)
 export interface UserRow {
   id: string;
@@ -32,6 +45,7 @@ export interface UserRow {
   name: string;
   avatar_url: string | null;
   avatar_color: string | null;
+  currency_preferences: CurrencyPreferencesRow | null;
   created_at: string;
 }
 
@@ -43,6 +57,7 @@ export function userFromRow(row: UserRow): User {
     name: row.name,
     avatarUrl: row.avatar_url ?? undefined,
     avatarColor: row.avatar_color ?? '#6366f1',
+    currencyPreferences: currencyPreferencesFromRow(row.currency_preferences),
     createdAt: new Date(row.created_at),
   };
 }

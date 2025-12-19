@@ -5,25 +5,10 @@
  * Shows group expenses and balances
  */
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { AppShell } from '@/components/layout';
 import { ExpenseForm, UserAvatar } from '@/components/common';
 import { ExpenseList } from '@/components/features/expenses';
 import { GroupBalances } from '@/components/features/groups';
-import {
-  useGroupWithMembers,
-  useGroupExpenses,
-  useCreateExpense,
-  useUpdateExpense,
-  useDeleteExpense,
-} from '@/hooks/queries';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { ExpenseWithDetails } from '@/lib/services';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Receipt, Scale, Settings, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { AppShell } from '@/components/layout';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +19,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  useCreateExpense,
+  useDeleteExpense,
+  useGroupExpenses,
+  useGroupWithMembers,
+  useUpdateExpense,
+} from '@/hooks/queries';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { ExpenseWithDetails } from '@/lib/services';
+import { ArrowLeft, Plus, Receipt, Scale } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -70,6 +70,7 @@ export default function GroupDetailPage() {
   const handleFormSubmit = async (data: {
     description: string;
     amount: number;
+    currency: string;
     categoryId: string;
     date: Date;
     notes?: string;
@@ -84,6 +85,7 @@ export default function GroupDetailPage() {
           input: {
             description: data.description,
             amount: data.amount,
+            currency: data.currency,
             categoryId: data.categoryId,
             date: data.date,
             notes: data.notes,
@@ -96,6 +98,7 @@ export default function GroupDetailPage() {
           await createExpense.mutateAsync({
             description: data.description,
             amount: data.amount,
+            currency: data.currency,
             categoryId: data.categoryId,
             date: data.date,
             notes: data.notes,
@@ -109,6 +112,7 @@ export default function GroupDetailPage() {
           await createExpense.mutateAsync({
             description: data.description,
             amount: data.amount,
+            currency: data.currency,
             categoryId: data.categoryId,
             date: data.date,
             notes: data.notes,

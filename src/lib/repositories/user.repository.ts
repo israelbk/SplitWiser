@@ -8,8 +8,10 @@ import {
   UserRow, 
   userFromRow,
   CreateUserInput,
-  UpdateUserInput 
+  UpdateUserInput,
+  UpdateCurrencyPreferencesInput,
 } from '../types';
+import { CurrencyPreferences, CurrencyPreferencesRow } from '../types/currency';
 
 interface UserCreateRow {
   name: string;
@@ -23,6 +25,7 @@ interface UserUpdateRow {
   email?: string;
   avatar_url?: string;
   avatar_color?: string;
+  currency_preferences?: CurrencyPreferencesRow;
 }
 
 export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow, UserUpdateRow> {
@@ -58,6 +61,39 @@ export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow,
     if (input.avatarColor !== undefined) updateData.avatar_color = input.avatarColor;
 
     return this.update(id, updateData);
+  }
+
+  /**
+   * Update user's currency preferences
+   */
+  async updateCurrencyPreferences(
+    id: string,
+    preferences: UpdateCurrencyPreferencesInput
+  ): Promise<User> {
+    // Get current preferences first
+    const user = await this.findById(id);
+    if (!user) {
+      throw new Error(`User not found: ${id}`);
+    }
+
+    const currentPrefs = user.currencyPreferences;
+    const newPrefs: CurrencyPreferencesRow = {
+      displayCurrency: preferences.displayCurrency ?? currentPrefs.displayCurrency,
+      conversionMode: preferences.conversionMode ?? currentPrefs.conversionMode,
+    };
+
+    return this.update(id, { currency_preferences: newPrefs });
+  }
+
+  /**
+   * Get user's currency preferences
+   */
+  async getCurrencyPreferences(id: string): Promise<CurrencyPreferences | null> {
+    const user = await this.findById(id);
+    if (!user) {
+      return null;
+    }
+    return user.currencyPreferences;
   }
 
   /**

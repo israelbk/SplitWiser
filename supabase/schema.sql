@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   avatar_url TEXT,
   avatar_color TEXT DEFAULT '#6366f1',
+  currency_preferences JSONB DEFAULT '{"displayCurrency": "ILS", "conversionMode": "off"}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -100,6 +101,17 @@ CREATE TABLE IF NOT EXISTS settlements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Exchange rates cache for currency conversion
+CREATE TABLE IF NOT EXISTS exchange_rates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  base_currency TEXT NOT NULL,
+  target_currency TEXT NOT NULL,
+  rate DECIMAL(18,8) NOT NULL,
+  rate_date DATE NOT NULL,
+  fetched_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(base_currency, target_currency, rate_date)
+);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_expenses_group ON expenses(group_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
@@ -108,6 +120,7 @@ CREATE INDEX IF NOT EXISTS idx_expense_contributions_expense ON expense_contribu
 CREATE INDEX IF NOT EXISTS idx_expense_contributions_user ON expense_contributions(user_id);
 CREATE INDEX IF NOT EXISTS idx_expense_splits_expense ON expense_splits(expense_id);
 CREATE INDEX IF NOT EXISTS idx_expense_splits_user ON expense_splits(user_id);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_lookup ON exchange_rates(base_currency, target_currency, rate_date);
 
 -- Enable Row Level Security (for future auth)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -118,6 +131,7 @@ ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expense_contributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expense_splits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settlements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exchange_rates ENABLE ROW LEVEL SECURITY;
 
 -- For POC: Allow all operations (no auth)
 CREATE POLICY "Allow all for POC" ON users FOR ALL USING (true) WITH CHECK (true);
@@ -128,4 +142,5 @@ CREATE POLICY "Allow all for POC" ON expenses FOR ALL USING (true) WITH CHECK (t
 CREATE POLICY "Allow all for POC" ON expense_contributions FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for POC" ON expense_splits FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for POC" ON settlements FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for POC" ON exchange_rates FOR ALL USING (true) WITH CHECK (true);
 

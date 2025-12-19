@@ -23,15 +23,18 @@ import {
 } from '@/components/ui/dialog';
 import { CategoryPicker } from './category-picker';
 import { AmountInput } from './amount-input';
+import { CurrencyPicker } from './currency-picker';
 import { DatePicker } from './date-picker';
 import { SplitConfig, SplitConfigTrigger } from './split-config';
-import { DEFAULT_CATEGORY_ID } from '@/lib/constants';
+import { DEFAULT_CATEGORY_ID, DEFAULT_CURRENCY } from '@/lib/constants';
 import { Expense, User, SplitConfiguration } from '@/lib/types';
+import { useCurrencyPreferences } from '@/hooks/queries';
 import { Loader2 } from 'lucide-react';
 
 const expenseSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   amount: z.number().positive('Amount must be positive'),
+  currency: z.string().min(1, 'Currency is required'),
   categoryId: z.string().min(1, 'Category is required'),
   date: z.date(),
   notes: z.string().optional(),
@@ -69,11 +72,15 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const isGroupExpense = !!groupMembers && groupMembers.length > 0 && !!currentUserId;
   
+  // Get user's preferred display currency for default
+  const { displayCurrency } = useCurrencyPreferences();
+  
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       description: expense?.description || '',
       amount: expense?.amount || 0,
+      currency: expense?.currency || displayCurrency || DEFAULT_CURRENCY,
       categoryId: expense?.categoryId || DEFAULT_CATEGORY_ID,
       date: expense?.date || new Date(),
       notes: expense?.notes || '',
@@ -83,13 +90,10 @@ export function ExpenseForm({
   // Split configuration state for group expenses
   const [splitConfig, setSplitConfig] = useState<SplitConfiguration | undefined>(undefined);
   
-  // Control the split config sheet separately
+  // Control the split config sheet
   const [splitConfigOpen, setSplitConfigOpen] = useState(false);
   
-  // Store the amount to pass to SplitConfig when it opens
-  const [splitConfigAmount, setSplitConfigAmount] = useState(0);
-  
-  // Track the current amount locally (synced with form but always up-to-date)
+  // Track current amount (synced with form but always up-to-date for SplitConfig)
   const [currentAmount, setCurrentAmount] = useState(expense?.amount || 0);
 
   // Reset form when expense prop changes (for edit mode) or when dialog opens
@@ -99,6 +103,7 @@ export function ExpenseForm({
       form.reset({
         description: expense?.description || '',
         amount: initialAmount,
+        currency: expense?.currency || displayCurrency || DEFAULT_CURRENCY,
         categoryId: expense?.categoryId || DEFAULT_CATEGORY_ID,
         date: expense?.date || new Date(),
         notes: expense?.notes || '',
@@ -122,7 +127,7 @@ export function ExpenseForm({
         setSplitConfig(undefined);
       }
     }
-  }, [open, expense, form, isGroupExpense, groupMembers, currentUserId]);
+  }, [open, expense, form, isGroupExpense, groupMembers, currentUserId, displayCurrency]);
 
   const handleSubmit = (data: ExpenseFormData) => {
     onSubmit({
@@ -131,25 +136,11 @@ export function ExpenseForm({
     });
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
-    onOpenChange(newOpen);
-  };
-
-  // Handle opening the split config sheet
-  const handleOpenSplitConfig = () => {
-    // Use local amount state (always up-to-date)
-    setSplitConfigAmount(currentAmount);
-    setSplitConfigOpen(true);
-  };
-
-  // Handle saving split config
-  const handleSaveSplitConfig = (config: SplitConfiguration) => {
-    setSplitConfig(config);
-  };
+  const currentCurrency = form.watch('currency');
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <DialogHeader>
@@ -158,22 +149,38 @@ export function ExpenseForm({
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
-              {/* Amount */}
+              {/* Amount with Currency */}
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount</Label>
-              <Controller
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <AmountInput
-                    value={field.value}
-                    onChange={(value) => {
-                      setCurrentAmount(value); // Update local state
-                      field.onChange(value); // Update form state
-                    }}
+                <div className="flex">
+                  <Controller
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <AmountInput
+                        value={field.value}
+                        onChange={(value) => {
+                          setCurrentAmount(value); // Update local state
+                          field.onChange(value); // Update form state
+                        }}
+                        currency={currentCurrency}
+                        className="rounded-r-none flex-1"
+                      />
+                    )}
                   />
-                )}
-              />
+                  <Controller
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <CurrencyPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        compact
+                        className="rounded-l-none border-l-0"
+                      />
+                    )}
+                  />
+                </div>
                 {form.formState.errors.amount && (
                   <p className="text-sm text-destructive">
                     {form.formState.errors.amount.message}
@@ -239,7 +246,7 @@ export function ExpenseForm({
                 <div className="space-y-2">
                   <Label>Split</Label>
                   <SplitConfigTrigger
-                    onClick={handleOpenSplitConfig}
+                    onClick={() => setSplitConfigOpen(true)}
                     config={splitConfig}
                     amount={currentAmount}
                     currentUserId={currentUserId}
@@ -273,11 +280,11 @@ export function ExpenseForm({
         <SplitConfig
           open={splitConfigOpen}
           onOpenChange={setSplitConfigOpen}
-          amount={splitConfigAmount}
+          amount={currentAmount}
           currentUserId={currentUserId}
           members={groupMembers}
           initialConfig={splitConfig}
-          onSave={handleSaveSplitConfig}
+          onSave={setSplitConfig}
         />
       )}
     </>

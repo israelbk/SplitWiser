@@ -36,6 +36,9 @@ export interface GroupBalanceSummary {
   totalExpenses: number;
   userBalances: UserBalance[];
   simplifiedDebts: Debt[];  // Optimized list of who pays whom
+  // Currency conversion info (when active)
+  displayCurrency?: string;
+  conversionMode?: 'off' | 'simple' | 'smart';
 }
 
 /**

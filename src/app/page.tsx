@@ -5,23 +5,14 @@
  * Main page showing all expenses (personal + group share)
  */
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { AppShell } from '@/components/layout';
 import { ExpenseForm } from '@/components/common';
 import {
-  ExpenseList,
-  ExpenseFiltersBar,
   ExpenseFilters,
+  ExpenseFiltersBar,
+  ExpenseList,
   ExpenseSummary,
 } from '@/components/features/expenses';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { useAllExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/queries';
-import { UnifiedExpense } from '@/lib/services';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { startOfWeek, startOfMonth, startOfYear, isAfter } from 'date-fns';
+import { AppShell } from '@/components/layout';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +23,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { useAllExpenses, useConvertedExpenses, useCreateExpense, useCurrencyPreferences, useDeleteExpense, useUpdateExpense } from '@/hooks/queries';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { UnifiedExpense } from '@/lib/services';
+import { isAfter, startOfMonth, startOfWeek, startOfYear } from 'date-fns';
+import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AllExpensesPage() {
   const router = useRouter();
@@ -40,6 +40,18 @@ export default function AllExpensesPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  
+  // Currency conversion
+  const { displayCurrency, conversionMode } = useCurrencyPreferences();
+  
+  // Always fetch conversions for percentage calculation (using current rates when mode is 'off')
+  // When mode is 'smart', use historical rates for both display and percentages
+  const effectiveModeForConversion = conversionMode === 'smart' ? 'smart' : 'simple';
+  const { conversions, isConverting } = useConvertedExpenses({
+    expenses: expenses ?? [],
+    conversionMode: effectiveModeForConversion,
+    enabled: true, // Always fetch for percentage calculations
+  });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<UnifiedExpense | null>(null);
@@ -133,6 +145,7 @@ export default function AllExpensesPage() {
   const handleFormSubmit = async (data: {
     description: string;
     amount: number;
+    currency: string;
     categoryId: string;
     date: Date;
     notes?: string;
@@ -147,6 +160,7 @@ export default function AllExpensesPage() {
           input: {
             description: data.description,
             amount: data.amount,
+            currency: data.currency,
             categoryId: data.categoryId,
             date: data.date,
             notes: data.notes,
@@ -158,6 +172,7 @@ export default function AllExpensesPage() {
         await createExpense.mutateAsync({
           description: data.description,
           amount: data.amount,
+          currency: data.currency,
           categoryId: data.categoryId,
           date: data.date,
           notes: data.notes,
@@ -210,8 +225,11 @@ export default function AllExpensesPage() {
         {/* Summary Card - shows user's actual spending */}
         <ExpenseSummary 
           expenses={filteredExpenses} 
-          isLoading={isLoading} 
+          isLoading={isLoading || isConverting} 
           showUserShare={true}
+          conversions={conversions}
+          displayCurrency={displayCurrency}
+          conversionMode={conversionMode}
         />
 
         {/* Filters with type filter enabled */}
@@ -224,12 +242,14 @@ export default function AllExpensesPage() {
         {/* Expense List - shows user's share */}
         <ExpenseList
           expenses={filteredExpenses}
-          isLoading={isLoading}
+          isLoading={isLoading || isConverting}
           onClick={handleExpenseClick}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
           onAddClick={handleAddExpense}
           showUserShare={true}
+          conversions={conversions}
+          conversionMode={conversionMode}
           emptyTitle="No expenses yet"
           emptyDescription="Start tracking your spending by adding your first expense."
         />

@@ -5,6 +5,7 @@
 export * from './user-avatar';
 export * from './category-badge';
 export * from './category-picker';
+export * from './currency-picker';
 export * from './amount-input';
 export * from './date-picker';
 export * from './expense-card';
