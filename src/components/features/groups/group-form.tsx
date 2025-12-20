@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -145,85 +146,87 @@ export function GroupForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <DialogHeader>
-            <DialogTitle>{displayTitle}</DialogTitle>
-            <DialogDescription>{displayDescription}</DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{displayTitle}</DialogTitle>
+          <DialogDescription>{displayDescription}</DialogDescription>
+        </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            {/* Group Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">{t('groupName')}</Label>
-              <Input
-                id="name"
-                placeholder={t('namePlaceholder')}
-                {...form.register('name')}
-              />
-              {form.formState.errors.name && (
-                <p className="text-sm text-destructive">
-                  {t('validation.nameRequired')}
-                </p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">{t('descriptionLabel')}</Label>
-              <Input
-                id="description"
-                placeholder={t('descriptionPlaceholder')}
-                {...form.register('description')}
-              />
-            </div>
-
-            {/* Group Type */}
-            <div className="space-y-2">
-              <Label>{t('type')}</Label>
-              <Select
-                value={form.watch('type')}
-                onValueChange={(value) => form.setValue('type', value as GroupType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {groupTypes.map((type) => {
-                    const Icon = type.icon;
-                    return (
-                      <SelectItem key={type.value} value={type.value}>
-                        <span className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          {type.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Members */}
-            <div className="space-y-2">
-              <Label>{t('members')}</Label>
-              {currentUser && (
-                <MemberPicker
-                  currentUser={currentUser}
-                  selectedIds={selectedMemberIds}
-                  onSelectionChange={handleMemberSelectionChange}
-                  existingMembers={existingMemberUsers}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
+          <ScrollArea className="flex-1 pe-4 -me-4">
+            <div className="grid gap-4 py-4 pe-4">
+              {/* Group Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name">{t('groupName')}</Label>
+                <Input
+                  id="name"
+                  placeholder={t('namePlaceholder')}
+                  {...form.register('name')}
                 />
-              )}
-              {form.formState.errors.memberIds && (
-                <p className="text-sm text-destructive">
-                  {t('validation.selectMember')}
-                </p>
-              )}
-            </div>
-          </div>
+                {form.formState.errors.name && (
+                  <p className="text-sm text-destructive">
+                    {t('validation.nameRequired')}
+                  </p>
+                )}
+              </div>
 
-          <DialogFooter>
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">{t('descriptionLabel')}</Label>
+                <Input
+                  id="description"
+                  placeholder={t('descriptionPlaceholder')}
+                  {...form.register('description')}
+                />
+              </div>
+
+              {/* Group Type */}
+              <div className="space-y-2">
+                <Label>{t('type')}</Label>
+                <Select
+                  value={form.watch('type')}
+                  onValueChange={(value) => form.setValue('type', value as GroupType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupTypes.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <SelectItem key={type.value} value={type.value}>
+                          <span className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {type.label}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Members */}
+              <div className="space-y-2">
+                <Label>{t('members')}</Label>
+                {currentUser && (
+                  <MemberPicker
+                    currentUser={currentUser}
+                    selectedIds={selectedMemberIds}
+                    onSelectionChange={handleMemberSelectionChange}
+                    existingMembers={existingMemberUsers}
+                  />
+                )}
+                {form.formState.errors.memberIds && (
+                  <p className="text-sm text-destructive">
+                    {t('validation.selectMember')}
+                  </p>
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="pt-4">
             <Button
               type="button"
               variant="outline"
@@ -233,7 +236,7 @@ export function GroupForm({
               {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {group?.id ? tCommon('update') : tCommon('create')}
             </Button>
           </DialogFooter>
