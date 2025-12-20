@@ -28,6 +28,7 @@ import { ConversionMode, ConvertedAmount } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ArrowRightLeft, MoreVertical, Pencil, Trash2, Users } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { CategoryBadge, getCategoryIcon } from './category-badge';
 import { UserAvatar } from './user-avatar';
 
@@ -62,6 +63,9 @@ export function ExpenseCard({
   conversion,
   conversionMode = 'off',
 }: ExpenseCardProps) {
+  const t = useTranslations('expenseCard');
+  const tCommon = useTranslations('common');
+  
   const payer = expense.contributions?.[0]?.user;
   const Icon = expense.category ? getCategoryIcon(expense.category.icon) : null;
   
@@ -70,12 +74,18 @@ export function ExpenseCard({
   const isGroupExpense = unified ? !expense.isPersonal : !!expense.groupId;
   const groupName = unified ? expense.groupName : undefined;
   
-  // Calculate user share from splits for ExpenseWithDetails
-  const getUserShare = (): number => {
+  // Calculate user's contribution (what they paid) and split (what they owe)
+  const getUserContribution = (): number => {
+    if (!currentUserId || !expense.contributions) return 0;
+    return expense.contributions
+      .filter(c => c.userId === currentUserId)
+      .reduce((sum, c) => sum + c.amount, 0);
+  };
+  
+  const getUserSplit = (): number => {
     if (unified) {
       return expense.userShare;
     }
-    // For ExpenseWithDetails, find the user's split
     if (currentUserId && expense.splits) {
       const userSplit = expense.splits.find(s => s.userId === currentUserId);
       return userSplit?.amount ?? 0;
@@ -83,13 +93,46 @@ export function ExpenseCard({
     return expense.amount;
   };
   
-  const userShareAmount = showUserShare && isGroupExpense ? getUserShare() : expense.amount;
+  // User's balance for this expense: positive = lent (get back), negative = borrowed (owe)
+  const userContribution = getUserContribution();
+  const userSplitAmount = getUserSplit();
+  const userBalance = isGroupExpense && currentUserId ? userContribution - userSplitAmount : 0;
+  
+  // Get payer info for display
+  const getPayerDisplay = (): { name: string; isCurrentUser: boolean } | null => {
+    if (!expense.contributions?.length) return null;
+    const totalPayers = expense.contributions.length;
+    const firstPayer = expense.contributions[0];
+    
+    if (totalPayers === 1) {
+      const isCurrentUser = firstPayer.userId === currentUserId;
+      return {
+        name: isCurrentUser ? tCommon('you') : (firstPayer.user?.name || 'Unknown'),
+        isCurrentUser,
+      };
+    }
+    // Multiple payers - show first payer name
+    const isCurrentUser = firstPayer.userId === currentUserId;
+    return {
+      name: isCurrentUser ? tCommon('you') : (firstPayer.user?.name || 'Unknown'),
+      isCurrentUser,
+    };
+  };
+  
+  const payerInfo = getPayerDisplay();
+  
+  const userShareAmount = showUserShare && isGroupExpense ? userSplitAmount : expense.amount;
   const baseAmount = showUserShare && isGroupExpense ? userShareAmount : expense.amount;
 
   // Check if conversion should be shown (only when mode is not 'off' AND conversion exists)
   const isConverted = conversionMode !== 'off' && conversion?.converted && conversion.converted.currency !== expense.currency;
   const displayAmount = isConverted ? conversion.converted!.amount : baseAmount;
   const displayCurrency = isConverted ? conversion.converted!.currency : expense.currency;
+  
+  // Calculate converted balance if conversion is active
+  const displayBalance = isConverted && conversion?.converted
+    ? userBalance * conversion.converted.rate
+    : userBalance;
 
   const handleCardClick = () => {
     onClick?.();
@@ -154,11 +197,25 @@ export function ExpenseCard({
         </div>
 
         {/* Amount */}
-        <div className="flex-shrink-0 text-start">
+        <div className="flex-shrink-0 text-end">
           {showUserShare && isGroupExpense ? (
             <>
-              <div className="font-semibold text-primary flex items-center gap-1 text-sm sm:text-base">
-                {formatCurrency(displayAmount, displayCurrency)}
+              {/* Who paid + total amount */}
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                {payerInfo && (
+                  <span>
+                    {payerInfo.name} {t('paid')} {formatCurrency(expense.amount, expense.currency)}
+                  </span>
+                )}
+              </div>
+              {/* User's balance - colored based on owe/owed */}
+              <div className={cn(
+                "font-semibold text-sm sm:text-base flex items-center justify-end gap-1",
+                userBalance > 0 && "text-green-600",
+                userBalance < 0 && "text-red-600",
+                userBalance === 0 && "text-muted-foreground"
+              )}>
+                {formatCurrency(Math.abs(displayBalance), displayCurrency)}
                 {/* Conversion icon - hidden on mobile */}
                 {isConverted && (
                   <TooltipProvider>
@@ -176,22 +233,10 @@ export function ExpenseCard({
                   </TooltipProvider>
                 )}
               </div>
-              {/* Secondary amount info - hidden on mobile */}
-              <div className="text-xs text-muted-foreground hidden sm:block">
-                {isConverted ? (
-                  <span>
-                    {formatCurrency(baseAmount, expense.currency)} @ {conversion!.converted!.rate.toFixed(4)}
-                  </span>
-                ) : (
-                  <span>
-                    {Math.round((baseAmount / expense.amount) * 100)}% of {formatCurrency(expense.amount, expense.currency)}
-                  </span>
-                )}
-              </div>
             </>
           ) : isConverted ? (
             <>
-              <div className="font-semibold flex items-center gap-1 text-sm sm:text-base">
+              <div className="font-semibold flex items-center justify-end gap-1 text-sm sm:text-base">
                 {formatCurrency(displayAmount, displayCurrency)}
                 {/* Conversion icon - hidden on mobile */}
                 <TooltipProvider>
@@ -243,7 +288,7 @@ export function ExpenseCard({
               {onEdit && (
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
                   <Pencil className="h-4 w-4 me-2" />
-                  Edit
+                  {tCommon('edit')}
                 </DropdownMenuItem>
               )}
               {onDelete && (
@@ -252,7 +297,7 @@ export function ExpenseCard({
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-4 w-4 me-2" />
-                  Delete
+                  {tCommon('delete')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

@@ -7,6 +7,7 @@
     "add": "הוסף",
     "update": "עדכן",
     "create": "צור",
+    "done": "סיום",
     "loading": "טוען...",
     "converting": "ממיר...",
     "clear": "נקה",
@@ -101,7 +102,8 @@
   },
   "expenseCard": {
     "historicalRate": "שער היסטורי",
-    "currentRate": "שער עדכני"
+    "currentRate": "שער עדכני",
+    "paid": "שילמ/ה"
   },
   "split": {
     "title": "אפשרויות חלוקה",
@@ -169,7 +171,15 @@
     "expenses": "הוצאות",
     "balances": "איזונים",
     "noExpenses": "אין הוצאות בקבוצה זו",
-    "noExpensesDescription": "הוסף את ההוצאה הראשונה כדי להתחיל לחלק עלויות."
+    "noExpensesDescription": "הוסף את ההוצאה הראשונה כדי להתחיל לחלק עלויות.",
+    "addMember": "הוסף חבר"
+  },
+  "addMembers": {
+    "title": "הוספת חברים",
+    "description": "הזמן חברים חדשים לקבוצה. חברים חדשים יכללו רק בהוצאות עתידיות, לא בהיסטוריות.",
+    "addCount": "{count, plural, =1 {הוסף חבר אחד} other {הוסף # חברים}}",
+    "membersAdded": "{count, plural, =1 {החבר נוסף בהצלחה} other {# חברים נוספו בהצלחה}}",
+    "failedToAdd": "הוספת חברים נכשלה. נסה שוב."
   },
   "balances": {
     "groupTotal": "סה\"כ קבוצה",

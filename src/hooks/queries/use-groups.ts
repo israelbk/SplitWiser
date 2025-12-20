@@ -71,8 +71,13 @@ export function useCreateGroup() {
 
   return useMutation({
     mutationFn: (input: CreateGroupInput) => groupService.createGroup(input),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
+      // Invalidate groups for all members involved
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(variables.createdBy) });
+      variables.memberIds.forEach((memberId) => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(memberId) });
+      });
     },
   });
 }
@@ -135,6 +140,8 @@ export function useAddGroupMember() {
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.members(variables.groupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.withMembers(variables.groupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(variables.groupId) });
+      // Invalidate the new member's groups list so they see the group
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(variables.userId) });
     },
   });
 }

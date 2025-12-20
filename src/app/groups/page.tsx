@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout';
 import { GroupList, GroupForm } from '@/components/features/groups';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
-import { useGroups, useCreateGroup, useGroupBalances } from '@/hooks/queries';
+import { useGroupsForUser, useCreateGroup } from '@/hooks/queries';
 import { groupService, GroupWithMembers } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -19,7 +19,8 @@ import { useTranslations } from 'next-intl';
 export default function GroupsPage() {
   const { currentUser } = useCurrentUser();
   const { canWrite } = useAuth();
-  const { data: groups, isLoading } = useGroups();
+  // Only fetch groups where current user is a member
+  const { data: groups, isLoading } = useGroupsForUser(currentUser?.id);
   const createGroup = useCreateGroup();
   const t = useTranslations('groups');
 

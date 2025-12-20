@@ -7,7 +7,7 @@
 
 import { ExpenseForm, UserAvatar } from '@/components/common';
 import { ExpenseList } from '@/components/features/expenses';
-import { GroupBalances } from '@/components/features/groups';
+import { AddMembersDialog, GroupBalances } from '@/components/features/groups';
 import { AppShell } from '@/components/layout';
 import {
   AlertDialog,
@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  useAddGroupMember,
   useCreateExpense,
   useDeleteExpense,
   useGroupExpenses,
@@ -31,7 +32,7 @@ import {
 } from '@/hooks/queries';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { ExpenseWithDetails } from '@/lib/services';
-import { ArrowLeft, Plus, Receipt, Scale } from 'lucide-react';
+import { ArrowLeft, Plus, Receipt, Scale, UserPlus } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -49,13 +50,16 @@ export default function GroupDetailPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const addMember = useAddGroupMember();
   const t = useTranslations('expenses');
   const tGroups = useTranslations('groups');
   const tGroupDetail = useTranslations('groupDetail');
   const tExpenseForm = useTranslations('expenseForm');
   const tCommon = useTranslations('common');
+  const tAddMembers = useTranslations('addMembers');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAddMembersOpen, setIsAddMembersOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseWithDetails | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<ExpenseWithDetails | null>(null);
   const [activeTab, setActiveTab] = useState('expenses');
@@ -155,6 +159,25 @@ export default function GroupDetailPage() {
     }
   };
 
+  const handleAddMembers = async (newMemberIds: string[]) => {
+    if (!group) return;
+
+    try {
+      // Add each new member to the group
+      for (const userId of newMemberIds) {
+        await addMember.mutateAsync({
+          groupId: group.id,
+          userId,
+          role: 'member',
+        });
+      }
+      toast.success(tAddMembers('membersAdded', { count: newMemberIds.length }));
+    } catch (error) {
+      toast.error(tAddMembers('failedToAdd'));
+      throw error; // Re-throw so dialog knows to stay open
+    }
+  };
+
   if (groupLoading) {
     return (
       <AppShell>
@@ -204,7 +227,7 @@ export default function GroupDetailPage() {
               </p>
             )}
             {/* Member Avatars */}
-            <div className="flex items-center mt-2 -space-x-2">
+            <div className="flex items-center mt-2 -space-x-2 rtl:space-x-reverse">
               {group.members.slice(0, 5).map((member) => (
                 <UserAvatar
                   key={member.userId}
@@ -214,9 +237,21 @@ export default function GroupDetailPage() {
                 />
               ))}
               {group.members.length > 5 && (
-                <span className="text-xs text-muted-foreground ml-2">
+                <span className="text-xs text-muted-foreground ms-2">
                   +{group.members.length - 5}
                 </span>
+              )}
+              {/* Add Member Button */}
+              {canWrite && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddMembersOpen(true)}
+                  className="ms-3 h-8 gap-1 text-xs"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{tGroupDetail('addMember')}</span>
+                </Button>
               )}
             </div>
           </div>
@@ -301,6 +336,19 @@ export default function GroupDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Members Dialog */}
+      {currentUser && group && (
+        <AddMembersDialog
+          open={isAddMembersOpen}
+          onOpenChange={setIsAddMembersOpen}
+          currentUser={currentUser}
+          existingMemberIds={group.members.map(m => m.userId)}
+          existingMembers={group.members.map(m => m.user).filter((u): u is NonNullable<typeof u> => !!u)}
+          onAddMembers={handleAddMembers}
+          isLoading={addMember.isPending}
+        />
+      )}
     </AppShell>
   );
 }

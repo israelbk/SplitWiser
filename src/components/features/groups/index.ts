@@ -6,4 +6,5 @@ export * from './group-card';
 export * from './group-list';
 export * from './group-form';
 export * from './group-balances';
+export * from './add-members-dialog';
 

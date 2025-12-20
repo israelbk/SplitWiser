@@ -7,6 +7,7 @@
     "add": "Añadir",
     "update": "Actualizar",
     "create": "Crear",
+    "done": "Listo",
     "loading": "Cargando...",
     "converting": "Convirtiendo...",
     "clear": "Limpiar",
@@ -101,7 +102,8 @@
   },
   "expenseCard": {
     "historicalRate": "Tasa histórica",
-    "currentRate": "Tasa actual"
+    "currentRate": "Tasa actual",
+    "paid": "pagó"
   },
   "split": {
     "title": "Opciones de división",
@@ -169,7 +171,15 @@
     "expenses": "Gastos",
     "balances": "Balances",
     "noExpenses": "Sin gastos en este grupo",
-    "noExpensesDescription": "Añade el primer gasto para empezar a dividir costos."
+    "noExpensesDescription": "Añade el primer gasto para empezar a dividir costos.",
+    "addMember": "Añadir miembro"
+  },
+  "addMembers": {
+    "title": "Añadir miembros",
+    "description": "Invita nuevos miembros a este grupo. Los nuevos miembros solo se incluirán en gastos futuros, no en los históricos.",
+    "addCount": "{count, plural, =1 {Añadir 1 miembro} other {Añadir # miembros}}",
+    "membersAdded": "{count, plural, =1 {Miembro añadido con éxito} other {# miembros añadidos con éxito}}",
+    "failedToAdd": "Error al añadir miembros. Por favor, inténtalo de nuevo."
   },
   "balances": {
     "groupTotal": "Total del grupo",
