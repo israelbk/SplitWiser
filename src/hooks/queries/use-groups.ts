@@ -71,13 +71,9 @@ export function useCreateGroup() {
 
   return useMutation({
     mutationFn: (input: CreateGroupInput) => groupService.createGroup(input),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
+      // Invalidate all group queries - we don't know the user IDs anymore (just emails)
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
-      // Invalidate groups for all members involved
-      queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(variables.createdBy) });
-      variables.memberIds.forEach((memberId) => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(memberId) });
-      });
     },
   });
 }
@@ -140,8 +136,8 @@ export function useAddGroupMember() {
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.members(variables.groupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.withMembers(variables.groupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.balances(variables.groupId) });
-      // Invalidate the new member's groups list so they see the group
-      queryClient.invalidateQueries({ queryKey: queryKeys.groups.forUser(variables.userId) });
+      // Also invalidate all groups since we added by email, not user ID
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
     },
   });
 }

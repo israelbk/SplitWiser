@@ -101,15 +101,14 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
 
   /**
    * Create a group with domain input type
-   * Uses a SECURITY DEFINER function to bypass RLS for group creation
+   * Uses emails - no need to know if users exist or not
    */
   async createGroup(input: CreateGroupInput): Promise<Group> {
-    // Use the SECURITY DEFINER function that handles group + members atomically
-    // Parameter order: p_name, p_created_by, p_member_ids, p_description, p_type, p_default_currency, p_cover_image_url
-    const { data, error } = await this.client.rpc('create_group_with_members', {
+    // Use the email-based function that handles everything
+    const { data, error } = await this.client.rpc('create_group_with_emails', {
       p_name: input.name,
-      p_created_by: input.createdBy,
-      p_member_ids: input.memberIds,
+      p_creator_email: input.creatorEmail,
+      p_member_emails: input.memberEmails,
       p_description: input.description ?? null,
       p_type: input.type ?? 'trip',
       p_default_currency: input.defaultCurrency ?? 'ILS',
@@ -148,14 +147,14 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
   }
 
   /**
-   * Add a member to a group
-   * Uses a SECURITY DEFINER function to bypass RLS
+   * Add a member to a group by email
+   * Uses a SECURITY DEFINER function - creates user if doesn't exist
    */
   async addMember(input: AddMemberInput): Promise<GroupMember> {
-    // Use the SECURITY DEFINER function
-    const { error } = await this.client.rpc('add_group_member', {
+    // Use the email-based function that creates user if needed
+    const { data, error } = await this.client.rpc('add_group_member_by_email', {
       p_group_id: input.groupId,
-      p_user_id: input.userId,
+      p_email: input.email,
       p_role: input.role ?? 'member',
     });
 
@@ -163,12 +162,15 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
       throw new Error(`Failed to add member: ${error.message}`);
     }
 
+    // The function returns the user ID
+    const userId = data as string;
+
     // Fetch and return the member record
     const { data: memberData, error: fetchError } = await this.client
       .from('group_members')
       .select('*')
       .eq('group_id', input.groupId)
-      .eq('user_id', input.userId)
+      .eq('user_id', userId)
       .single();
 
     if (fetchError) {

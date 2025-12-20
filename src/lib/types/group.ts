@@ -34,8 +34,8 @@ export interface CreateGroupInput {
   type?: GroupType;
   defaultCurrency?: string;
   coverImageUrl?: string;
-  createdBy: string;
-  memberIds: string[]; // Users to add as members
+  creatorEmail: string; // Email of the creator
+  memberEmails: string[]; // Emails of members to add
 }
 
 export interface UpdateGroupInput {
@@ -49,7 +49,7 @@ export interface UpdateGroupInput {
 
 export interface AddMemberInput {
   groupId: string;
-  userId: string;
+  email: string; // Email of member to add
   role?: MemberRole;
 }
 

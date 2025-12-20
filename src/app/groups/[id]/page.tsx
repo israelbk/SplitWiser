@@ -32,7 +32,7 @@ import {
   useUpdateGroup,
 } from '@/hooks/queries';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
-import { ExpenseWithDetails } from '@/lib/services';
+import { ExpenseWithDetails, userService } from '@/lib/services';
 import { ArrowLeft, Plus, Receipt, Scale, Settings, UserPlus } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -167,16 +167,20 @@ export default function GroupDetailPage() {
     if (!group) return;
 
     try {
-      // Add each new member to the group
-      for (const userId of newMemberIds) {
+      // Get emails from member IDs
+      const members = await userService.getUsersByIds(newMemberIds);
+      
+      // Add each new member by email
+      for (const member of members) {
         await addMember.mutateAsync({
           groupId: group.id,
-          userId,
+          email: member.email,
           role: 'member',
         });
       }
       toast.success(tAddMembers('membersAdded', { count: newMemberIds.length }));
     } catch (error) {
+      console.error('Failed to add members:', error);
       toast.error(tAddMembers('failedToAdd'));
       throw error; // Re-throw so dialog knows to stay open
     }

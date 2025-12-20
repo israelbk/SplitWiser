@@ -10,7 +10,7 @@ import { AppShell } from '@/components/layout';
 import { GroupList, GroupForm } from '@/components/features/groups';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { useGroupsForUser, useCreateGroup } from '@/hooks/queries';
-import { groupService, GroupWithMembers } from '@/lib/services';
+import { groupService, userService, GroupWithMembers } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -66,16 +66,21 @@ export default function GroupsPage() {
     if (!currentUser) return;
 
     try {
+      // Get emails from member IDs
+      const members = await userService.getUsersByIds(data.memberIds);
+      const memberEmails = members.map(m => m.email);
+      
       await createGroup.mutateAsync({
         name: data.name,
         description: data.description,
         type: data.type,
-        createdBy: currentUser.id,
-        memberIds: data.memberIds,
+        creatorEmail: currentUser.email,
+        memberEmails: memberEmails,
       });
       toast.success(t('groupCreated'));
       setIsFormOpen(false);
     } catch (error) {
+      console.error('Failed to create group:', error);
       toast.error(t('failedToCreate'));
     }
   };
