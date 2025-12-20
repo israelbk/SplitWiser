@@ -7,6 +7,7 @@ import { queryKeys } from './query-keys';
 import { userService } from '@/lib/services';
 import { Locale, DEFAULT_LOCALE } from '@/lib/types';
 import { useCurrentUser } from '../use-current-user';
+import { dispatchLocaleChange } from '@/providers/locale-provider';
 
 /**
  * Hook to get current user's language preference
@@ -30,8 +31,13 @@ export function useSetLanguage() {
       }
       return userService.setLanguage(currentUser.id, language);
     },
+    onMutate: (language) => {
+      // Optimistic update: immediately dispatch locale change event
+      // This updates the UI instantly while the mutation is in progress
+      dispatchLocaleChange(language);
+    },
     onSuccess: (updatedUser) => {
-      // Invalidate user queries
+      // Invalidate user queries to sync server state
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.detail(updatedUser.id),
       });

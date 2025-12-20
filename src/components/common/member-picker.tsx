@@ -30,6 +30,7 @@ import {
   Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface MemberPickerProps {
   /** Current user (always included, cannot be removed) */
@@ -51,6 +52,8 @@ export function MemberPicker({
   existingMembers = [],
   showShadowIndicator = true,
 }: MemberPickerProps) {
+  const t = useTranslations('memberPicker');
+  const tCommon = useTranslations('common');
   const [emailInput, setEmailInput] = useState('');
   const [isAddingEmail, setIsAddingEmail] = useState(false);
   
@@ -103,12 +106,12 @@ export function MemberPicker({
     }
     
     if (!isValidEmail(email)) {
-      toast.error('Please enter a valid email address');
+      toast.error(t('invalidEmail'));
       return;
     }
     
     if (isEmailInList(email)) {
-      toast.error('This email is already in the list');
+      toast.error(t('emailAlreadyInList'));
       setEmailInput('');
       return;
     }
@@ -132,12 +135,12 @@ export function MemberPicker({
       setEmailInput('');
       toast.success(
         user.isShadow 
-          ? `Invited ${email} - they'll see this group when they sign up!`
-          : `Added ${user.name}`
+          ? t('invitedSuccess', { email })
+          : t('addedSuccess', { name: user.name })
       );
     } catch (error) {
       console.error('Failed to add member:', error);
-      toast.error('Failed to add member. Please try again.');
+      toast.error(t('failedToAdd'));
     } finally {
       setIsAddingEmail(false);
     }
@@ -177,12 +180,12 @@ export function MemberPicker({
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <UserPlus className="h-4 w-4" />
-          Add by Email
+          {t('addByEmail')}
         </Label>
         <div className="flex gap-2">
           <Input
             type="email"
-            placeholder="friend@example.com"
+            placeholder={t('emailPlaceholder')}
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -203,7 +206,7 @@ export function MemberPicker({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          Add anyone by email. If they haven't signed up yet, they'll see this group when they do!
+          {t('emailHelp')}
         </p>
       </div>
 
@@ -213,7 +216,7 @@ export function MemberPicker({
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <Check className="h-4 w-4" />
-          Selected Members ({selectedMembers.length})
+          {t('selectedMembers')} ({selectedMembers.length})
         </Label>
         <div className="flex flex-wrap gap-2">
           {selectedMembers.map((member) => {
@@ -231,13 +234,13 @@ export function MemberPicker({
               >
                 <UserAvatar user={member} size="xs" />
                 <span className="max-w-[120px] truncate">
-                  {isCurrentUser ? 'You' : member.name}
+                  {isCurrentUser ? tCommon('you') : member.name}
                 </span>
                 {showShadowIndicator && member.isShadow && (
                   <Ghost className="h-3 w-3 text-muted-foreground" />
                 )}
                 {!isCurrentUser && (
-                  <X className="h-3 w-3 ml-1 opacity-60" />
+                  <X className="h-3 w-3 ms-1 opacity-60" />
                 )}
               </Badge>
             );
@@ -252,7 +255,7 @@ export function MemberPicker({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Your Contacts
+              {t('yourContacts')}
             </Label>
             {contactsLoading ? (
               <div className="flex items-center justify-center py-4">
@@ -282,7 +285,7 @@ export function MemberPicker({
                       {showShadowIndicator && member.isShadow && (
                         <Badge variant="outline" className="text-xs gap-1">
                           <Ghost className="h-3 w-3" />
-                          Invited
+                          {t('invited')}
                         </Badge>
                       )}
                     </label>
@@ -298,8 +301,8 @@ export function MemberPicker({
       {unselectedContacts.length === 0 && !contactsLoading && selectedMembers.length === 1 && (
         <div className="text-center py-6 text-muted-foreground">
           <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No contacts yet</p>
-          <p className="text-xs">Add members by email above</p>
+          <p className="text-sm">{t('noContacts')}</p>
+          <p className="text-xs">{t('addMembersAbove')}</p>
         </div>
       )}
     </div>

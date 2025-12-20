@@ -86,9 +86,11 @@
     "groupDescription": "הגדר מי שילם ואיך לחלק.",
     "amount": "סכום",
     "descriptionLabel": "תיאור",
+    "descriptionPlaceholder": "על מה הייתה ההוצאה?",
     "category": "קטגוריה",
     "date": "תאריך",
     "notes": "הערות (אופציונלי)",
+    "notesPlaceholder": "הוסף הערות נוספות...",
     "split": "חלוקה",
     "validation": {
       "descriptionRequired": "תיאור נדרש",
@@ -210,6 +212,21 @@
   },
   "datePicker": {
     "pickDate": "בחר תאריך"
+  },
+  "memberPicker": {
+    "addByEmail": "הוסף לפי אימייל",
+    "emailPlaceholder": "friend@example.com",
+    "emailHelp": "הוסף כל אחד לפי אימייל. אם עדיין לא נרשמו, הם יראו את הקבוצה הזו כשיירשמו!",
+    "selectedMembers": "חברים נבחרים",
+    "yourContacts": "אנשי הקשר שלך",
+    "noContacts": "אין עדיין אנשי קשר",
+    "addMembersAbove": "הוסף חברים לפי אימייל למעלה",
+    "invalidEmail": "הזן כתובת אימייל תקינה",
+    "emailAlreadyInList": "אימייל זה כבר ברשימה",
+    "invitedSuccess": "הוזמן {email} - הם יראו את הקבוצה הזו כשיירשמו!",
+    "addedSuccess": "נוסף {name}",
+    "failedToAdd": "הוספת החבר נכשלה. נסה שוב.",
+    "invited": "הוזמן"
   }
 }
 

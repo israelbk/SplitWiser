@@ -33,6 +33,7 @@ import { formatCurrency } from '@/lib/constants';
 import { Users, Wallet, Check, Equal, Percent, Hash, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DirectionalIcon } from './rtl-icon';
+import { useTranslations } from 'next-intl';
 
 interface SplitConfigProps {
   /** Whether the sheet is open (controlled) */
@@ -73,6 +74,8 @@ export function SplitConfig({
   initialConfig,
   onSave,
 }: SplitConfigProps) {
+  const t = useTranslations('split');
+  const tCommon = useTranslations('common');
   const [activeTab, setActiveTab] = useState<'payment' | 'split'>('split');
   
   // Payment state
@@ -205,9 +208,9 @@ export function SplitConfig({
         className="h-[85vh] sm:h-[70vh] md:h-[80vh] lg:h-[70vh] max-h-[700px] flex flex-col px-4 sm:px-6"
       >
         <SheetHeader className="text-start flex-shrink-0 pb-2">
-          <SheetTitle className="text-lg">Split Options</SheetTitle>
+          <SheetTitle className="text-lg">{t('title')}</SheetTitle>
           <SheetDescription className="text-base font-medium text-foreground">
-            Total: {formatCurrency(amount, currency)}
+            {t('total')} {formatCurrency(amount, currency)}
           </SheetDescription>
         </SheetHeader>
 
@@ -217,11 +220,11 @@ export function SplitConfig({
             <TabsList className="w-full flex-shrink-0 h-11">
               <TabsTrigger value="payment" className="flex-1 gap-2 h-9">
                 <Wallet className="h-4 w-4" />
-                Paid by
+                {t('paidBy')}
               </TabsTrigger>
               <TabsTrigger value="split" className="flex-1 gap-2 h-9">
                 <Users className="h-4 w-4" />
-                Split
+                {t('splitTab')}
               </TabsTrigger>
             </TabsList>
 
@@ -254,7 +257,7 @@ export function SplitConfig({
                           <UserAvatar user={member} size="md" />
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-base">
-                              {member.id === currentUserId ? 'You' : member.name}
+                              {member.id === currentUserId ? tCommon('you') : member.name}
                             </p>
                           </div>
                           {isSelected && (
@@ -270,7 +273,7 @@ export function SplitConfig({
                         {isSelected && !isOnlyPayer && (
                           <div className="px-4 pb-4 pt-0">
                             <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2">
-                              <span className="text-sm text-muted-foreground font-medium ps-2">Amount:</span>
+                              <span className="text-sm text-muted-foreground font-medium ps-2">{t('amount')}:</span>
                               <Input
                                 type="number"
                                 value={payment?.amount || 0}
@@ -293,12 +296,14 @@ export function SplitConfig({
                   {isPaymentValid ? (
                     <div className="flex items-center gap-2">
                       <Check className="h-5 w-5" />
-                      Payment adds up to total
+                      {t('paymentValid')}
                     </div>
                   ) : (
                     <p>
-                      Payment total: {formatCurrency(paymentTotal, currency)} 
-                      (need {formatCurrency(amount - paymentTotal, currency)} more)
+                      {t('paymentNeedMore', { 
+                        current: formatCurrency(paymentTotal, currency),
+                        more: formatCurrency(amount - paymentTotal, currency)
+                      })}
                     </p>
                   )}
                 </div>
@@ -308,13 +313,13 @@ export function SplitConfig({
             <TabsContent value="split" className="mt-4 flex-1 overflow-hidden flex flex-col">
               {/* Split type selector - 2x2 grid on mobile for more breathing room */}
               <div className="mb-4 flex-shrink-0">
-                <Label className="text-sm font-semibold mb-3 block text-muted-foreground uppercase tracking-wide">Split method</Label>
+                <Label className="text-sm font-semibold mb-3 block text-muted-foreground uppercase tracking-wide">{t('splitMethod')}</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { value: 'equal', label: 'Equal', icon: Equal },
-                    { value: 'exact', label: 'Amount', icon: DollarSign },
-                    { value: 'percentage', label: 'Percent', icon: Percent },
-                    { value: 'shares', label: 'Shares', icon: Hash },
+                    { value: 'equal', label: t('equal'), icon: Equal },
+                    { value: 'exact', label: t('amount'), icon: DollarSign },
+                    { value: 'percentage', label: t('percent'), icon: Percent },
+                    { value: 'shares', label: t('shares'), icon: Hash },
                   ].map(({ value, label, icon: Icon }) => (
                     <Button
                       key={value}
@@ -362,7 +367,7 @@ export function SplitConfig({
                           <UserAvatar user={member} size="md" />
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-base">
-                              {member.id === currentUserId ? 'You' : member.name}
+                              {member.id === currentUserId ? tCommon('you') : member.name}
                             </p>
                           </div>
                           {isSelected && (
@@ -380,7 +385,7 @@ export function SplitConfig({
                             <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2">
                               {splitType === 'percentage' && (
                                 <>
-                                  <span className="text-sm text-muted-foreground font-medium ps-2">Percentage:</span>
+                                  <span className="text-sm text-muted-foreground font-medium ps-2">{t('percentage')}</span>
                                   <Input
                                     type="number"
                                     value={split?.percentage || 0}
@@ -394,7 +399,7 @@ export function SplitConfig({
                               )}
                               {splitType === 'shares' && (
                                 <>
-                                  <span className="text-sm text-muted-foreground font-medium ps-2">Shares:</span>
+                                  <span className="text-sm text-muted-foreground font-medium ps-2">{t('shares')}:</span>
                                   <Input
                                     type="number"
                                     value={split?.shares || 1}
@@ -406,7 +411,7 @@ export function SplitConfig({
                               )}
                               {splitType === 'exact' && (
                                 <>
-                                  <span className="text-sm text-muted-foreground font-medium ps-2">Amount:</span>
+                                  <span className="text-sm text-muted-foreground font-medium ps-2">{t('amount')}:</span>
                                   <Input
                                     type="number"
                                     value={split?.amount || 0}
@@ -432,13 +437,20 @@ export function SplitConfig({
                   {isSplitValid ? (
                     <div className="flex items-center gap-2">
                       <Check className="h-5 w-5" />
-                      Split adds up to total
+                      {t('splitValid')}
                     </div>
                   ) : (
                     <p>
-                      Split total: {formatCurrency(splitTotal, currency)}
-                      {splitTotal < amount && ` (need ${formatCurrency(amount - splitTotal, currency)} more)`}
-                      {splitTotal > amount && ` (${formatCurrency(splitTotal - amount, currency)} over)`}
+                      {splitTotal < amount 
+                        ? t('splitNeedMore', { 
+                            current: formatCurrency(splitTotal, currency),
+                            more: formatCurrency(amount - splitTotal, currency)
+                          })
+                        : t('splitOver', { 
+                            current: formatCurrency(splitTotal, currency),
+                            over: formatCurrency(splitTotal - amount, currency)
+                          })
+                      }
                     </p>
                   )}
                 </div>
@@ -454,18 +466,24 @@ export function SplitConfig({
             <div className="w-full text-sm text-center">
               {!isPaymentValid && hasSelectedPayments && (
                 <p className="text-destructive font-medium">
-                  Payment total ({formatCurrency(paymentTotal, currency)}) doesn't match expense ({formatCurrency(amount, currency)})
+                  {t('paymentMismatch', { 
+                    payment: formatCurrency(paymentTotal, currency),
+                    expense: formatCurrency(amount, currency)
+                  })}
                 </p>
               )}
               {!isSplitValid && hasSelectedSplits && (
                 <p className="text-destructive font-medium">
-                  Split total ({formatCurrency(splitTotal, currency)}) doesn't match expense ({formatCurrency(amount, currency)})
+                  {t('splitMismatch', { 
+                    split: formatCurrency(splitTotal, currency),
+                    expense: formatCurrency(amount, currency)
+                  })}
                 </p>
               )}
             </div>
           )}
           <Button onClick={handleSave} disabled={!isValid} className="w-full h-12 text-base font-semibold">
-            Save
+            {tCommon('save')}
           </Button>
         </SheetFooter>
       </SheetContent>
@@ -496,6 +514,8 @@ export function SplitConfigTrigger({
   members,
   disabled = false,
 }: SplitConfigTriggerProps) {
+  const t = useTranslations('split');
+  
   // Calculate summary text from saved config
   const summaryText = useMemo(() => {
     const sourcePayments = config?.payments || [];
@@ -505,30 +525,34 @@ export function SplitConfigTrigger({
     // Payment summary
     let paymentText = '';
     if (sourcePayments.length === 1 && sourcePayments[0].userId === currentUserId) {
-      paymentText = 'Paid by you';
+      paymentText = t('paidByYou');
     } else if (sourcePayments.length === 1) {
       const payer = members.find(m => m.id === sourcePayments[0].userId);
-      paymentText = `Paid by ${payer?.name || 'someone'}`;
+      paymentText = t('paidBySomeone', { name: payer?.name || 'someone' });
     } else if (sourcePayments.length > 1) {
-      paymentText = `Paid by ${sourcePayments.length} people`;
+      paymentText = t('paidByMultiple', { count: sourcePayments.length });
     } else {
-      paymentText = 'Paid by you';
+      paymentText = t('paidByYou');
     }
 
     // Split summary
     let splitText = '';
     if (sourceSplits.length === 0) {
-      splitText = 'split equally';
+      splitText = t('splitEqually');
     } else if (sourceSplits.length === members.length && sourceSplitType === 'equal') {
-      splitText = 'split equally';
+      splitText = t('splitEqually');
     } else if (sourceSplits.length === members.length) {
-      splitText = `split ${sourceSplitType === 'percentage' ? 'by %' : sourceSplitType === 'shares' ? 'by shares' : 'by amount'}`;
+      splitText = sourceSplitType === 'percentage' 
+        ? t('splitByPercent') 
+        : sourceSplitType === 'shares' 
+          ? t('splitByShares') 
+          : t('splitByAmount');
     } else {
-      splitText = `split among ${sourceSplits.length}`;
+      splitText = t('splitAmong', { count: sourceSplits.length });
     }
 
     return `${paymentText}, ${splitText}`;
-  }, [config, members, currentUserId]);
+  }, [config, members, currentUserId, t]);
 
   // Get user's share from saved config
   const userShare = useMemo(() => {
@@ -566,11 +590,11 @@ export function SplitConfigTrigger({
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium truncate">
-            {disabled ? 'Enter amount first' : summaryText}
+            {disabled ? t('enterAmountFirst') : summaryText}
           </p>
           {!disabled && userShare > 0 && amount > 0 && (
             <p className="text-xs text-muted-foreground truncate">
-              Your share: {formatCurrency(userShare, currency)}
+              {t('yourShare')} {formatCurrency(userShare, currency)}
             </p>
           )}
         </div>

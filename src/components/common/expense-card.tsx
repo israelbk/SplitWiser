@@ -154,10 +154,11 @@ export function ExpenseCard({
         </div>
 
         {/* Amount */}
-        <div className="flex-shrink-0 text-end">
+        <div className="flex-shrink-0 text-start">
           {showUserShare && isGroupExpense ? (
             <>
-              <div className="font-semibold text-primary flex items-center justify-end gap-1 text-sm sm:text-base rtl:flex-row-reverse">
+              <div className="font-semibold text-primary flex items-center gap-1 text-sm sm:text-base">
+                {formatCurrency(displayAmount, displayCurrency)}
                 {/* Conversion icon - hidden on mobile */}
                 {isConverted && (
                   <TooltipProvider>
@@ -174,7 +175,6 @@ export function ExpenseCard({
                     </Tooltip>
                   </TooltipProvider>
                 )}
-                {formatCurrency(displayAmount, displayCurrency)}
               </div>
               {/* Secondary amount info - hidden on mobile */}
               <div className="text-xs text-muted-foreground hidden sm:block">
@@ -191,7 +191,8 @@ export function ExpenseCard({
             </>
           ) : isConverted ? (
             <>
-              <div className="font-semibold flex items-center justify-end gap-1 text-sm sm:text-base rtl:flex-row-reverse">
+              <div className="font-semibold flex items-center gap-1 text-sm sm:text-base">
+                {formatCurrency(displayAmount, displayCurrency)}
                 {/* Conversion icon - hidden on mobile */}
                 <TooltipProvider>
                   <Tooltip>
@@ -206,7 +207,6 @@ export function ExpenseCard({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                {formatCurrency(displayAmount, displayCurrency)}
               </div>
               {/* Conversion details - hidden on mobile */}
               <div className="text-xs text-muted-foreground hidden sm:block">

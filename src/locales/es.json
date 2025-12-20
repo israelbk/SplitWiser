@@ -86,9 +86,11 @@
     "groupDescription": "Configura quién pagó y cómo dividir.",
     "amount": "Monto",
     "descriptionLabel": "Descripción",
+    "descriptionPlaceholder": "¿En qué fue este gasto?",
     "category": "Categoría",
     "date": "Fecha",
     "notes": "Notas (opcional)",
+    "notesPlaceholder": "Añade notas adicionales...",
     "split": "División",
     "validation": {
       "descriptionRequired": "La descripción es requerida",
@@ -210,6 +212,21 @@
   },
   "datePicker": {
     "pickDate": "Seleccionar fecha"
+  },
+  "memberPicker": {
+    "addByEmail": "Añadir por email",
+    "emailPlaceholder": "amigo@ejemplo.com",
+    "emailHelp": "Añade a cualquiera por email. Si aún no se han registrado, ¡verán este grupo cuando lo hagan!",
+    "selectedMembers": "Miembros seleccionados",
+    "yourContacts": "Tus contactos",
+    "noContacts": "Sin contactos aún",
+    "addMembersAbove": "Añade miembros por email arriba",
+    "invalidEmail": "Por favor, introduce un email válido",
+    "emailAlreadyInList": "Este email ya está en la lista",
+    "invitedSuccess": "Invitado {email} - ¡verán este grupo cuando se registren!",
+    "addedSuccess": "Añadido {name}",
+    "failedToAdd": "Error al añadir miembro. Por favor, inténtalo de nuevo.",
+    "invited": "Invitado"
   }
 }
 

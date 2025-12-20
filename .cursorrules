@@ -339,6 +339,112 @@ if (error) {
 - Mobile-first responsive design
 - Use `safe-area-inset-*` for notched devices
 
+## 🌍 Localization & RTL Support (REQUIRED)
+
+**All UI text MUST be localized.** The app supports English, Hebrew (RTL), and Spanish.
+
+### Adding Localized Text
+
+1. **NEVER hardcode user-facing strings** in components
+2. **Always use `useTranslations` hook** from `next-intl`
+3. **Add translations to ALL locale files**: `src/locales/{en,he,es}.json`
+
+```typescript
+import { useTranslations } from 'next-intl';
+
+export function MyComponent() {
+  const t = useTranslations('myNamespace');
+  const tCommon = useTranslations('common');
+  
+  return (
+    <div>
+      <h1>{t('title')}</h1>
+      <button>{tCommon('save')}</button>
+    </div>
+  );
+}
+```
+
+### Translation File Structure
+
+Organize translations by feature/component namespace:
+
+```json
+{
+  "common": { "save": "Save", "cancel": "Cancel", "you": "You" },
+  "expenses": { "title": "All Expenses", "addExpense": "Add Expense" },
+  "expenseForm": { "amount": "Amount", "description": "Description" },
+  "split": { "paidBy": "Paid by", "splitEqually": "split equally" }
+}
+```
+
+### RTL-Aware CSS
+
+**Use logical properties instead of physical directions:**
+
+| ❌ Don't Use | ✅ Use Instead | Description |
+|-------------|---------------|-------------|
+| `ml-*`, `mr-*` | `ms-*`, `me-*` | Margin start/end |
+| `pl-*`, `pr-*` | `ps-*`, `pe-*` | Padding start/end |
+| `left-*`, `right-*` | `start-*`, `end-*` | Positioning |
+| `text-left`, `text-right` | `text-start`, `text-end` | Text alignment |
+| `rounded-l-*`, `rounded-r-*` | `rounded-s-*`, `rounded-e-*` | Border radius |
+| `border-l-*`, `border-r-*` | `border-s-*`, `border-e-*` | Borders |
+
+```typescript
+// ✅ RTL-aware
+<div className="ps-4 me-2 text-start rounded-e-lg">
+
+// ❌ Will break in RTL
+<div className="pl-4 mr-2 text-left rounded-r-lg">
+```
+
+### RTL Icon Handling
+
+Use `DirectionalIcon` component for icons that should flip in RTL:
+
+```typescript
+import { DirectionalIcon } from '@/components/common/rtl-icon';
+
+<DirectionalIcon icon="chevron-right" className="h-4 w-4" />
+```
+
+For avatar stacks, add `rtl:space-x-reverse`:
+
+```typescript
+<div className="flex -space-x-2 rtl:space-x-reverse">
+  {avatars}
+</div>
+```
+
+### Checklist for New Components
+
+Before submitting any new component or feature:
+
+1. ☐ All user-facing text uses `useTranslations`
+2. ☐ Translations added to `en.json`, `he.json`, and `es.json`
+3. ☐ No `ml-*`/`mr-*`/`pl-*`/`pr-*` (use `ms-*`/`me-*`/`ps-*`/`pe-*`)
+4. ☐ No `text-left`/`text-right` (use `text-start`/`text-end`)
+5. ☐ No `left-*`/`right-*` positioning (use `start-*`/`end-*`)
+6. ☐ Directional icons use `DirectionalIcon` or `rtl-flip` class
+7. ☐ Tested in both LTR (English) and RTL (Hebrew) modes
+
+### Quick Reference - Locale Files
+
+| Namespace | Use For |
+|-----------|---------|
+| `common` | Shared buttons, labels (Save, Cancel, You, etc.) |
+| `expenses` | Expense list page, general expense messages |
+| `expenseForm` | Add/Edit expense modal |
+| `split` | Split configuration (payments, splits) |
+| `groups` | Groups list page |
+| `groupForm` | Create/Edit group modal |
+| `memberPicker` | Member selection UI |
+| `categories` | Category names |
+| `currency` | Currency settings |
+| `language` | Language settings |
+| `datePicker` | Date picker placeholders |
+
 ## Environment Variables
 
 Required in `.env.local`:
@@ -360,6 +466,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 | Add currency | `src/lib/constants/currencies.ts` |
 | Currency conversion | `src/lib/services/currency.service.ts` |
 | Currency preferences hook | `src/hooks/queries/use-currency-preferences.ts` |
+| **Add translations** | `src/locales/{en,he,es}.json` |
+| **RTL icon component** | `src/components/common/rtl-icon.tsx` |
+| **Locale provider** | `src/providers/locale-provider.tsx` |
 | DB migrations | `supabase/migrations/` |
 | Run dev server | `pnpm dev` (port 3333) |
 | Build | `pnpm build` |

@@ -86,9 +86,11 @@
     "groupDescription": "Configure who paid and how to split.",
     "amount": "Amount",
     "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What was this expense for?",
     "category": "Category",
     "date": "Date",
     "notes": "Notes (optional)",
+    "notesPlaceholder": "Add any additional notes...",
     "split": "Split",
     "validation": {
       "descriptionRequired": "Description is required",
@@ -210,6 +212,21 @@
   },
   "datePicker": {
     "pickDate": "Pick a date"
+  },
+  "memberPicker": {
+    "addByEmail": "Add by Email",
+    "emailPlaceholder": "friend@example.com",
+    "emailHelp": "Add anyone by email. If they haven't signed up yet, they'll see this group when they do!",
+    "selectedMembers": "Selected Members",
+    "yourContacts": "Your Contacts",
+    "noContacts": "No contacts yet",
+    "addMembersAbove": "Add members by email above",
+    "invalidEmail": "Please enter a valid email address",
+    "emailAlreadyInList": "This email is already in the list",
+    "invitedSuccess": "Invited {email} - they'll see this group when they sign up!",
+    "addedSuccess": "Added {name}",
+    "failedToAdd": "Failed to add member. Please try again.",
+    "invited": "Invited"
   }
 }
 

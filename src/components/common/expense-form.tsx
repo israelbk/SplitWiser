@@ -22,6 +22,7 @@ import { DEFAULT_CATEGORY_ID, DEFAULT_CURRENCY } from '@/lib/constants';
 import { Expense, SplitConfiguration, User } from '@/lib/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -64,13 +65,28 @@ export function ExpenseForm({
   onOpenChange,
   onSubmit,
   expense,
-  title = 'Add Expense',
-  description = 'Enter the details of your expense.',
+  title,
+  description,
   isLoading = false,
   groupMembers,
   currentUserId,
 }: ExpenseFormProps) {
+  const t = useTranslations('expenseForm');
+  const tCommon = useTranslations('common');
+  
   const isGroupExpense = !!groupMembers && groupMembers.length > 0 && !!currentUserId;
+  
+  // Determine title and description based on context
+  const displayTitle = title ?? (expense?.id 
+    ? t('editTitle') 
+    : isGroupExpense 
+      ? t('groupTitle') 
+      : t('title'));
+  const displayDescription = description ?? (expense?.id 
+    ? t('editDescription') 
+    : isGroupExpense 
+      ? t('groupDescription') 
+      : t('description'));
   
   // Get user's preferred display currency for default
   const { displayCurrency } = useCurrencyPreferences();
@@ -194,14 +210,14 @@ export function ExpenseForm({
         <DialogContent className="sm:max-w-[425px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <DialogHeader className="pb-2">
-              <DialogTitle className="text-lg">{title}</DialogTitle>
-              <DialogDescription className="text-sm">{description}</DialogDescription>
+              <DialogTitle className="text-lg">{displayTitle}</DialogTitle>
+              <DialogDescription className="text-sm">{displayDescription}</DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
               {/* Amount with Currency */}
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="amount" className="text-sm">Amount</Label>
+                <Label htmlFor="amount" className="text-sm">{t('amount')}</Label>
                 <div className="flex">
                   <Controller
                     control={form.control}
@@ -233,44 +249,44 @@ export function ExpenseForm({
                 </div>
                 {form.formState.errors.amount && (
                   <p className="text-xs sm:text-sm text-destructive">
-                    {form.formState.errors.amount.message}
+                    {t('validation.amountPositive')}
                   </p>
                 )}
               </div>
 
               {/* Description */}
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="description" className="text-sm">Description</Label>
+                <Label htmlFor="description" className="text-sm">{t('descriptionLabel')}</Label>
                 <Input
                   id="description"
-                  placeholder="What was this expense for?"
+                  placeholder={t('descriptionPlaceholder')}
                   className="h-10"
                   {...form.register('description')}
                 />
                 {form.formState.errors.description && (
                   <p className="text-xs sm:text-sm text-destructive">
-                    {form.formState.errors.description.message}
+                    {t('validation.descriptionRequired')}
                   </p>
                 )}
               </div>
 
               {/* Category */}
               <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-sm">Category</Label>
+                <Label className="text-sm">{t('category')}</Label>
                 <CategoryPicker
                   value={form.watch('categoryId')}
                   onChange={(value) => form.setValue('categoryId', value)}
                 />
                 {form.formState.errors.categoryId && (
                   <p className="text-xs sm:text-sm text-destructive">
-                    {form.formState.errors.categoryId.message}
+                    {t('validation.categoryRequired')}
                   </p>
                 )}
               </div>
 
               {/* Date */}
               <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-sm">Date</Label>
+                <Label className="text-sm">{t('date')}</Label>
                 <DatePicker
                   value={form.watch('date')}
                   onChange={(date) => date && form.setValue('date', date)}
@@ -284,10 +300,10 @@ export function ExpenseForm({
 
               {/* Notes (optional) */}
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="notes" className="text-sm">Notes (optional)</Label>
+                <Label htmlFor="notes" className="text-sm">{t('notes')}</Label>
                 <Input
                   id="notes"
-                  placeholder="Add any additional notes..."
+                  placeholder={t('notesPlaceholder')}
                   className="h-10"
                   {...form.register('notes')}
                 />
@@ -296,7 +312,7 @@ export function ExpenseForm({
               {/* Split Configuration Trigger (for group expenses) */}
               {isGroupExpense && groupMembers && currentUserId && (
                 <div className="space-y-1.5 sm:space-y-2">
-                  <Label className="text-sm">Split</Label>
+                  <Label className="text-sm">{t('split')}</Label>
                   <SplitConfigTrigger
                     onClick={() => setSplitConfigOpen(true)}
                     config={splitConfig}
@@ -317,11 +333,11 @@ export function ExpenseForm({
                 disabled={isLoading}
                 className="w-full sm:w-auto h-10"
               >
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button type="submit" disabled={isLoading} className="w-full sm:w-auto h-10">
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {expense?.id ? 'Update' : 'Add'}
+                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {expense?.id ? tCommon('update') : tCommon('add')}
               </Button>
             </DialogFooter>
           </form>
