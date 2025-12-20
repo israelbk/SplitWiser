@@ -70,10 +70,13 @@ This guide walks you through setting up Google OAuth authentication for SplitWis
 2. Set **Site URL**:
    - For development: `http://localhost:3333`
    - For production: Your production URL
-3. Add **Redirect URLs**:
-   - `http://localhost:3333/**` (for local dev)
-   - `https://your-production-url.com/**` (for production)
+3. Add **Redirect URLs** (must include the `/auth/callback` route):
+   - `http://localhost:3333/auth/callback` (for local dev)
+   - `https://your-production-url.com/auth/callback` (for production)
+   - Alternatively use wildcards: `http://localhost:3333/**` and `https://your-production-url.com/**`
 4. Click **Save**
+
+> **Note**: The app uses a server-side OAuth callback at `/auth/callback` to exchange the authorization code for a session. This prevents race conditions and ensures reliable authentication.
 
 ## Step 3: Run Database Migration
 
@@ -115,6 +118,18 @@ Your OAuth consent screen is in "Testing" mode. Either:
 Check browser console for errors. Common issues:
 - RLS policies blocking insert
 - Missing required fields in users table
+
+### Redirect Loop After Login
+
+If you're being redirected back to the login page after Google authentication:
+
+1. **Verify Supabase redirect URLs**: Make sure `https://your-domain.com/auth/callback` is in the allowed redirect URLs in Supabase Dashboard → Authentication → URL Configuration
+
+2. **Check browser cookies**: The app uses HTTP cookies for session storage. Make sure cookies are enabled and not blocked by browser extensions.
+
+3. **Clear browser data**: Try clearing cookies and localStorage for your domain, then log in again.
+
+4. **Check server logs**: Look for errors in the `/auth/callback` route - the authorization code might be failing to exchange for a session.
 
 ## Security Notes
 

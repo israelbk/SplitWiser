@@ -3,7 +3,7 @@
  * Handles Google OAuth via Supabase Auth
  */
 
-import { supabase } from '@/config/supabase';
+import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser, Session, AuthChangeEvent } from '@supabase/supabase-js';
 
 export interface AuthUser {
@@ -21,7 +21,8 @@ async function signInWithGoogle(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/`,
+      // Redirect to auth callback route for server-side code exchange
+      redirectTo: `${window.location.origin}/auth/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

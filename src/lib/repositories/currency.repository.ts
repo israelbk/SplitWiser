@@ -3,7 +3,7 @@
  * Handles exchange rate caching in Supabase
  */
 
-import { supabase } from '@/config/supabase';
+import { supabase } from '@/lib/supabase';
 import {
   ExchangeRate,
   ExchangeRateRow,

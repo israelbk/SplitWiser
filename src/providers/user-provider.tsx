@@ -9,12 +9,12 @@
  */
 
 import { env } from '@/config/env';
-import { supabase } from '@/config/supabase';
 import { AuthContext } from '@/hooks/use-current-user';
 import { ViewAsContext } from '@/hooks/use-view-as';
 import { authService, userService } from '@/lib/services';
+import { supabase } from '@/lib/supabase';
 import { User } from '@/lib/types';
-import { Session } from '@supabase/supabase-js';
+import { AuthChangeEvent, AuthError, Session } from '@supabase/supabase-js';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 const VIEW_AS_STORAGE_KEY = 'splitwiser-view-as-user-id';
@@ -148,7 +148,7 @@ export function UserProvider({ children }: UserProviderProps) {
     // Set up auth listener
     console.log('[Auth] Setting up onAuthStateChange listener...');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         console.log('[Auth] onAuthStateChange fired:', event);
         handleSession(session);
       }
@@ -164,7 +164,7 @@ export function UserProvider({ children }: UserProviderProps) {
     }, 5000);
 
     supabase.auth.getSession()
-      .then(({ data: { session }, error }) => {
+      .then(({ data: { session }, error }: { data: { session: Session | null }, error: AuthError | null }) => {
         clearTimeout(sessionTimeout);
         console.log('[Auth] getSession result:', session?.user?.email || 'no session', error?.message || '');
         // Only handle if onAuthStateChange hasn't already handled it
@@ -172,7 +172,7 @@ export function UserProvider({ children }: UserProviderProps) {
           handleSession(session);
         }
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         clearTimeout(sessionTimeout);
         console.error('[Auth] getSession error:', error);
         if (mounted) {

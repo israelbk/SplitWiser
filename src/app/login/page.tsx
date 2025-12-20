@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-current-user';
-import { supabase } from '@/config/supabase';
+import { supabase } from '@/lib/supabase';
 import { Wallet, Loader2, RefreshCw } from 'lucide-react';
 
 // Google icon SVG

@@ -3,7 +3,7 @@
  * Provides a consistent interface for data access
  */
 
-import { supabase } from '@/config/supabase';
+import { supabase } from '@/lib/supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface QueryOptions {
