@@ -82,15 +82,14 @@ export default function LoginPage() {
   // Force clear all session data
   const handleForceClear = async () => {
     setIsClearing(true);
+    setError(null);
+    
     try {
-      // Clear Supabase session
-      await supabase.auth.signOut({ scope: 'global' });
-      
-      // Clear all localStorage items related to auth
-      const keysToRemove = [];
+      // Clear all localStorage items related to auth FIRST (before signOut which might hang)
+      const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.includes('supabase') || key.includes('sb-') || key.includes('splitwiser'))) {
+        if (key && (key.includes('supabase') || key.includes('sb-') || key.includes('splitwiser') || key.includes('auth'))) {
           keysToRemove.push(key);
         }
       }
@@ -99,17 +98,28 @@ export default function LoginPage() {
       // Clear sessionStorage
       sessionStorage.clear();
       
-      setError(null);
-      setShowTroubleshoot(false);
+      // Try to sign out, but don't wait forever (use local scope, faster)
+      try {
+        await Promise.race([
+          supabase.auth.signOut({ scope: 'local' }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+        ]);
+      } catch {
+        // Ignore signOut errors - storage is already cleared
+        console.log('SignOut skipped or timed out - continuing with reload');
+      }
       
-      // Reload the page clean
-      window.location.href = '/login';
+      // Small delay to ensure storage changes are flushed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Reload the page clean (use replace to avoid back button issues)
+      window.location.replace('/login');
     } catch (err) {
       console.error('Force clear error:', err);
       setError('Failed to clear session. Try clearing browser data manually.');
-    } finally {
       setIsClearing(false);
     }
+    // Note: Don't set isClearing(false) in success case - we're redirecting
   };
 
   const handleSignIn = async () => {
