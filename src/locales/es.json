@@ -227,6 +227,7 @@
     "addByEmail": "Añadir por email",
     "emailPlaceholder": "amigo@ejemplo.com",
     "emailHelp": "Añade a cualquiera por email. Si aún no se han registrado, ¡verán este grupo cuando lo hagan!",
+    "addButton": "Añadir",
     "selectedMembers": "Miembros seleccionados",
     "yourContacts": "Tus contactos",
     "noContacts": "Sin contactos aún",

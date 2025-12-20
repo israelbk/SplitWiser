@@ -42,7 +42,8 @@ const groupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   type: z.enum(['trip', 'household', 'couple', 'other']),
-  memberIds: z.array(z.string()).min(1, 'Select at least one member'),
+  // Minimum 2 members: current user (always included) + at least 1 other member
+  memberIds: z.array(z.string()).min(2, 'Select at least one other member'),
 });
 
 type GroupFormData = z.infer<typeof groupSchema>;

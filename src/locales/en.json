@@ -227,6 +227,7 @@
     "addByEmail": "Add by Email",
     "emailPlaceholder": "friend@example.com",
     "emailHelp": "Add anyone by email. If they haven't signed up yet, they'll see this group when they do!",
+    "addButton": "Add",
     "selectedMembers": "Selected Members",
     "yourContacts": "Your Contacts",
     "noContacts": "No contacts yet",

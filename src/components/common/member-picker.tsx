@@ -196,12 +196,14 @@ export function MemberPicker({
             type="button"
             onClick={handleAddByEmail}
             disabled={!emailInput.trim() || isAddingEmail}
-            size="icon"
           >
             {isAddingEmail ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Plus className="h-4 w-4" />
+              <>
+                <Plus className="h-4 w-4 me-1" />
+                {t('addButton')}
+              </>
             )}
           </Button>
         </div>
