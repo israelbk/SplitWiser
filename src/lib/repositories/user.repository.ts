@@ -152,22 +152,31 @@ export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow,
 
   /**
    * Create a shadow user (invited by email, hasn't signed up yet)
+   * Uses a SECURITY DEFINER function to bypass RLS issues in DEV MODE
    */
   async createShadowUser(input: CreateShadowUserInput): Promise<User> {
     const email = input.email.toLowerCase();
-    const name = input.name || email.split('@')[0];
+    const name = input.name || null; // Let the function handle default name
     
-    // Generate a random color for the avatar
-    const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    return this.create({
-      name,
-      email,
-      avatar_color: randomColor,
-      invited_by: input.invitedBy,
-      // No auth_id - this is a shadow user
+    // Use the SECURITY DEFINER function to create the shadow user
+    // This bypasses RLS and handles the case where auth.uid() is NULL (DEV MODE)
+    const { data, error } = await this.client.rpc('create_shadow_user', {
+      p_email: email,
+      p_name: name,
+      p_invited_by: input.invitedBy,
+      p_avatar_color: null, // Let the function generate a random color
     });
+
+    if (error) {
+      throw new Error(`Failed to create shadow user: ${error.message}`);
+    }
+
+    // Fetch and return the created user
+    const user = await this.findById(data as string);
+    if (!user) {
+      throw new Error('Failed to fetch created shadow user');
+    }
+    return user;
   }
 
   /**

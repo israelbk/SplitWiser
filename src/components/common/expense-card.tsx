@@ -200,23 +200,12 @@ export function ExpenseCard({
         <div className="flex-shrink-0 text-end">
           {showUserShare && isGroupExpense ? (
             <>
-              {/* Who paid + total amount */}
-              <div className="text-xs sm:text-sm text-muted-foreground">
-                {payerInfo && (
-                  <span>
-                    {payerInfo.name} {t('paid')} {formatCurrency(expense.amount, expense.currency)}
-                  </span>
-                )}
-              </div>
-              {/* User's balance - colored based on owe/owed */}
-              <div className={cn(
-                "font-semibold text-sm sm:text-base flex items-center justify-end gap-1",
-                userBalance > 0 && "text-green-600",
-                userBalance < 0 && "text-red-600",
-                userBalance === 0 && "text-muted-foreground"
-              )}>
-                {formatCurrency(Math.abs(displayBalance), displayCurrency)}
-                {/* Conversion icon - hidden on mobile */}
+              {/* User's share amount (what they owe from this expense) */}
+              <div className="font-semibold text-sm sm:text-base flex items-center justify-end gap-1">
+                {isConverted 
+                  ? formatCurrency(userSplitAmount * conversion!.converted!.rate, displayCurrency)
+                  : formatCurrency(userSplitAmount, expense.currency)
+                }
                 {isConverted && (
                   <TooltipProvider>
                     <Tooltip>
