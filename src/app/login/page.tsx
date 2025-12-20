@@ -6,11 +6,12 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-current-user';
-import { Wallet, Loader2 } from 'lucide-react';
+import { supabase } from '@/config/supabase';
+import { Wallet, Loader2, RefreshCw } from 'lucide-react';
 
 // Google icon SVG
 function GoogleIcon({ className }: { className?: string }) {
@@ -38,16 +39,78 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { authUser, isLoading, signIn } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+
+  // Check if we were redirected here (potential loop detection)
+  useEffect(() => {
+    // If we've been redirected multiple times, show troubleshoot option
+    const redirectCount = parseInt(sessionStorage.getItem('login-redirect-count') || '0');
+    sessionStorage.setItem('login-redirect-count', String(redirectCount + 1));
+    
+    if (redirectCount >= 2) {
+      setShowTroubleshoot(true);
+    }
+    
+    // Clear count on successful load after 5 seconds
+    const timer = setTimeout(() => {
+      sessionStorage.setItem('login-redirect-count', '0');
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle force clear from URL param
+  useEffect(() => {
+    if (searchParams.get('clear') === 'true') {
+      handleForceClear();
+    }
+  }, [searchParams]);
 
   // Redirect if already logged in
   useEffect(() => {
     if (!isLoading && authUser) {
+      sessionStorage.setItem('login-redirect-count', '0');
       router.push('/');
     }
   }, [authUser, isLoading, router]);
+
+  // Force clear all session data
+  const handleForceClear = async () => {
+    setIsClearing(true);
+    try {
+      // Clear Supabase session
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      // Clear all localStorage items related to auth
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('supabase') || key.includes('sb-') || key.includes('splitwiser'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Clear sessionStorage
+      sessionStorage.clear();
+      
+      setError(null);
+      setShowTroubleshoot(false);
+      
+      // Reload the page clean
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Force clear error:', err);
+      setError('Failed to clear session. Try clearing browser data manually.');
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -149,6 +212,34 @@ export default function LoginPage() {
           {/* Error message */}
           {error && (
             <p className="text-sm text-destructive text-center">{error}</p>
+          )}
+
+          {/* Troubleshooting section - shown if redirect loop detected */}
+          {showTroubleshoot && (
+            <div className="pt-4 border-t space-y-3">
+              <p className="text-sm text-muted-foreground text-center">
+                Having trouble signing in?
+              </p>
+              <Button
+                onClick={handleForceClear}
+                disabled={isClearing}
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+              >
+                {isClearing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Clear Session & Retry
+                  </>
+                )}
+              </Button>
+            </div>
           )}
 
           {/* Terms */}
