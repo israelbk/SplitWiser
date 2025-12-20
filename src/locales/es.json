@@ -151,6 +151,7 @@
     "descriptionPlaceholder": "Viaje a Barcelona",
     "type": "Tipo",
     "members": "Miembros",
+    "memberCount": "{count} miembros",
     "validation": {
       "nameRequired": "El nombre es requerido",
       "selectMember": "Selecciona al menos un miembro"

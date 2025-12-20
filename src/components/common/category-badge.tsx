@@ -21,6 +21,7 @@ import {
   MoreHorizontal,
   LucideIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface CategoryBadgeProps {
   category: Category;
@@ -53,13 +54,32 @@ const iconSizes = {
   md: 14,
 };
 
+// Map icon names to translation keys
+export const iconToTranslationKey: Record<string, string> = {
+  'utensils': 'food',
+  'car': 'transportation',
+  'shopping-bag': 'shopping',
+  'film': 'entertainment',
+  'receipt': 'bills',
+  'heart-pulse': 'health',
+  'plane': 'travel',
+  'shopping-cart': 'shopping',
+  'home': 'other',
+  'more-horizontal': 'other',
+};
+
 export function CategoryBadge({
   category,
   size = 'md',
   showIcon = true,
   className,
 }: CategoryBadgeProps) {
+  const t = useTranslations('categories');
   const Icon = iconMap[category.icon] || MoreHorizontal;
+  
+  // Get translated category name
+  const translationKey = iconToTranslationKey[category.icon];
+  const categoryName = translationKey ? t(translationKey) : category.name;
 
   return (
     <Badge
@@ -76,7 +96,7 @@ export function CategoryBadge({
       }}
     >
       {showIcon && <Icon size={iconSizes[size]} />}
-      {category.name}
+      {categoryName}
     </Badge>
   );
 }

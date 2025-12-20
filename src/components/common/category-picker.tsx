@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCategories } from '@/hooks/queries';
-import { getCategoryIcon } from './category-badge';
+import { getCategoryIcon, iconToTranslationKey } from './category-badge';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface CategoryPickerProps {
   value: string;
@@ -29,14 +30,22 @@ export function CategoryPicker({
   className,
   disabled,
 }: CategoryPickerProps) {
+  const t = useTranslations('categories');
+  const tForm = useTranslations('expenseForm');
   const { data: categories, isLoading } = useCategories();
 
   const selectedCategory = categories?.find((c) => c.id === value);
+  
+  // Helper to get translated category name
+  const getCategoryName = (icon: string, fallbackName: string) => {
+    const key = iconToTranslationKey[icon];
+    return key ? t(key) : fallbackName;
+  };
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled || isLoading}>
       <SelectTrigger className={cn('w-full h-10', className)}>
-        <SelectValue placeholder="Select category">
+        <SelectValue placeholder={tForm('category')}>
           {selectedCategory && (
             <span className="flex items-center gap-2">
               {(() => {
@@ -48,7 +57,7 @@ export function CategoryPicker({
                   />
                 );
               })()}
-              <span className="truncate">{selectedCategory.name}</span>
+              <span className="truncate">{getCategoryName(selectedCategory.icon, selectedCategory.name)}</span>
             </span>
           )}
         </SelectValue>
@@ -60,7 +69,7 @@ export function CategoryPicker({
             <SelectItem key={category.id} value={category.id}>
               <span className="flex items-center gap-2">
                 <Icon size={16} style={{ color: category.color }} />
-                <span className="truncate">{category.name}</span>
+                <span className="truncate">{getCategoryName(category.icon, category.name)}</span>
               </span>
             </SelectItem>
           );

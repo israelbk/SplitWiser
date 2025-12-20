@@ -151,6 +151,7 @@
     "descriptionPlaceholder": "Trip to Barcelona",
     "type": "Type",
     "members": "Members",
+    "memberCount": "{count} members",
     "validation": {
       "nameRequired": "Name is required",
       "selectMember": "Select at least one member"

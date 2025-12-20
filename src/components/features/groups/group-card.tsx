@@ -12,6 +12,7 @@ import { UserAvatar, BalanceAmount, DirectionalIcon } from '@/components/common'
 import { Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GroupWithMembers } from '@/lib/services';
+import { useTranslations } from 'next-intl';
 
 interface GroupCardProps {
   group: GroupWithMembers;
@@ -34,6 +35,7 @@ const groupTypeColors = {
 };
 
 export function GroupCard({ group, currentUserBalance, className }: GroupCardProps) {
+  const t = useTranslations('groupForm');
   const Icon = groupTypeIcons[group.type] || MoreHorizontal;
   const iconColor = groupTypeColors[group.type] || '#6b7280';
   const hasBalance = currentUserBalance !== undefined && currentUserBalance !== 0;
@@ -91,7 +93,7 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
                 </div>
               )}
               <span className="text-xs text-muted-foreground">
-                {group.members?.length || 0} members
+                {t('memberCount', { count: group.members?.length || 0 })}
               </span>
             </div>
           </div>

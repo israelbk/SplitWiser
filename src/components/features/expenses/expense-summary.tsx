@@ -24,6 +24,7 @@ import { formatCurrency } from '@/lib/constants';
 import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
 import { ConversionMode, ConvertedAmount } from '@/lib/types';
 import { ArrowRightLeft, Users, Wallet } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type ExpenseType = ExpenseWithDetails | UnifiedExpense;
 
@@ -54,6 +55,8 @@ export function ExpenseSummary({
   displayCurrency,
   isConverting = false,
 }: ExpenseSummaryProps) {
+  const t = useTranslations();
+  
   if (isLoading) {
     return (
       <Card>
@@ -293,7 +296,7 @@ export function ExpenseSummary({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {showUserShare ? 'Your Total Spending' : 'Total Spending'}
+            {showUserShare ? t('summary.yourTotalSpending') : t('summary.totalSpending')}
           </CardTitle>
           {showConvertedAmounts && (
             <TooltipProvider>
@@ -304,21 +307,21 @@ export function ExpenseSummary({
                     className="text-xs gap-1 font-normal"
                   >
                     <ArrowRightLeft className="h-3 w-3" />
-                    {conversionMode === 'smart' ? 'Historical' : 'Current'}
+                    {conversionMode === 'smart' ? t('currency.historical') : t('currency.current')}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="text-xs">
                     <div className="font-medium mb-1">
-                      Currency Conversion Active
+                      {t('currency.conversionActive')}
                     </div>
                     <div>
-                      {convertedCount} of {expenses.length} expenses converted
+                      {t('currency.expensesConverted', { count: convertedCount, total: expenses.length })}
                     </div>
                     <div className="text-muted-foreground mt-1">
                       {conversionMode === 'smart' 
-                        ? 'Using historical rates from expense dates'
-                        : 'Using current exchange rates'}
+                        ? t('currency.usingHistoricalRates')
+                        : t('currency.usingCurrentRates')}
                     </div>
                   </div>
                 </TooltipContent>
@@ -338,7 +341,7 @@ export function ExpenseSummary({
               </span>
               {isConverting && (
                 <span className="text-xs text-muted-foreground animate-pulse">
-                  Converting...
+                  {t('common.converting')}
                 </span>
               )}
             </div>
@@ -359,13 +362,15 @@ export function ExpenseSummary({
 
         {/* This month info */}
         <p className="text-xs text-muted-foreground mb-2">
-          {expenses.length} expense{expenses.length !== 1 ? 's' : ''} •{' '}
+          {expenses.length === 1 
+            ? t('summary.expenseCount', { count: expenses.length })
+            : t('summary.expenseCountPlural', { count: expenses.length })} •{' '}
           {thisMonthTotals.map(({ currency: curr, total }, i) => (
             <span key={curr}>
               {i > 0 && ' + '}
               {formatCurrency(total, curr)}
             </span>
-          ))} this month
+          ))} {t('common.thisMonth')}
         </p>
         
         {/* Personal vs Group breakdown */}
@@ -373,11 +378,11 @@ export function ExpenseSummary({
           <div className="flex gap-4 text-xs mb-4 pb-3 border-b flex-wrap">
             <span className="flex items-center gap-1">
               <Wallet className="h-3 w-3" />
-              Personal: {formatMultiCurrency(breakdown.personal)}
+              {t('common.personal')}: {formatMultiCurrency(breakdown.personal)}
             </span>
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              Group: {formatMultiCurrency(breakdown.group)}
+              {t('common.group')}: {formatMultiCurrency(breakdown.group)}
             </span>
           </div>
         )}
@@ -391,6 +396,24 @@ export function ExpenseSummary({
             const percentage = totalInDisplayCurrency > 0 
               ? ((convertedTotal / totalInDisplayCurrency) * 100).toFixed(0) 
               : '0';
+            
+            // Translate category name based on icon
+            const getCategoryTranslation = (icon: string | undefined) => {
+              const iconToKey: Record<string, string> = {
+                'utensils': 'food',
+                'car': 'transportation',
+                'shopping-bag': 'shopping',
+                'film': 'entertainment',
+                'receipt': 'bills',
+                'heart-pulse': 'health',
+                'plane': 'travel',
+                'shopping-cart': 'shopping',
+                'home': 'other',
+                'more-horizontal': 'other',
+              };
+              const key = icon ? iconToKey[icon] : 'other';
+              return key ? t(`categories.${key}`) : category?.name || t('categories.other');
+            };
 
             return (
               <div key={category?.id || 'other'} className="flex items-center gap-2">
@@ -405,7 +428,7 @@ export function ExpenseSummary({
                   </div>
                 )}
                 <span className="text-sm truncate flex-1">
-                  {category?.name || 'Other'}
+                  {getCategoryTranslation(category?.icon)}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {percentage}%

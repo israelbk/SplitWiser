@@ -151,6 +151,7 @@
     "descriptionPlaceholder": "טיול לברצלונה",
     "type": "סוג",
     "members": "חברים",
+    "memberCount": "{count} חברים",
     "validation": {
       "nameRequired": "שם נדרש",
       "selectMember": "בחר לפחות חבר אחד"
