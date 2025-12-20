@@ -65,7 +65,7 @@ export function UserMenu() {
         <DropdownMenuItem disabled className="gap-2">
           <Settings className="h-4 w-4" />
           Settings
-          <span className="ml-auto text-xs text-muted-foreground">Soon</span>
+          <span className="ms-auto text-xs text-muted-foreground">Soon</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 

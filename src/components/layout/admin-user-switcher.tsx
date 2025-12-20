@@ -119,12 +119,12 @@ export function AdminUserSwitcher() {
                 )}
               </div>
               {user.id === authUser.id && (
-                <Badge variant="outline" className="ml-auto text-xs">
+                <Badge variant="outline" className="ms-auto text-xs">
                   You
                 </Badge>
               )}
               {user.id === effectiveUser?.id && user.id !== authUser.id && (
-                <span className="ml-auto text-xs text-muted-foreground">✓</span>
+                <span className="ms-auto text-xs text-muted-foreground">✓</span>
               )}
             </DropdownMenuItem>
           ))}

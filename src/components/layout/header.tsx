@@ -39,13 +39,13 @@ export function Header() {
               <LanguageSelector />
 
               {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" />
+              <div className="h-6 w-px bg-border mx-2" aria-hidden="true" />
 
               {/* Currency Selector */}
               <CurrencySelector />
 
               {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" />
+              <div className="h-6 w-px bg-border mx-2" aria-hidden="true" />
 
               {/* User Menu - for admins show switcher, for regular users show simple menu */}
               {isAdmin ? <AdminUserSwitcher /> : <UserMenu />}

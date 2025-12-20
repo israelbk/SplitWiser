@@ -101,7 +101,7 @@ export function CurrencySelector() {
             <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
             <h4 className="font-medium text-sm">{t('settings')}</h4>
             {isUpdating && (
-              <Loader2 className="h-3 w-3 animate-spin ml-auto text-muted-foreground" />
+              <Loader2 className="h-3 w-3 animate-spin ms-auto text-muted-foreground" />
             )}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -138,7 +138,7 @@ export function CurrencySelector() {
                 onClick={() => setConversionMode(option.value)}
                 disabled={isUpdating}
                 className={cn(
-                  'w-full flex items-start gap-3 rounded-md p-2 text-left transition-colors',
+                  'w-full flex items-start gap-3 rounded-md p-2 text-start transition-colors',
                   'hover:bg-accent disabled:opacity-50',
                   conversionMode === option.value && 'bg-accent'
                 )}

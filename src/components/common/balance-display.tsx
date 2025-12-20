@@ -7,9 +7,9 @@
 
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/constants';
-import { ArrowRight } from 'lucide-react';
 import { UserAvatar } from './user-avatar';
 import { User } from '@/lib/types';
+import { DirectionalIcon } from './rtl-icon';
 
 interface BalanceAmountProps {
   amount: number;
@@ -81,12 +81,12 @@ export function DebtDisplay({
       <span className="text-sm text-muted-foreground truncate max-w-[80px]">
         {fromUser.name}
       </span>
-      <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <DirectionalIcon icon="arrow-right" className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       <UserAvatar user={toUser} size="sm" />
       <span className="text-sm text-muted-foreground truncate max-w-[80px]">
         {toUser.name}
       </span>
-      <span className="ml-auto font-medium text-sm">
+      <span className="ms-auto font-medium text-sm">
         {formatCurrency(amount, currency)}
       </span>
     </div>

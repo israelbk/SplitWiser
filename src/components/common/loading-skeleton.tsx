@@ -25,9 +25,9 @@ export function ExpenseCardSkeleton({ className }: LoadingSkeletonProps) {
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-3 w-24" />
         </div>
-        <div className="space-y-2 text-right">
-          <Skeleton className="h-4 w-16 ml-auto" />
-          <Skeleton className="h-5 w-20 ml-auto" />
+        <div className="space-y-2 text-end">
+          <Skeleton className="h-4 w-16 ms-auto" />
+          <Skeleton className="h-5 w-20 ms-auto" />
         </div>
       </div>
     </Card>

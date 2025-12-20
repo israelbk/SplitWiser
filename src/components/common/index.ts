@@ -13,6 +13,7 @@ export * from './expense-card';
 export * from './expense-form';
 export * from './loading-skeleton';
 export * from './member-picker';
+export * from './rtl-icon';
 export * from './split-config';
 export * from './user-avatar';
 

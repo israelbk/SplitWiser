@@ -8,8 +8,8 @@
 
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { UserAvatar, BalanceAmount } from '@/components/common';
-import { ChevronRight, Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
+import { UserAvatar, BalanceAmount, DirectionalIcon } from '@/components/common';
+import { Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GroupWithMembers } from '@/lib/services';
 
@@ -64,7 +64,7 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
                 {hasBalance && (
                   <BalanceAmount amount={currentUserBalance} size="sm" />
                 )}
-                <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
+                <DirectionalIcon icon="chevron-right" className="h-4 w-4 text-muted-foreground/60" />
               </div>
             </div>
             
@@ -79,7 +79,7 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
             <div className="flex items-center gap-2 mt-1.5">
               {/* Stacked Avatars */}
               {group.members && group.members.length > 0 && (
-                <div className="flex items-center -space-x-1.5">
+                <div className="flex items-center -space-x-1.5 rtl:space-x-reverse">
                   {group.members.slice(0, 3).map((member) => (
                     <UserAvatar
                       key={member.userId}

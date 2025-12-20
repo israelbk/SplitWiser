@@ -410,7 +410,7 @@ export function ExpenseSummary({
                 <span className="text-sm text-muted-foreground">
                   {percentage}%
                 </span>
-                <span className="text-sm font-medium text-right min-w-fit">
+                <span className="text-sm font-medium text-end min-w-fit">
                   {formatCategoryAmounts(amounts)}
                 </span>
               </div>

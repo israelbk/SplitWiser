@@ -154,10 +154,10 @@ export function ExpenseCard({
         </div>
 
         {/* Amount */}
-        <div className="flex-shrink-0 text-right">
+        <div className="flex-shrink-0 text-end">
           {showUserShare && isGroupExpense ? (
             <>
-              <div className="font-semibold text-primary flex items-center justify-end gap-1 text-sm sm:text-base">
+              <div className="font-semibold text-primary flex items-center justify-end gap-1 text-sm sm:text-base rtl:flex-row-reverse">
                 {/* Conversion icon - hidden on mobile */}
                 {isConverted && (
                   <TooltipProvider>
@@ -191,7 +191,7 @@ export function ExpenseCard({
             </>
           ) : isConverted ? (
             <>
-              <div className="font-semibold flex items-center justify-end gap-1 text-sm sm:text-base">
+              <div className="font-semibold flex items-center justify-end gap-1 text-sm sm:text-base rtl:flex-row-reverse">
                 {/* Conversion icon - hidden on mobile */}
                 <TooltipProvider>
                   <Tooltip>
@@ -242,7 +242,7 @@ export function ExpenseCard({
             <DropdownMenuContent align="end">
               {onEdit && (
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-                  <Pencil className="h-4 w-4 mr-2" />
+                  <Pencil className="h-4 w-4 me-2" />
                   Edit
                 </DropdownMenuItem>
               )}
@@ -251,7 +251,7 @@ export function ExpenseCard({
                   onClick={(e) => { e.stopPropagation(); onDelete(); }}
                   className="text-destructive focus:text-destructive"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4 me-2" />
                   Delete
                 </DropdownMenuItem>
               )}

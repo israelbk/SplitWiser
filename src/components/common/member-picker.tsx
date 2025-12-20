@@ -259,7 +259,7 @@ export function MemberPicker({
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <ScrollArea className="h-[200px] pr-4">
+              <ScrollArea className="h-[200px] pe-4">
                 <div className="space-y-1">
                   {unselectedContacts.map((member) => (
                     <label

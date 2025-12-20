@@ -92,7 +92,7 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
           value={inputValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={cn('pl-8 text-right font-mono h-10', className)}
+          className={cn('ps-8 text-end font-mono h-10', className)}
           disabled={disabled}
           placeholder={placeholder}
         />

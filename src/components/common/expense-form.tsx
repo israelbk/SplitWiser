@@ -214,7 +214,7 @@ export function ExpenseForm({
                           field.onChange(value); // Update form state
                         }}
                         currency={currentCurrency}
-                        className="rounded-r-none flex-1 h-10"
+                        className="rounded-e-none flex-1 h-10"
                       />
                     )}
                   />
@@ -226,7 +226,7 @@ export function ExpenseForm({
                         value={field.value}
                         onChange={field.onChange}
                         compact
-                        className="rounded-l-none border-l-0 h-10"
+                        className="rounded-s-none border-s-0 h-10"
                       />
                     )}
                   />

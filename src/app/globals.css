@@ -6,6 +6,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter), var(--font-heebo);
+  --font-hebrew: var(--font-heebo), var(--font-inter);
   --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -117,6 +118,19 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* RTL font switching - use Heebo for Hebrew */
+  html[lang="he"] {
+    font-family: var(--font-hebrew);
+  }
+  
+  /* RTL text alignment fixes */
+  html[dir="rtl"] {
+    /* Flip overlapping avatar stacks */
+    .avatar-stack {
+      direction: ltr; /* Preserve visual order */
+    }
   }
 }
 
@@ -238,3 +252,62 @@
 .animate-stagger > *:nth-child(4) { animation-delay: 150ms; }
 .animate-stagger > *:nth-child(5) { animation-delay: 200ms; }
 .animate-stagger > *:nth-child(n+6) { animation-delay: 250ms; }
+
+/* ============================================================================
+   RTL (Right-to-Left) Support Utilities
+   ============================================================================ */
+
+/* Flip directional icons in RTL */
+html[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* RTL-aware spacing - use these instead of ml/mr when direction matters */
+@layer utilities {
+  /* Margin utilities using logical properties */
+  .ms-auto { margin-inline-start: auto; }
+  .me-auto { margin-inline-end: auto; }
+  
+  /* Padding utilities using logical properties */
+  .ps-0 { padding-inline-start: 0; }
+  .pe-0 { padding-inline-end: 0; }
+  .ps-1 { padding-inline-start: 0.25rem; }
+  .pe-1 { padding-inline-end: 0.25rem; }
+  .ps-2 { padding-inline-start: 0.5rem; }
+  .pe-2 { padding-inline-end: 0.5rem; }
+  .ps-3 { padding-inline-start: 0.75rem; }
+  .pe-3 { padding-inline-end: 0.75rem; }
+  .ps-4 { padding-inline-start: 1rem; }
+  .pe-4 { padding-inline-end: 1rem; }
+  
+  /* Border radius using logical properties */
+  .rounded-s-none { border-start-start-radius: 0; border-end-start-radius: 0; }
+  .rounded-e-none { border-start-end-radius: 0; border-end-end-radius: 0; }
+  .rounded-s-md { border-start-start-radius: calc(var(--radius) - 2px); border-end-start-radius: calc(var(--radius) - 2px); }
+  .rounded-e-md { border-start-end-radius: calc(var(--radius) - 2px); border-end-end-radius: calc(var(--radius) - 2px); }
+  .rounded-s-lg { border-start-start-radius: var(--radius); border-end-start-radius: var(--radius); }
+  .rounded-e-lg { border-start-end-radius: var(--radius); border-end-end-radius: var(--radius); }
+  
+  /* Text alignment using logical properties */
+  .text-start { text-align: start; }
+  .text-end { text-align: end; }
+  
+  /* Inset utilities using logical properties */
+  .start-0 { inset-inline-start: 0; }
+  .end-0 { inset-inline-end: 0; }
+  .start-1 { inset-inline-start: 0.25rem; }
+  .end-1 { inset-inline-end: 0.25rem; }
+  .start-2 { inset-inline-start: 0.5rem; }
+  .end-2 { inset-inline-end: 0.5rem; }
+  
+  /* Border utilities using logical properties */
+  .border-s { border-inline-start-width: 1px; }
+  .border-e { border-inline-end-width: 1px; }
+  .border-s-0 { border-inline-start-width: 0; }
+  .border-e-0 { border-inline-end-width: 0; }
+  
+  /* Space reverse for RTL avatar stacks */
+  html[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+}

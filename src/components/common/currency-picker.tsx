@@ -150,7 +150,7 @@ function CurrencyOption({ currency, isSelected, onSelect }: CurrencyOptionProps)
       onClick={() => onSelect(currency)}
     >
       <span className="w-6 font-medium">{currency.symbol}</span>
-      <span className="flex-1 text-left">{currency.name}</span>
+      <span className="flex-1 text-start">{currency.name}</span>
       <span className="text-xs text-muted-foreground">{currency.code}</span>
       {isSelected && <Check className="h-4 w-4" />}
     </button>
