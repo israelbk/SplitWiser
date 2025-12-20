@@ -1,0 +1,214 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "update": "Actualizar",
+    "create": "Crear",
+    "loading": "Cargando...",
+    "converting": "Convirtiendo...",
+    "clear": "Limpiar",
+    "filters": "Filtros",
+    "back": "Volver",
+    "you": "Tú",
+    "group": "Grupo",
+    "personal": "Personal",
+    "thisMonth": "este mes",
+    "thisWeek": "Esta semana",
+    "thisYear": "Este año",
+    "allTime": "Todo el tiempo"
+  },
+  "header": {
+    "title": "SplitWiser",
+    "viewOnlyMode": "Modo de solo lectura:",
+    "viewingAs": "Estás viendo como",
+    "actionsDisabled": "Las acciones están deshabilitadas mientras ves a otro usuario."
+  },
+  "nav": {
+    "personal": "Personal",
+    "groups": "Grupos"
+  },
+  "currency": {
+    "settings": "Configuración de moneda",
+    "displayCurrency": "Moneda de visualización",
+    "conversionMode": "Modo de conversión",
+    "convertExpenses": "Convertir gastos a una sola moneda",
+    "original": "Original",
+    "originalDescription": "Mostrar gastos en su moneda original",
+    "currentRate": "Tasa actual",
+    "currentRateDescription": "Convertir usando la tasa de cambio de hoy",
+    "historicalRate": "Tasa histórica",
+    "historicalRateDescription": "Convertir usando la tasa de la fecha del gasto",
+    "smartConversionInfo": "La conversión inteligente usa tasas de cambio históricas del Banco Central Europeo para convertir gastos con precisión según su fecha original.",
+    "historical": "Histórica",
+    "current": "Actual",
+    "conversionActive": "Conversión de moneda activa",
+    "expensesConverted": "{count} de {total} gastos convertidos",
+    "usingHistoricalRates": "Usando tasas históricas de las fechas de gastos",
+    "usingCurrentRates": "Usando tasas de cambio actuales"
+  },
+  "language": {
+    "settings": "Configuración de idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "currentLanguage": "Idioma actual"
+  },
+  "expenses": {
+    "title": "Todos los gastos",
+    "subtitle": "Personales + tu parte de gastos grupales",
+    "addPersonal": "Añadir personal",
+    "addExpense": "Añadir gasto",
+    "editExpense": "Editar gasto",
+    "deleteExpense": "Eliminar gasto",
+    "noExpenses": "Sin gastos aún",
+    "startTracking": "Empieza a rastrear tus gastos añadiendo tu primer gasto.",
+    "addFirstExpense": "Añade tu primer gasto para empezar a rastrear.",
+    "descriptionPlaceholder": "¿En qué fue este gasto?",
+    "notesPlaceholder": "Añade notas adicionales...",
+    "deleteConfirmTitle": "Eliminar gasto",
+    "deleteConfirmDescription": "¿Estás seguro de que quieres eliminar \"{description}\"? Esta acción no se puede deshacer.",
+    "deleteConfirmGroupDescription": "¿Estás seguro de que quieres eliminar \"{description}\"? Esto afectará los cálculos de balance del grupo.",
+    "expenseUpdated": "Gasto actualizado",
+    "expenseAdded": "Gasto añadido",
+    "expenseDeleted": "Gasto eliminado",
+    "failedToSave": "Error al guardar el gasto",
+    "failedToDelete": "Error al eliminar el gasto",
+    "groupExpenseEditError": "Los gastos grupales solo se pueden editar desde la página del grupo",
+    "groupExpenseDeleteError": "Los gastos grupales solo se pueden eliminar desde la página del grupo"
+  },
+  "expenseForm": {
+    "title": "Añadir gasto",
+    "editTitle": "Editar gasto",
+    "description": "Introduce los detalles de tu gasto.",
+    "editDescription": "Actualiza los detalles del gasto.",
+    "groupTitle": "Añadir gasto grupal",
+    "groupDescription": "Configura quién pagó y cómo dividir.",
+    "amount": "Monto",
+    "descriptionLabel": "Descripción",
+    "category": "Categoría",
+    "date": "Fecha",
+    "notes": "Notas (opcional)",
+    "split": "División",
+    "validation": {
+      "descriptionRequired": "La descripción es requerida",
+      "amountPositive": "El monto debe ser positivo",
+      "currencyRequired": "La moneda es requerida",
+      "categoryRequired": "La categoría es requerida"
+    }
+  },
+  "expenseCard": {
+    "historicalRate": "Tasa histórica",
+    "currentRate": "Tasa actual"
+  },
+  "split": {
+    "title": "Opciones de división",
+    "total": "Total:",
+    "paidBy": "Pagado por",
+    "splitTab": "División",
+    "splitMethod": "Método de división",
+    "equal": "Igual",
+    "amount": "Monto",
+    "percent": "Porcentaje",
+    "shares": "Partes",
+    "percentage": "Porcentaje:",
+    "yourShare": "Tu parte:",
+    "paidByYou": "Pagado por ti",
+    "paidBySomeone": "Pagado por {name}",
+    "paidByMultiple": "Pagado por {count} personas",
+    "splitEqually": "dividido equitativamente",
+    "splitByPercent": "dividido por %",
+    "splitByShares": "dividido por partes",
+    "splitByAmount": "dividido por monto",
+    "splitAmong": "dividido entre {count}",
+    "enterAmountFirst": "Ingresa el monto primero",
+    "paymentValid": "El pago suma el total",
+    "paymentNeedMore": "Total del pago: {current} (falta {more})",
+    "splitValid": "La división suma el total",
+    "splitNeedMore": "Total de la división: {current} (falta {more})",
+    "splitOver": "Total de la división: {current} ({over} de más)",
+    "paymentMismatch": "El total del pago ({payment}) no coincide con el gasto ({expense})",
+    "splitMismatch": "El total de la división ({split}) no coincide con el gasto ({expense})"
+  },
+  "groups": {
+    "title": "Grupos",
+    "subtitle": "Divide gastos con amigos",
+    "createGroup": "Crear grupo",
+    "noGroups": "Sin grupos aún",
+    "noGroupsDescription": "Crea un grupo para empezar a dividir gastos con amigos.",
+    "groupNotFound": "Grupo no encontrado",
+    "backToGroups": "Volver a grupos",
+    "groupCreated": "Grupo creado",
+    "failedToCreate": "Error al crear el grupo"
+  },
+  "groupForm": {
+    "title": "Crear grupo",
+    "editTitle": "Editar grupo",
+    "description": "Crea un grupo para dividir gastos con amigos.",
+    "groupName": "Nombre del grupo",
+    "namePlaceholder": "Viaje de verano 2024",
+    "descriptionLabel": "Descripción (opcional)",
+    "descriptionPlaceholder": "Viaje a Barcelona",
+    "type": "Tipo",
+    "members": "Miembros",
+    "validation": {
+      "nameRequired": "El nombre es requerido",
+      "selectMember": "Selecciona al menos un miembro"
+    }
+  },
+  "groupTypes": {
+    "trip": "Viaje",
+    "household": "Hogar",
+    "couple": "Pareja",
+    "other": "Otro"
+  },
+  "groupDetail": {
+    "expenses": "Gastos",
+    "balances": "Balances",
+    "noExpenses": "Sin gastos en este grupo",
+    "noExpensesDescription": "Añade el primer gasto para empezar a dividir costos."
+  },
+  "balances": {
+    "groupTotal": "Total del grupo",
+    "memberBalances": "Balances de miembros",
+    "settleUp": "Saldar cuentas",
+    "allSettled": "¡Todo saldado!",
+    "allSettledDescription": "Los gastos de todos están equilibrados.",
+    "splitAmong": "Dividido entre {count} miembros",
+    "convertedTo": "Convertido a {currency}",
+    "owes": "debe",
+    "isOwed": "le deben"
+  },
+  "summary": {
+    "totalSpending": "Gasto total",
+    "yourTotalSpending": "Tu gasto total",
+    "expenseCount": "{count} gasto",
+    "expenseCountPlural": "{count} gastos"
+  },
+  "filters": {
+    "allTypes": "Todos los tipos",
+    "personal": "Personal",
+    "group": "Grupo",
+    "allCategories": "Todas las categorías"
+  },
+  "categories": {
+    "food": "Comida y restaurantes",
+    "transportation": "Transporte",
+    "shopping": "Compras",
+    "entertainment": "Entretenimiento",
+    "bills": "Facturas y servicios",
+    "health": "Salud",
+    "travel": "Viajes",
+    "education": "Educación",
+    "gifts": "Regalos",
+    "other": "Otro"
+  },
+  "toast": {
+    "success": "Éxito",
+    "error": "Error"
+  },
+  "datePicker": {
+    "pickDate": "Seleccionar fecha"
+  }
+}
+

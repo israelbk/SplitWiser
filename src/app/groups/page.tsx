@@ -14,12 +14,14 @@ import { groupService, GroupWithMembers } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export default function GroupsPage() {
   const { currentUser } = useCurrentUser();
   const { canWrite } = useAuth();
   const { data: groups, isLoading } = useGroups();
   const createGroup = useCreateGroup();
+  const t = useTranslations('groups');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [groupsWithMembers, setGroupsWithMembers] = useState<GroupWithMembers[]>([]);
@@ -70,10 +72,10 @@ export default function GroupsPage() {
         createdBy: currentUser.id,
         memberIds: data.memberIds,
       });
-      toast.success('Group created');
+      toast.success(t('groupCreated'));
       setIsFormOpen(false);
     } catch (error) {
-      toast.error('Failed to create group');
+      toast.error(t('failedToCreate'));
     }
   };
 
@@ -83,9 +85,9 @@ export default function GroupsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Groups</h1>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Split expenses with friends
+              {t('subtitle')}
             </p>
           </div>
           <Button 
@@ -94,7 +96,7 @@ export default function GroupsPage() {
             disabled={!canWrite}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Create Group
+            {t('createGroup')}
           </Button>
         </div>
 

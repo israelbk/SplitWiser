@@ -2,17 +2,20 @@
 
 /**
  * App header component
- * Logo, title, user menu/admin switcher, and currency settings
+ * Logo, title, user menu/admin switcher, and currency/language settings
  */
 
 import { AdminUserSwitcher } from './admin-user-switcher';
 import { UserMenu } from './user-menu';
 import { CurrencySelector } from './currency-selector';
+import { LanguageSelector } from './language-selector';
 import { useAuth } from '@/hooks/use-current-user';
 import { Wallet, Eye } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function Header() {
   const { isAdmin, isViewingAsOther, viewingAs, canWrite, authUser } = useAuth();
+  const t = useTranslations('header');
 
   return (
     <>
@@ -23,7 +26,7 @@ export function Header() {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
               <Wallet className="h-5 w-5" />
             </div>
-            <span className="font-bold text-lg">SplitWiser</span>
+            <span className="font-bold text-lg">{t('title')}</span>
           </div>
 
           {/* Spacer */}
@@ -32,6 +35,12 @@ export function Header() {
           {/* Only show controls when authenticated */}
           {authUser && (
             <>
+              {/* Language Selector */}
+              <LanguageSelector />
+
+              {/* Separator */}
+              <div className="h-6 w-px bg-border mx-2" />
+
               {/* Currency Selector */}
               <CurrencySelector />
 
@@ -52,9 +61,9 @@ export function Header() {
             <div className="flex items-center gap-2 text-sm">
               <Eye className="h-4 w-4 text-amber-500 flex-shrink-0" />
               <p className="text-amber-700 dark:text-amber-300">
-                <span className="font-medium">View-only mode:</span> You are viewing as{' '}
+                <span className="font-medium">{t('viewOnlyMode')}</span> {t('viewingAs')}{' '}
                 <span className="font-semibold">{viewingAs?.name}</span>.
-                {!canWrite && ' Actions are disabled while viewing another user.'}
+                {!canWrite && ` ${t('actionsDisabled')}`}
               </p>
             </div>
           </div>

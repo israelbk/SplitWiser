@@ -10,22 +10,24 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Receipt, Users } from 'lucide-react';
-
-const navItems = [
-  {
-    label: 'Personal',
-    href: '/',
-    icon: Receipt,
-  },
-  {
-    label: 'Groups',
-    href: '/groups',
-    icon: Users,
-  },
-];
+import { useTranslations } from 'next-intl';
 
 export function NavTabs() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
+
+  const navItems = [
+    {
+      label: t('personal'),
+      href: '/',
+      icon: Receipt,
+    },
+    {
+      label: t('groups'),
+      href: '/groups',
+      icon: Users,
+    },
+  ];
 
   // Determine active tab based on pathname
   const activeTab = pathname.startsWith('/groups') ? '/groups' : '/';
@@ -37,7 +39,6 @@ export function NavTabs() {
           <TabsList className="w-full justify-start h-12 bg-transparent p-0 border-0">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.href;
 
               return (
                 <Link key={item.href} href={item.href} className="flex-1 sm:flex-none">

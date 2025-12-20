@@ -10,19 +10,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Receipt, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const navItems = [
-  {
-    label: 'Personal',
-    href: '/',
-    icon: Receipt,
-  },
-  {
-    label: 'Groups',
-    href: '/groups',
-    icon: Users,
-  },
-];
+import { useTranslations } from 'next-intl';
 
 interface MobileNavProps {
   onAddClick?: () => void;
@@ -30,6 +18,20 @@ interface MobileNavProps {
 
 export function MobileNav({ onAddClick }: MobileNavProps) {
   const pathname = usePathname();
+  const t = useTranslations('nav');
+
+  const navItems = [
+    {
+      label: t('personal'),
+      href: '/',
+      icon: Receipt,
+    },
+    {
+      label: t('groups'),
+      href: '/groups',
+      icon: Users,
+    },
+  ];
 
   // Determine active tab based on pathname
   const activeTab = pathname.startsWith('/groups') ? '/groups' : '/';

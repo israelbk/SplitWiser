@@ -18,6 +18,7 @@ import { useCategories } from '@/hooks/queries';
 import { getCategoryIcon } from '@/components/common';
 import { Filter, X, Wallet, Users, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 export type ExpenseTypeFilter = 'all' | 'personal' | 'group';
 
@@ -45,6 +46,8 @@ export function ExpenseFiltersBar({
 }: ExpenseFiltersBarProps) {
   const { data: categories } = useCategories();
   const [isExpanded, setIsExpanded] = useState(false);
+  const t = useTranslations('filters');
+  const tCommon = useTranslations('common');
 
   const hasFilters = filters.categoryId || 
     (filters.dateRange && filters.dateRange !== 'all') ||
@@ -71,7 +74,7 @@ export function ExpenseFiltersBar({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <Filter className="h-4 w-4 mr-2" />
-          Filters
+          {tCommon('filters')}
           {activeFilterCount > 0 && (
             <span className="ml-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
               {activeFilterCount}
@@ -87,7 +90,7 @@ export function ExpenseFiltersBar({
             className="text-muted-foreground"
           >
             <X className="h-4 w-4 mr-1" />
-            Clear
+            {tCommon('clear')}
           </Button>
         )}
       </div>
@@ -108,25 +111,25 @@ export function ExpenseFiltersBar({
             }
           >
             <SelectTrigger className="w-full sm:w-[140px]">
-              <SelectValue placeholder="All Types" />
+              <SelectValue placeholder={t('allTypes')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
                 <span className="flex items-center gap-2">
                   <LayoutGrid size={16} />
-                  All Types
+                  {t('allTypes')}
                 </span>
               </SelectItem>
               <SelectItem value="personal">
                 <span className="flex items-center gap-2">
                   <Wallet size={16} />
-                  Personal
+                  {t('personal')}
                 </span>
               </SelectItem>
               <SelectItem value="group">
                 <span className="flex items-center gap-2">
                   <Users size={16} />
-                  Group
+                  {t('group')}
                 </span>
               </SelectItem>
             </SelectContent>
@@ -141,10 +144,10 @@ export function ExpenseFiltersBar({
           }
         >
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder={t('allCategories')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t('allCategories')}</SelectItem>
             {categories?.map((category) => {
               const Icon = getCategoryIcon(category.icon);
               return (
@@ -167,13 +170,13 @@ export function ExpenseFiltersBar({
           }
         >
           <SelectTrigger className="w-full sm:w-[150px]">
-            <SelectValue placeholder="All Time" />
+            <SelectValue placeholder={tCommon('allTime')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Time</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
+            <SelectItem value="all">{tCommon('allTime')}</SelectItem>
+            <SelectItem value="week">{tCommon('thisWeek')}</SelectItem>
+            <SelectItem value="month">{tCommon('thisMonth')}</SelectItem>
+            <SelectItem value="year">{tCommon('thisYear')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

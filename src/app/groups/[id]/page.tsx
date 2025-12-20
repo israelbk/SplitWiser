@@ -35,6 +35,7 @@ import { ArrowLeft, Plus, Receipt, Scale } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -48,6 +49,11 @@ export default function GroupDetailPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const t = useTranslations('expenses');
+  const tGroups = useTranslations('groups');
+  const tGroupDetail = useTranslations('groupDetail');
+  const tExpenseForm = useTranslations('expenseForm');
+  const tCommon = useTranslations('common');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseWithDetails | null>(null);
@@ -81,7 +87,7 @@ export default function GroupDetailPage() {
 
     try {
       if (editingExpense) {
-        await updateExpense.mutateAsync({
+          await updateExpense.mutateAsync({
           id: editingExpense.id,
           input: {
             description: data.description,
@@ -93,7 +99,7 @@ export default function GroupDetailPage() {
             splitConfig: data.splitConfig,  // Update splits when editing
           },
         });
-        toast.success('Expense updated');
+        toast.success(t('expenseUpdated'));
       } else {
         // Use split config if provided (advanced mode), otherwise fallback to simple mode
         if (data.splitConfig) {
@@ -124,12 +130,12 @@ export default function GroupDetailPage() {
             splitAmongUserIds: memberIds,
           });
         }
-        toast.success('Expense added');
+        toast.success(t('expenseAdded'));
       }
       setIsFormOpen(false);
       setEditingExpense(null);
     } catch (error) {
-      toast.error('Failed to save expense');
+      toast.error(t('failedToSave'));
     }
   };
 
@@ -142,10 +148,10 @@ export default function GroupDetailPage() {
         groupId: deletingExpense.groupId,
         createdBy: currentUser.id,
       });
-      toast.success('Expense deleted');
+      toast.success(t('expenseDeleted'));
       setDeletingExpense(null);
     } catch (error) {
-      toast.error('Failed to delete expense');
+      toast.error(t('failedToDelete'));
     }
   };
 
@@ -168,9 +174,9 @@ export default function GroupDetailPage() {
     return (
       <AppShell>
         <div className="w-full max-w-4xl mx-auto px-4 py-8 text-center">
-          <p className="text-muted-foreground">Group not found</p>
+          <p className="text-muted-foreground">{tGroups('groupNotFound')}</p>
           <Button variant="link" onClick={() => router.push('/groups')}>
-            Back to groups
+            {tGroups('backToGroups')}
           </Button>
         </div>
       </AppShell>
@@ -220,7 +226,7 @@ export default function GroupDetailPage() {
             disabled={!canWrite}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Expense
+            {t('addExpense')}
           </Button>
         </div>
 
@@ -229,11 +235,11 @@ export default function GroupDetailPage() {
           <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="expenses" className="flex-1 sm:flex-none gap-2">
               <Receipt className="h-4 w-4" />
-              Expenses
+              {tGroupDetail('expenses')}
             </TabsTrigger>
             <TabsTrigger value="balances" className="flex-1 sm:flex-none gap-2">
               <Scale className="h-4 w-4" />
-              Balances
+              {tGroupDetail('balances')}
             </TabsTrigger>
           </TabsList>
 
@@ -247,8 +253,8 @@ export default function GroupDetailPage() {
               showPayer={true}
               showUserShare={true}
               currentUserId={currentUser?.id}
-              emptyTitle="No expenses in this group"
-              emptyDescription="Add the first expense to start splitting costs."
+              emptyTitle={tGroupDetail('noExpenses')}
+              emptyDescription={tGroupDetail('noExpensesDescription')}
               onAddClick={handleAddExpense}
             />
           </TabsContent>
@@ -265,8 +271,8 @@ export default function GroupDetailPage() {
         onOpenChange={setIsFormOpen}
         onSubmit={handleFormSubmit}
         expense={editingExpense ?? undefined}
-        title={editingExpense ? 'Edit Expense' : 'Add Group Expense'}
-        description={editingExpense ? 'Update the expense details.' : 'Configure who paid and how to split.'}
+        title={editingExpense ? tExpenseForm('editTitle') : tExpenseForm('groupTitle')}
+        description={editingExpense ? tExpenseForm('editDescription') : tExpenseForm('groupDescription')}
         isLoading={createExpense.isPending || updateExpense.isPending}
         groupMembers={group?.members.map(m => m.user).filter((u): u is NonNullable<typeof u> => !!u)}
         currentUserId={currentUser?.id}
@@ -279,19 +285,18 @@ export default function GroupDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deletingExpense?.description}&quot;?
-              This will affect the group balance calculations.
+              {t('deleteConfirmGroupDescription', { description: deletingExpense?.description ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

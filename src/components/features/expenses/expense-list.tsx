@@ -9,6 +9,7 @@ import { EmptyState, ExpenseCard, ExpenseListSkeleton } from '@/components/commo
 import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
 import { ConversionMode, ConvertedAmount } from '@/lib/types';
 import { Receipt } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type ExpenseType = ExpenseWithDetails | UnifiedExpense;
 
@@ -38,12 +39,14 @@ export function ExpenseList<T extends ExpenseType>({
   showPayer = false,
   showUserShare = false,
   currentUserId,
-  emptyTitle = 'No expenses yet',
-  emptyDescription = 'Add your first expense to start tracking.',
+  emptyTitle,
+  emptyDescription,
   onAddClick,
   conversions,
   conversionMode = 'off',
 }: ExpenseListProps<T>) {
+  const t = useTranslations('expenses');
+
   if (isLoading) {
     return <ExpenseListSkeleton count={5} />;
   }
@@ -52,12 +55,12 @@ export function ExpenseList<T extends ExpenseType>({
     return (
       <EmptyState
         icon={Receipt}
-        title={emptyTitle}
-        description={emptyDescription}
+        title={emptyTitle ?? t('noExpenses')}
+        description={emptyDescription ?? t('addFirstExpense')}
         action={
           onAddClick
             ? {
-                label: 'Add Expense',
+                label: t('addExpense'),
                 onClick: onAddClick,
               }
             : undefined

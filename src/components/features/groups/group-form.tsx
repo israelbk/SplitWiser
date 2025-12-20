@@ -31,6 +31,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { MemberPicker } from '@/components/common';
 import { Group, GroupMember, GroupType, User } from '@/lib/types';
 import { Loader2, Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 // Extended Group type that includes populated members (from GroupWithMembers)
 interface GroupWithPopulatedMembers extends Partial<Group> {
@@ -56,26 +57,29 @@ interface GroupFormProps {
   isLoading?: boolean;
 }
 
-const groupTypes = [
-  { value: 'trip', label: 'Trip', icon: Plane },
-  { value: 'household', label: 'Household', icon: Home },
-  { value: 'couple', label: 'Couple', icon: Heart },
-  { value: 'other', label: 'Other', icon: MoreHorizontal },
-];
-
 export function GroupForm({
   open,
   onOpenChange,
   onSubmit,
   group,
-  title = 'Create Group',
-  description = 'Create a group to split expenses with friends.',
+  title,
+  description,
   isLoading = false,
 }: GroupFormProps) {
   const { currentUser } = useCurrentUser();
+  const t = useTranslations('groupForm');
+  const tTypes = useTranslations('groupTypes');
+  const tCommon = useTranslations('common');
   
   // Track selected member IDs separately for the MemberPicker
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+
+  const groupTypes = [
+    { value: 'trip', label: tTypes('trip'), icon: Plane },
+    { value: 'household', label: tTypes('household'), icon: Home },
+    { value: 'couple', label: tTypes('couple'), icon: Heart },
+    { value: 'other', label: tTypes('other'), icon: MoreHorizontal },
+  ];
 
   const form = useForm<GroupFormData>({
     resolver: zodResolver(groupSchema),
@@ -135,44 +139,47 @@ export function GroupForm({
     onOpenChange(newOpen);
   };
 
+  const displayTitle = title ?? (group?.id ? t('editTitle') : t('title'));
+  const displayDescription = description ?? t('description');
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle>{displayTitle}</DialogTitle>
+            <DialogDescription>{displayDescription}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             {/* Group Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Group Name</Label>
+              <Label htmlFor="name">{t('groupName')}</Label>
               <Input
                 id="name"
-                placeholder="Summer Trip 2024"
+                placeholder={t('namePlaceholder')}
                 {...form.register('name')}
               />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.name.message}
+                  {t('validation.nameRequired')}
                 </p>
               )}
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">{t('descriptionLabel')}</Label>
               <Input
                 id="description"
-                placeholder="Trip to Barcelona"
+                placeholder={t('descriptionPlaceholder')}
                 {...form.register('description')}
               />
             </div>
 
             {/* Group Type */}
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('type')}</Label>
               <Select
                 value={form.watch('type')}
                 onValueChange={(value) => form.setValue('type', value as GroupType)}
@@ -198,7 +205,7 @@ export function GroupForm({
 
             {/* Members */}
             <div className="space-y-2">
-              <Label>Members</Label>
+              <Label>{t('members')}</Label>
               {currentUser && (
                 <MemberPicker
                   currentUser={currentUser}
@@ -209,7 +216,7 @@ export function GroupForm({
               )}
               {form.formState.errors.memberIds && (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.memberIds.message}
+                  {t('validation.selectMember')}
                 </p>
               )}
             </div>
@@ -222,11 +229,11 @@ export function GroupForm({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {group?.id ? 'Update' : 'Create'}
+              {group?.id ? tCommon('update') : tCommon('create')}
             </Button>
           </DialogFooter>
         </form>
@@ -234,4 +241,3 @@ export function GroupForm({
     </Dialog>
   );
 }
-

@@ -10,6 +10,7 @@ import {
   User,
   UserRow,
   userFromRow,
+  Locale,
 } from '../types';
 import { CurrencyPreferences, CurrencyPreferencesRow } from '../types/currency';
 import { BaseRepository } from './base.repository';
@@ -29,6 +30,7 @@ interface UserUpdateRow {
   email?: string;
   avatar_url?: string;
   avatar_color?: string;
+  language?: string;
   currency_preferences?: CurrencyPreferencesRow;
 }
 
@@ -99,6 +101,13 @@ export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow,
       return null;
     }
     return user.currencyPreferences;
+  }
+
+  /**
+   * Set user's language preference
+   */
+  async setLanguage(id: string, language: Locale): Promise<User> {
+    return this.update(id, { language });
   }
 
   /**

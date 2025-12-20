@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useTranslations } from 'next-intl';
 
 interface GroupBalancesProps {
   groupId: string;
@@ -26,6 +27,8 @@ interface GroupBalancesProps {
 
 export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps) {
   const { data: balanceSummary, isLoading } = useGroupBalances(groupId);
+  const t = useTranslations('balances');
+  const tCurrency = useTranslations('currency');
 
   if (isLoading) {
     return <BalanceSummarySkeleton />;
@@ -55,7 +58,7 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Scale className="h-4 w-4" />
-              Group Total
+              {t('groupTotal')}
             </CardTitle>
             {isConverting && (
               <TooltipProvider>
@@ -67,14 +70,14 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
                       ) : (
                         <Zap className="h-3 w-3" />
                       )}
-                      {conversionMode === 'smart' ? 'Historical' : 'Current'}
+                      {conversionMode === 'smart' ? tCurrency('historical') : tCurrency('current')}
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="text-xs">
                       {conversionMode === 'smart' 
-                        ? 'Using historical rates from expense dates'
-                        : 'Using current exchange rates'}
+                        ? tCurrency('usingHistoricalRates')
+                        : tCurrency('usingCurrentRates')}
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -87,8 +90,8 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
             {formatCurrency(totalExpenses, effectiveCurrency)}
           </div>
           <p className="text-xs text-muted-foreground">
-            Split among {userBalances.length} members
-            {isConverting && ` • Converted to ${effectiveCurrency}`}
+            {t('splitAmong', { count: userBalances.length })}
+            {isConverting && ` • ${t('convertedTo', { currency: effectiveCurrency })}`}
           </p>
         </CardContent>
       </Card>
@@ -97,7 +100,7 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Member Balances
+            {t('memberBalances')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -122,7 +125,7 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <ArrowRightLeft className="h-4 w-4" />
-              Settle Up
+              {t('settleUp')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -147,9 +150,9 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
       {simplifiedDebts.length === 0 && totalExpenses > 0 && (
         <Card className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
           <CardContent className="pt-6 text-center">
-            <p className="text-green-700 dark:text-green-400 font-medium">All settled up!</p>
+            <p className="text-green-700 dark:text-green-400 font-medium">{t('allSettled')}</p>
             <p className="text-sm text-green-600 dark:text-green-500">
-              Everyone&apos;s expenses are balanced.
+              {t('allSettledDescription')}
             </p>
           </CardContent>
         </Card>

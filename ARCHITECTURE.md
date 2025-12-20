@@ -34,6 +34,7 @@ SplitWiser is a **proof-of-concept** expense tracking and splitting app built wi
 | Tailwind CSS v4 | Styling |
 | Zod | Validation |
 | react-hook-form | Form handling |
+| next-intl | Internationalization (i18n) |
 
 ### POC Limitations (intentional simplifications)
 
@@ -148,8 +149,9 @@ src/
 │   │
 │   └── layout/                 # App shell components
 │       ├── app-shell.tsx       # Main layout wrapper
-│       ├── header.tsx          # Top header with user/currency selector
+│       ├── header.tsx          # Top header with user/currency/language selector
 │       ├── currency-selector.tsx # Currency conversion settings
+│       ├── language-selector.tsx # Language selection with RTL support
 │       ├── nav-tabs.tsx        # Desktop navigation
 │       ├── mobile-nav.tsx      # Mobile bottom nav
 │       └── user-selector.tsx   # Mock user dropdown
@@ -162,7 +164,8 @@ src/
 │       ├── use-groups.ts       # Group queries/mutations
 │       ├── use-balances.ts     # Balance calculations
 │       ├── use-categories.ts   # Category queries
-│       └── use-users.ts        # User queries
+│       ├── use-users.ts        # User queries
+│       └── use-language-preferences.ts # Language preferences
 │
 ├── lib/
 │   ├── services/               # Business logic layer
@@ -184,7 +187,8 @@ src/
 │   │   ├── group.ts            # Group, GroupMember
 │   │   ├── category.ts         # Category
 │   │   ├── user.ts             # User
-│   │   └── balance.ts          # Balance, Debt
+│   │   ├── balance.ts          # Balance, Debt
+│   │   └── locale.ts           # Locale types & constants
 │   │
 │   ├── constants/              # App constants
 │   │   ├── categories.ts       # Category definitions
@@ -192,14 +196,22 @@ src/
 │   │
 │   └── utils.ts                # Utility functions (cn)
 │
+├── locales/                      # Translation files
+│   ├── en.json                 # English translations
+│   ├── he.json                 # Hebrew translations (RTL)
+│   ├── es.json                 # Spanish translations
+│   └── index.ts                # Messages loader
+│
 ├── providers/
 │   ├── index.tsx               # Combined providers wrapper
 │   ├── query-provider.tsx      # TanStack Query provider
-│   └── user-provider.tsx       # Mock user context
+│   ├── user-provider.tsx       # Mock user context
+│   └── locale-provider.tsx     # i18n provider with RTL support
 │
 └── config/
     ├── env.ts                  # Environment variables
-    └── supabase.ts             # Supabase client
+    ├── supabase.ts             # Supabase client
+    └── i18n.ts                 # Internationalization config
 ```
 
 ---
@@ -469,6 +481,68 @@ import { cn } from '@/lib/utils';
   variant === "destructive" && "text-destructive"
 )} />
 ```
+
+---
+
+## Internationalization (i18n)
+
+### Supported Languages
+
+| Code | Language | Direction |
+|------|----------|-----------|
+| en | English | LTR |
+| he | Hebrew | RTL |
+| es | Spanish | LTR |
+
+### Using Translations
+
+```typescript
+'use client';
+
+import { useTranslations } from 'next-intl';
+
+export function MyComponent() {
+  const t = useTranslations('expenses');
+  
+  return (
+    <div>
+      <h1>{t('title')}</h1>
+      <p>{t('noExpenses')}</p>
+      {/* With interpolation */}
+      <p>{t('deleteConfirmDescription', { description: expense.description })}</p>
+    </div>
+  );
+}
+```
+
+### Translation Files Structure
+
+```json
+// src/locales/en.json
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "expenses": {
+    "title": "All Expenses",
+    "noExpenses": "No expenses yet"
+  }
+}
+```
+
+### Language Preferences
+
+- Language preference is stored in the `users.language` column
+- Use `useLanguageSettings()` hook to get/set language
+- RTL is automatically applied via the `dir` attribute on `<html>`
+
+### Adding New Translations
+
+1. Add keys to `src/locales/en.json`
+2. Copy to `he.json` and `es.json` with translations
+3. Use `useTranslations('namespace')` in components
 
 ---
 

@@ -11,4 +11,5 @@ export * from './use-balances';
 export * from './use-currency-preferences';
 export * from './use-exchange-rates';
 export * from './use-converted-expenses';
+export * from './use-language-preferences';
 

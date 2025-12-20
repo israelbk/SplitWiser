@@ -8,6 +8,7 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { LucideIcon, PackageOpen } from 'lucide-react';
+import { useAuth } from '@/hooks/use-current-user';
 
 interface EmptyStateProps {
   icon?: LucideIcon;
@@ -27,6 +28,8 @@ export function EmptyState({
   action,
   className,
 }: EmptyStateProps) {
+  const { canWrite } = useAuth();
+
   return (
     <div
       className={cn(
@@ -43,7 +46,7 @@ export function EmptyState({
           {description}
         </p>
       )}
-      {action && (
+      {action && canWrite && (
         <Button onClick={action.onClick}>{action.label}</Button>
       )}
     </div>

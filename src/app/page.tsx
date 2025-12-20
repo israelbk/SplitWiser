@@ -32,6 +32,7 @@ import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export default function AllExpensesPage() {
   const router = useRouter();
@@ -41,6 +42,8 @@ export default function AllExpensesPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const t = useTranslations('expenses');
+  const tCommon = useTranslations('common');
   
   // Currency conversion
   const { displayCurrency, conversionMode } = useCurrencyPreferences();
@@ -127,7 +130,7 @@ export default function AllExpensesPage() {
   const handleEditExpense = (expense: UnifiedExpense) => {
     // Only allow editing personal expenses for now
     if (!expense.isPersonal) {
-      toast.error('Group expenses can only be edited from the group page');
+      toast.error(t('groupExpenseEditError'));
       return;
     }
     setEditingExpense(expense);
@@ -137,7 +140,7 @@ export default function AllExpensesPage() {
   const handleDeleteExpense = (expense: UnifiedExpense) => {
     // Only allow deleting personal expenses for now
     if (!expense.isPersonal) {
-      toast.error('Group expenses can only be deleted from the group page');
+      toast.error(t('groupExpenseDeleteError'));
       return;
     }
     setDeletingExpense(expense);
@@ -167,7 +170,7 @@ export default function AllExpensesPage() {
             notes: data.notes,
           },
         });
-        toast.success('Expense updated');
+        toast.success(t('expenseUpdated'));
       } else {
         // Create new expense
         await createExpense.mutateAsync({
@@ -181,12 +184,12 @@ export default function AllExpensesPage() {
           paidById: currentUser.id,
           splitAmongUserIds: [currentUser.id], // Personal expense - only current user
         });
-        toast.success('Expense added');
+        toast.success(t('expenseAdded'));
       }
       setIsFormOpen(false);
       setEditingExpense(null);
     } catch (error) {
-      toast.error('Failed to save expense');
+      toast.error(t('failedToSave'));
     }
   };
 
@@ -199,10 +202,10 @@ export default function AllExpensesPage() {
         groupId: deletingExpense.groupId,
         createdBy: currentUser.id,
       });
-      toast.success('Expense deleted');
+      toast.success(t('expenseDeleted'));
       setDeletingExpense(null);
     } catch (error) {
-      toast.error('Failed to delete expense');
+      toast.error(t('failedToDelete'));
     }
   };
 
@@ -212,9 +215,9 @@ export default function AllExpensesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">All Expenses</h1>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
             <p className="text-sm text-muted-foreground">
-              Personal + your share of group expenses
+              {t('subtitle')}
             </p>
           </div>
           <Button 
@@ -223,7 +226,7 @@ export default function AllExpensesPage() {
             disabled={!canWrite}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Personal
+            {t('addPersonal')}
           </Button>
         </div>
 
@@ -255,8 +258,8 @@ export default function AllExpensesPage() {
           showUserShare={true}
           conversions={conversions}
           conversionMode={conversionMode}
-          emptyTitle="No expenses yet"
-          emptyDescription="Start tracking your spending by adding your first expense."
+          emptyTitle={t('noExpenses')}
+          emptyDescription={t('startTracking')}
         />
       </div>
 
@@ -266,7 +269,7 @@ export default function AllExpensesPage() {
         onOpenChange={setIsFormOpen}
         onSubmit={handleFormSubmit}
         expense={editingExpense ?? undefined}
-        title={editingExpense ? 'Edit Expense' : 'Add Expense'}
+        title={editingExpense ? t('editExpense') : t('addExpense')}
         isLoading={createExpense.isPending || updateExpense.isPending}
       />
 
@@ -277,19 +280,18 @@ export default function AllExpensesPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deletingExpense?.description}&quot;?
-              This action cannot be undone.
+              {t('deleteConfirmDescription', { description: deletingExpense?.description ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {tCommon('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

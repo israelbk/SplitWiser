@@ -27,35 +27,11 @@ import { useCurrencySettings } from '@/hooks/queries';
 import { CurrencyPicker } from '@/components/common/currency-picker';
 import { getCurrency } from '@/lib/constants';
 import { ConversionMode } from '@/lib/types';
-
-const CONVERSION_MODE_OPTIONS: {
-  value: ConversionMode;
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    value: 'off',
-    label: 'Original',
-    description: 'Show expenses in their original currency',
-    icon: <X className="h-4 w-4" />,
-  },
-  {
-    value: 'simple',
-    label: 'Current Rate',
-    description: 'Convert using today\'s exchange rate',
-    icon: <Zap className="h-4 w-4" />,
-  },
-  {
-    value: 'smart',
-    label: 'Historical Rate',
-    description: 'Convert using the rate from each expense date',
-    icon: <Clock className="h-4 w-4" />,
-  },
-];
+import { useTranslations } from 'next-intl';
 
 export function CurrencySelector() {
   const [open, setOpen] = useState(false);
+  const t = useTranslations('currency');
   const {
     displayCurrency,
     conversionMode,
@@ -67,6 +43,32 @@ export function CurrencySelector() {
 
   const currency = getCurrency(displayCurrency);
   const isConverting = conversionMode !== 'off';
+
+  const CONVERSION_MODE_OPTIONS: {
+    value: ConversionMode;
+    label: string;
+    description: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      value: 'off',
+      label: t('original'),
+      description: t('originalDescription'),
+      icon: <X className="h-4 w-4" />,
+    },
+    {
+      value: 'simple',
+      label: t('currentRate'),
+      description: t('currentRateDescription'),
+      icon: <Zap className="h-4 w-4" />,
+    },
+    {
+      value: 'smart',
+      label: t('historicalRate'),
+      description: t('historicalRateDescription'),
+      icon: <Clock className="h-4 w-4" />,
+    },
+  ];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -97,13 +99,13 @@ export function CurrencySelector() {
         <div className="p-3 pb-2">
           <div className="flex items-center gap-2 mb-1">
             <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-            <h4 className="font-medium text-sm">Currency Settings</h4>
+            <h4 className="font-medium text-sm">{t('settings')}</h4>
             {isUpdating && (
               <Loader2 className="h-3 w-3 animate-spin ml-auto text-muted-foreground" />
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Convert expenses to a single currency
+            {t('convertExpenses')}
           </p>
         </div>
 
@@ -112,7 +114,7 @@ export function CurrencySelector() {
         {/* Display Currency Selection */}
         <div className="p-3">
           <Label className="text-xs text-muted-foreground mb-2 block">
-            Display Currency
+            {t('displayCurrency')}
           </Label>
           <CurrencyPicker
             value={displayCurrency}
@@ -126,7 +128,7 @@ export function CurrencySelector() {
         {/* Conversion Mode Selection */}
         <div className="p-3">
           <Label className="text-xs text-muted-foreground mb-2 block">
-            Conversion Mode
+            {t('conversionMode')}
           </Label>
           <div className="space-y-1">
             {CONVERSION_MODE_OPTIONS.map((option) => (
@@ -168,9 +170,7 @@ export function CurrencySelector() {
             <Separator />
             <div className="p-3 bg-muted/50">
               <p className="text-xs text-muted-foreground">
-                <strong>Smart conversion</strong> uses historical exchange rates
-                from the European Central Bank to accurately convert expenses
-                based on their original date.
+                {t('smartConversionInfo')}
               </p>
             </div>
           </>

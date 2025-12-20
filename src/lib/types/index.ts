@@ -20,3 +20,6 @@ export * from './balance';
 // Currency types
 export * from './currency';
 
+// Locale types
+export * from './locale';
+

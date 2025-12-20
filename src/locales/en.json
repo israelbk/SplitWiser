@@ -1,0 +1,214 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "update": "Update",
+    "create": "Create",
+    "loading": "Loading...",
+    "converting": "Converting...",
+    "clear": "Clear",
+    "filters": "Filters",
+    "back": "Back",
+    "you": "You",
+    "group": "Group",
+    "personal": "Personal",
+    "thisMonth": "this month",
+    "thisWeek": "This Week",
+    "thisYear": "This Year",
+    "allTime": "All Time"
+  },
+  "header": {
+    "title": "SplitWiser",
+    "viewOnlyMode": "View-only mode:",
+    "viewingAs": "You are viewing as",
+    "actionsDisabled": "Actions are disabled while viewing another user."
+  },
+  "nav": {
+    "personal": "Personal",
+    "groups": "Groups"
+  },
+  "currency": {
+    "settings": "Currency Settings",
+    "displayCurrency": "Display Currency",
+    "conversionMode": "Conversion Mode",
+    "convertExpenses": "Convert expenses to a single currency",
+    "original": "Original",
+    "originalDescription": "Show expenses in their original currency",
+    "currentRate": "Current Rate",
+    "currentRateDescription": "Convert using today's exchange rate",
+    "historicalRate": "Historical Rate",
+    "historicalRateDescription": "Convert using the rate from each expense date",
+    "smartConversionInfo": "Smart conversion uses historical exchange rates from the European Central Bank to accurately convert expenses based on their original date.",
+    "historical": "Historical",
+    "current": "Current",
+    "conversionActive": "Currency Conversion Active",
+    "expensesConverted": "{count} of {total} expenses converted",
+    "usingHistoricalRates": "Using historical rates from expense dates",
+    "usingCurrentRates": "Using current exchange rates"
+  },
+  "language": {
+    "settings": "Language Settings",
+    "selectLanguage": "Select Language",
+    "currentLanguage": "Current language"
+  },
+  "expenses": {
+    "title": "All Expenses",
+    "subtitle": "Personal + your share of group expenses",
+    "addPersonal": "Add Personal",
+    "addExpense": "Add Expense",
+    "editExpense": "Edit Expense",
+    "deleteExpense": "Delete Expense",
+    "noExpenses": "No expenses yet",
+    "startTracking": "Start tracking your spending by adding your first expense.",
+    "addFirstExpense": "Add your first expense to start tracking.",
+    "descriptionPlaceholder": "What was this expense for?",
+    "notesPlaceholder": "Add any additional notes...",
+    "deleteConfirmTitle": "Delete Expense",
+    "deleteConfirmDescription": "Are you sure you want to delete \"{description}\"? This action cannot be undone.",
+    "deleteConfirmGroupDescription": "Are you sure you want to delete \"{description}\"? This will affect the group balance calculations.",
+    "expenseUpdated": "Expense updated",
+    "expenseAdded": "Expense added",
+    "expenseDeleted": "Expense deleted",
+    "failedToSave": "Failed to save expense",
+    "failedToDelete": "Failed to delete expense",
+    "groupExpenseEditError": "Group expenses can only be edited from the group page",
+    "groupExpenseDeleteError": "Group expenses can only be deleted from the group page"
+  },
+  "expenseForm": {
+    "title": "Add Expense",
+    "editTitle": "Edit Expense",
+    "description": "Enter the details of your expense.",
+    "editDescription": "Update the expense details.",
+    "groupTitle": "Add Group Expense",
+    "groupDescription": "Configure who paid and how to split.",
+    "amount": "Amount",
+    "descriptionLabel": "Description",
+    "category": "Category",
+    "date": "Date",
+    "notes": "Notes (optional)",
+    "split": "Split",
+    "validation": {
+      "descriptionRequired": "Description is required",
+      "amountPositive": "Amount must be positive",
+      "currencyRequired": "Currency is required",
+      "categoryRequired": "Category is required"
+    }
+  },
+  "expenseCard": {
+    "historicalRate": "Historical Rate",
+    "currentRate": "Current Rate"
+  },
+  "split": {
+    "title": "Split Options",
+    "total": "Total:",
+    "paidBy": "Paid by",
+    "splitTab": "Split",
+    "splitMethod": "Split method",
+    "equal": "Equal",
+    "amount": "Amount",
+    "percent": "Percent",
+    "shares": "Shares",
+    "percentage": "Percentage:",
+    "yourShare": "Your share:",
+    "paidByYou": "Paid by you",
+    "paidBySomeone": "Paid by {name}",
+    "paidByMultiple": "Paid by {count} people",
+    "splitEqually": "split equally",
+    "splitByPercent": "split by %",
+    "splitByShares": "split by shares",
+    "splitByAmount": "split by amount",
+    "splitAmong": "split among {count}",
+    "enterAmountFirst": "Enter amount first",
+    "paymentValid": "Payment adds up to total",
+    "paymentNeedMore": "Payment total: {current} (need {more} more)",
+    "splitValid": "Split adds up to total",
+    "splitNeedMore": "Split total: {current} (need {more} more)",
+    "splitOver": "Split total: {current} ({over} over)",
+    "paymentMismatch": "Payment total ({payment}) doesn't match expense ({expense})",
+    "splitMismatch": "Split total ({split}) doesn't match expense ({expense})"
+  },
+  "groups": {
+    "title": "Groups",
+    "subtitle": "Split expenses with friends",
+    "createGroup": "Create Group",
+    "noGroups": "No groups yet",
+    "noGroupsDescription": "Create a group to start splitting expenses with friends.",
+    "groupNotFound": "Group not found",
+    "backToGroups": "Back to groups",
+    "groupCreated": "Group created",
+    "failedToCreate": "Failed to create group"
+  },
+  "groupForm": {
+    "title": "Create Group",
+    "editTitle": "Edit Group",
+    "description": "Create a group to split expenses with friends.",
+    "groupName": "Group Name",
+    "namePlaceholder": "Summer Trip 2024",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Trip to Barcelona",
+    "type": "Type",
+    "members": "Members",
+    "validation": {
+      "nameRequired": "Name is required",
+      "selectMember": "Select at least one member"
+    }
+  },
+  "groupTypes": {
+    "trip": "Trip",
+    "household": "Household",
+    "couple": "Couple",
+    "other": "Other"
+  },
+  "groupDetail": {
+    "expenses": "Expenses",
+    "balances": "Balances",
+    "noExpenses": "No expenses in this group",
+    "noExpensesDescription": "Add the first expense to start splitting costs."
+  },
+  "balances": {
+    "groupTotal": "Group Total",
+    "memberBalances": "Member Balances",
+    "settleUp": "Settle Up",
+    "allSettled": "All settled up!",
+    "allSettledDescription": "Everyone's expenses are balanced.",
+    "splitAmong": "Split among {count} members",
+    "convertedTo": "Converted to {currency}",
+    "owes": "owes",
+    "isOwed": "is owed"
+  },
+  "summary": {
+    "totalSpending": "Total Spending",
+    "yourTotalSpending": "Your Total Spending",
+    "expenseCount": "{count} expense",
+    "expenseCountPlural": "{count} expenses"
+  },
+  "filters": {
+    "allTypes": "All Types",
+    "personal": "Personal",
+    "group": "Group",
+    "allCategories": "All Categories"
+  },
+  "categories": {
+    "food": "Food & Dining",
+    "transportation": "Transportation",
+    "shopping": "Shopping",
+    "entertainment": "Entertainment",
+    "bills": "Bills & Utilities",
+    "health": "Health",
+    "travel": "Travel",
+    "education": "Education",
+    "gifts": "Gifts",
+    "other": "Other"
+  },
+  "toast": {
+    "success": "Success",
+    "error": "Error"
+  },
+  "datePicker": {
+    "pickDate": "Pick a date"
+  }
+}
+

@@ -10,6 +10,7 @@ import {
   UpdateCurrencyPreferencesInput,
   UpdateUserInput,
   User,
+  Locale,
 } from '../types';
 import { CurrencyPreferences, DEFAULT_CURRENCY_PREFERENCES } from '../types/currency';
 
@@ -87,6 +88,21 @@ export class UserService {
     preferences: UpdateCurrencyPreferencesInput
   ): Promise<User> {
     return this.repository.updateCurrencyPreferences(userId, preferences);
+  }
+
+  /**
+   * Get user's language preference
+   */
+  async getLanguage(userId: string): Promise<Locale> {
+    const user = await this.repository.findById(userId);
+    return user?.language ?? 'en';
+  }
+
+  /**
+   * Set user's language preference
+   */
+  async setLanguage(userId: string, language: Locale): Promise<User> {
+    return this.repository.setLanguage(userId, language);
   }
 
   // ============================================================================

@@ -7,6 +7,7 @@ import {
   currencyPreferencesFromRow,
   CurrencyPreferencesRow
 } from './currency';
+import { Locale, DEFAULT_LOCALE } from './locale';
 
 export type UserRole = 'user' | 'admin';
 
@@ -17,6 +18,7 @@ export interface User {
   avatarUrl?: string;
   avatarColor: string;
   role: UserRole;
+  language: Locale;
   currencyPreferences: CurrencyPreferences;
   createdAt: Date;
   // Shadow user fields
@@ -60,6 +62,7 @@ export interface UserRow {
   avatar_url: string | null;
   avatar_color: string | null;
   role: string | null;
+  language: string | null;
   currency_preferences: CurrencyPreferencesRow | null;
   created_at: string;
   // Shadow user fields
@@ -78,6 +81,7 @@ export function userFromRow(row: UserRow): User {
     avatarUrl: row.avatar_url ?? undefined,
     avatarColor: row.avatar_color ?? '#6366f1',
     role: (row.role as UserRole) ?? 'user',
+    language: (row.language as Locale) ?? DEFAULT_LOCALE,
     currencyPreferences: currencyPreferencesFromRow(row.currency_preferences),
     createdAt: new Date(row.created_at),
     authId: row.auth_id ?? undefined,

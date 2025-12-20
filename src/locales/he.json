@@ -1,0 +1,214 @@
+{
+  "common": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "update": "עדכן",
+    "create": "צור",
+    "loading": "טוען...",
+    "converting": "ממיר...",
+    "clear": "נקה",
+    "filters": "סינון",
+    "back": "חזור",
+    "you": "את/ה",
+    "group": "קבוצה",
+    "personal": "אישי",
+    "thisMonth": "החודש",
+    "thisWeek": "השבוע",
+    "thisYear": "השנה",
+    "allTime": "כל הזמן"
+  },
+  "header": {
+    "title": "SplitWiser",
+    "viewOnlyMode": "מצב צפייה בלבד:",
+    "viewingAs": "צופה בתור",
+    "actionsDisabled": "פעולות מושבתות בזמן צפייה במשתמש אחר."
+  },
+  "nav": {
+    "personal": "אישי",
+    "groups": "קבוצות"
+  },
+  "currency": {
+    "settings": "הגדרות מטבע",
+    "displayCurrency": "מטבע תצוגה",
+    "conversionMode": "מצב המרה",
+    "convertExpenses": "המר הוצאות למטבע אחד",
+    "original": "מקורי",
+    "originalDescription": "הצג הוצאות במטבע המקורי שלהן",
+    "currentRate": "שער עדכני",
+    "currentRateDescription": "המר לפי שער חליפין של היום",
+    "historicalRate": "שער היסטורי",
+    "historicalRateDescription": "המר לפי השער מתאריך ההוצאה",
+    "smartConversionInfo": "המרה חכמה משתמשת בשערי חליפין היסטוריים מהבנק המרכזי האירופי להמרה מדויקת לפי תאריך ההוצאה המקורי.",
+    "historical": "היסטורי",
+    "current": "עדכני",
+    "conversionActive": "המרת מטבע פעילה",
+    "expensesConverted": "{count} מתוך {total} הוצאות הומרו",
+    "usingHistoricalRates": "משתמש בשערים היסטוריים מתאריכי ההוצאות",
+    "usingCurrentRates": "משתמש בשערי חליפין עדכניים"
+  },
+  "language": {
+    "settings": "הגדרות שפה",
+    "selectLanguage": "בחר שפה",
+    "currentLanguage": "שפה נוכחית"
+  },
+  "expenses": {
+    "title": "כל ההוצאות",
+    "subtitle": "אישיות + החלק שלך בהוצאות קבוצתיות",
+    "addPersonal": "הוסף אישי",
+    "addExpense": "הוסף הוצאה",
+    "editExpense": "ערוך הוצאה",
+    "deleteExpense": "מחק הוצאה",
+    "noExpenses": "אין עדיין הוצאות",
+    "startTracking": "התחל לעקוב אחר ההוצאות שלך על ידי הוספת ההוצאה הראשונה.",
+    "addFirstExpense": "הוסף את ההוצאה הראשונה שלך כדי להתחיל לעקוב.",
+    "descriptionPlaceholder": "על מה הייתה ההוצאה?",
+    "notesPlaceholder": "הוסף הערות נוספות...",
+    "deleteConfirmTitle": "מחיקת הוצאה",
+    "deleteConfirmDescription": "האם אתה בטוח שברצונך למחוק את \"{description}\"? לא ניתן לבטל פעולה זו.",
+    "deleteConfirmGroupDescription": "האם אתה בטוח שברצונך למחוק את \"{description}\"? פעולה זו תשפיע על חישובי האיזון של הקבוצה.",
+    "expenseUpdated": "ההוצאה עודכנה",
+    "expenseAdded": "ההוצאה נוספה",
+    "expenseDeleted": "ההוצאה נמחקה",
+    "failedToSave": "שגיאה בשמירת ההוצאה",
+    "failedToDelete": "שגיאה במחיקת ההוצאה",
+    "groupExpenseEditError": "ניתן לערוך הוצאות קבוצתיות רק מדף הקבוצה",
+    "groupExpenseDeleteError": "ניתן למחוק הוצאות קבוצתיות רק מדף הקבוצה"
+  },
+  "expenseForm": {
+    "title": "הוספת הוצאה",
+    "editTitle": "עריכת הוצאה",
+    "description": "הזן את פרטי ההוצאה.",
+    "editDescription": "עדכן את פרטי ההוצאה.",
+    "groupTitle": "הוספת הוצאה קבוצתית",
+    "groupDescription": "הגדר מי שילם ואיך לחלק.",
+    "amount": "סכום",
+    "descriptionLabel": "תיאור",
+    "category": "קטגוריה",
+    "date": "תאריך",
+    "notes": "הערות (אופציונלי)",
+    "split": "חלוקה",
+    "validation": {
+      "descriptionRequired": "תיאור נדרש",
+      "amountPositive": "הסכום חייב להיות חיובי",
+      "currencyRequired": "מטבע נדרש",
+      "categoryRequired": "קטגוריה נדרשת"
+    }
+  },
+  "expenseCard": {
+    "historicalRate": "שער היסטורי",
+    "currentRate": "שער עדכני"
+  },
+  "split": {
+    "title": "אפשרויות חלוקה",
+    "total": "סה\"כ:",
+    "paidBy": "שולם על ידי",
+    "splitTab": "חלוקה",
+    "splitMethod": "שיטת חלוקה",
+    "equal": "שווה",
+    "amount": "סכום",
+    "percent": "אחוז",
+    "shares": "חלקים",
+    "percentage": "אחוז:",
+    "yourShare": "החלק שלך:",
+    "paidByYou": "שולם על ידך",
+    "paidBySomeone": "שולם על ידי {name}",
+    "paidByMultiple": "שולם על ידי {count} אנשים",
+    "splitEqually": "מחולק שווה",
+    "splitByPercent": "מחולק לפי %",
+    "splitByShares": "מחולק לפי חלקים",
+    "splitByAmount": "מחולק לפי סכום",
+    "splitAmong": "מחולק בין {count}",
+    "enterAmountFirst": "הזן סכום קודם",
+    "paymentValid": "התשלום מסתכם לסה\"כ",
+    "paymentNeedMore": "סה\"כ תשלום: {current} (חסר {more})",
+    "splitValid": "החלוקה מסתכמת לסה\"כ",
+    "splitNeedMore": "סה\"כ חלוקה: {current} (חסר {more})",
+    "splitOver": "סה\"כ חלוקה: {current} ({over} מעל)",
+    "paymentMismatch": "סה\"כ תשלום ({payment}) לא תואם להוצאה ({expense})",
+    "splitMismatch": "סה\"כ חלוקה ({split}) לא תואם להוצאה ({expense})"
+  },
+  "groups": {
+    "title": "קבוצות",
+    "subtitle": "חלק הוצאות עם חברים",
+    "createGroup": "צור קבוצה",
+    "noGroups": "אין עדיין קבוצות",
+    "noGroupsDescription": "צור קבוצה כדי להתחיל לחלק הוצאות עם חברים.",
+    "groupNotFound": "הקבוצה לא נמצאה",
+    "backToGroups": "חזרה לקבוצות",
+    "groupCreated": "הקבוצה נוצרה",
+    "failedToCreate": "שגיאה ביצירת הקבוצה"
+  },
+  "groupForm": {
+    "title": "יצירת קבוצה",
+    "editTitle": "עריכת קבוצה",
+    "description": "צור קבוצה לחלוקת הוצאות עם חברים.",
+    "groupName": "שם הקבוצה",
+    "namePlaceholder": "טיול קיץ 2024",
+    "descriptionLabel": "תיאור (אופציונלי)",
+    "descriptionPlaceholder": "טיול לברצלונה",
+    "type": "סוג",
+    "members": "חברים",
+    "validation": {
+      "nameRequired": "שם נדרש",
+      "selectMember": "בחר לפחות חבר אחד"
+    }
+  },
+  "groupTypes": {
+    "trip": "טיול",
+    "household": "משק בית",
+    "couple": "זוג",
+    "other": "אחר"
+  },
+  "groupDetail": {
+    "expenses": "הוצאות",
+    "balances": "איזונים",
+    "noExpenses": "אין הוצאות בקבוצה זו",
+    "noExpensesDescription": "הוסף את ההוצאה הראשונה כדי להתחיל לחלק עלויות."
+  },
+  "balances": {
+    "groupTotal": "סה\"כ קבוצה",
+    "memberBalances": "יתרות חברים",
+    "settleUp": "סיום חשבון",
+    "allSettled": "הכל מאוזן!",
+    "allSettledDescription": "ההוצאות של כולם מאוזנות.",
+    "splitAmong": "מחולק בין {count} חברים",
+    "convertedTo": "הומר ל-{currency}",
+    "owes": "חייב",
+    "isOwed": "מגיע לו"
+  },
+  "summary": {
+    "totalSpending": "סה\"כ הוצאות",
+    "yourTotalSpending": "סה\"כ ההוצאות שלך",
+    "expenseCount": "הוצאה {count}",
+    "expenseCountPlural": "{count} הוצאות"
+  },
+  "filters": {
+    "allTypes": "כל הסוגים",
+    "personal": "אישי",
+    "group": "קבוצה",
+    "allCategories": "כל הקטגוריות"
+  },
+  "categories": {
+    "food": "אוכל ומסעדות",
+    "transportation": "תחבורה",
+    "shopping": "קניות",
+    "entertainment": "בידור",
+    "bills": "חשבונות ושירותים",
+    "health": "בריאות",
+    "travel": "נסיעות",
+    "education": "חינוך",
+    "gifts": "מתנות",
+    "other": "אחר"
+  },
+  "toast": {
+    "success": "הצלחה",
+    "error": "שגיאה"
+  },
+  "datePicker": {
+    "pickDate": "בחר תאריך"
+  }
+}
+
