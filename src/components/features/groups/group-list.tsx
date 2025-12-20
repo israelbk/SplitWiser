@@ -46,7 +46,7 @@ export function GroupList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-3 sm:gap-4">
       {groups.map((group) => (
         <GroupCard
           key={group.id}
