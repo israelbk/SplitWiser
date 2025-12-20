@@ -152,7 +152,7 @@ export default function GroupDetailPage() {
   if (groupLoading) {
     return (
       <AppShell>
-        <div className="container px-4 py-4 space-y-4">
+        <div className="w-full max-w-4xl mx-auto px-4 py-4 space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-64" />
           <div className="mt-6 space-y-2">
@@ -167,7 +167,7 @@ export default function GroupDetailPage() {
   if (!group) {
     return (
       <AppShell>
-        <div className="container px-4 py-8 text-center">
+        <div className="w-full max-w-4xl mx-auto px-4 py-8 text-center">
           <p className="text-muted-foreground">Group not found</p>
           <Button variant="link" onClick={() => router.push('/groups')}>
             Back to groups
@@ -179,7 +179,7 @@ export default function GroupDetailPage() {
 
   return (
     <AppShell onAddClick={handleAddExpense}>
-      <div className="container px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
           <Button

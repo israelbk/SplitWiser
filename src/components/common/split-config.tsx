@@ -201,32 +201,32 @@ export function SplitConfig({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="h-[85vh] sm:h-[70vh] md:h-[80vh] lg:h-[70vh] max-h-[700px] flex flex-col"
+        className="h-[85vh] sm:h-[70vh] md:h-[80vh] lg:h-[70vh] max-h-[700px] flex flex-col px-4 sm:px-6"
       >
-        <SheetHeader className="text-left flex-shrink-0">
-          <SheetTitle>Split Options</SheetTitle>
-          <SheetDescription>
+        <SheetHeader className="text-left flex-shrink-0 pb-2">
+          <SheetTitle className="text-lg">Split Options</SheetTitle>
+          <SheetDescription className="text-base font-medium text-foreground">
             Total: {formatCurrency(amount, currency)}
           </SheetDescription>
         </SheetHeader>
 
         {/* Main content area - scrollable */}
-        <div className="flex-1 overflow-hidden mt-4">
+        <div className="flex-1 overflow-hidden mt-2">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'payment' | 'split')} className="h-full flex flex-col">
-            <TabsList className="w-full flex-shrink-0">
-              <TabsTrigger value="payment" className="flex-1 gap-2">
+            <TabsList className="w-full flex-shrink-0 h-11">
+              <TabsTrigger value="payment" className="flex-1 gap-2 h-9">
                 <Wallet className="h-4 w-4" />
                 Paid by
               </TabsTrigger>
-              <TabsTrigger value="split" className="flex-1 gap-2">
+              <TabsTrigger value="split" className="flex-1 gap-2 h-9">
                 <Users className="h-4 w-4" />
                 Split
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="payment" className="mt-4 flex-1 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
-                <div className="space-y-2">
+              <ScrollArea className="h-full">
+                <div className="space-y-3 pr-2">
                   {members.map((member) => {
                     const payment = payments.find(p => p.userId === member.id);
                     const isSelected = payment?.selected || false;
@@ -236,30 +236,47 @@ export function SplitConfig({
                       <div
                         key={member.id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                          isSelected ? "border-primary bg-primary/5" : "border-border"
+                          "rounded-xl border-2 transition-all",
+                          isSelected ? "border-primary bg-primary/5" : "border-border bg-card"
                         )}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => togglePayment(member.id)}
-                        />
-                        <UserAvatar user={member} size="sm" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {member.id === currentUserId ? 'You' : member.name}
-                          </p>
+                        {/* Main row: Checkbox + Avatar + Name */}
+                        <div 
+                          className="flex items-center gap-3 p-4 cursor-pointer"
+                          onClick={() => togglePayment(member.id)}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => togglePayment(member.id)}
+                            className="h-5 w-5"
+                          />
+                          <UserAvatar user={member} size="md" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base">
+                              {member.id === currentUserId ? 'You' : member.name}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <div className="text-right">
+                              <p className="font-bold text-primary text-lg">
+                                {formatCurrency(payment?.amount || 0, currency)}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        {isSelected && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">₪</span>
-                            <Input
-                              type="number"
-                              value={payment?.amount || 0}
-                              onChange={(e) => updatePaymentAmount(member.id, parseFloat(e.target.value) || 0)}
-                              className="w-24 h-8 text-right"
-                              disabled={isOnlyPayer}
-                            />
+                        
+                        {/* Amount input row - only for multiple payers */}
+                        {isSelected && !isOnlyPayer && (
+                          <div className="px-4 pb-4 pt-0">
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2">
+                              <span className="text-sm text-muted-foreground font-medium pl-2">Amount:</span>
+                              <Input
+                                type="number"
+                                value={payment?.amount || 0}
+                                onChange={(e) => updatePaymentAmount(member.id, parseFloat(e.target.value) || 0)}
+                                className="flex-1 h-10 text-right font-mono text-base"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -269,12 +286,12 @@ export function SplitConfig({
 
                 {/* Payment validation */}
                 <div className={cn(
-                  "mt-4 p-3 rounded-lg text-sm",
-                  isPaymentValid ? "bg-green-500/10 text-green-700" : "bg-amber-500/10 text-amber-700"
+                  "mt-4 p-4 rounded-xl text-sm font-medium",
+                  isPaymentValid ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 )}>
                   {isPaymentValid ? (
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4" />
+                      <Check className="h-5 w-5" />
                       Payment adds up to total
                     </div>
                   ) : (
@@ -288,10 +305,10 @@ export function SplitConfig({
             </TabsContent>
 
             <TabsContent value="split" className="mt-4 flex-1 overflow-hidden flex flex-col">
-              {/* Split type selector - fixed */}
+              {/* Split type selector - 2x2 grid on mobile for more breathing room */}
               <div className="mb-4 flex-shrink-0">
-                <Label className="text-sm font-medium mb-2 block">Split method</Label>
-                <div className="grid grid-cols-4 gap-2">
+                <Label className="text-sm font-semibold mb-3 block text-muted-foreground uppercase tracking-wide">Split method</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { value: 'equal', label: 'Equal', icon: Equal },
                     { value: 'exact', label: 'Amount', icon: DollarSign },
@@ -304,18 +321,21 @@ export function SplitConfig({
                       variant={splitType === value ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => handleSplitTypeChange(value as InternalSplitType)}
-                      className="flex-col h-auto py-2 gap-1"
+                      className={cn(
+                        "flex-col h-auto py-3 gap-1.5 transition-all",
+                        splitType === value && "ring-2 ring-primary ring-offset-2"
+                      )}
                     >
-                      <Icon className="h-4 w-4" />
-                      <span className="text-xs">{label}</span>
+                      <Icon className="h-5 w-5" />
+                      <span className="text-xs font-medium">{label}</span>
                     </Button>
                   ))}
                 </div>
               </div>
 
               {/* Members list - scrollable */}
-              <ScrollArea className="flex-1 pr-4">
-                <div className="space-y-2">
+              <ScrollArea className="flex-1">
+                <div className="space-y-3 pr-2">
                   {members.map((member) => {
                     const split = splits.find(s => s.userId === member.id);
                     const isSelected = split?.selected || false;
@@ -324,64 +344,78 @@ export function SplitConfig({
                       <div
                         key={member.id}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                          isSelected ? "border-primary bg-primary/5" : "border-border"
+                          "rounded-xl border-2 transition-all",
+                          isSelected ? "border-primary bg-primary/5" : "border-border bg-card"
                         )}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleSplit(member.id)}
-                        />
-                        <UserAvatar user={member} size="sm" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {member.id === currentUserId ? 'You' : member.name}
-                          </p>
-                          {isSelected && (
-                            <p className="text-xs text-muted-foreground">
-                              {formatCurrency(split?.amount || 0, currency)}
+                        {/* Main row: Checkbox + Avatar + Name + Amount */}
+                        <div 
+                          className="flex items-center gap-3 p-4 cursor-pointer"
+                          onClick={() => toggleSplit(member.id)}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleSplit(member.id)}
+                            className="h-5 w-5"
+                          />
+                          <UserAvatar user={member} size="md" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-base">
+                              {member.id === currentUserId ? 'You' : member.name}
                             </p>
+                          </div>
+                          {isSelected && (
+                            <div className="text-right">
+                              <p className="font-bold text-primary text-lg">
+                                {formatCurrency(split?.amount || 0, currency)}
+                              </p>
+                            </div>
                           )}
                         </div>
+                        
+                        {/* Custom split input row - only for non-equal splits */}
                         {isSelected && splitType !== 'equal' && (
-                          <div className="flex items-center gap-2">
-                            {splitType === 'percentage' && (
-                              <>
-                                <Input
-                                  type="number"
-                                  value={split?.percentage || 0}
-                                  onChange={(e) => updateSplitValue(member.id, 'percentage', parseFloat(e.target.value) || 0)}
-                                  className="w-16 h-8 text-right"
-                                  min={0}
-                                  max={100}
-                                />
-                                <span className="text-sm text-muted-foreground">%</span>
-                              </>
-                            )}
-                            {splitType === 'shares' && (
-                              <>
-                                <Input
-                                  type="number"
-                                  value={split?.shares || 1}
-                                  onChange={(e) => updateSplitValue(member.id, 'shares', parseInt(e.target.value) || 1)}
-                                  className="w-16 h-8 text-right"
-                                  min={1}
-                                />
-                                <span className="text-sm text-muted-foreground">shares</span>
-                              </>
-                            )}
-                            {splitType === 'exact' && (
-                              <>
-                                <span className="text-sm text-muted-foreground">₪</span>
-                                <Input
-                                  type="number"
-                                  value={split?.amount || 0}
-                                  onChange={(e) => updateSplitValue(member.id, 'amount', parseFloat(e.target.value) || 0)}
-                                  className="w-24 h-8 text-right"
-                                  min={0}
-                                />
-                              </>
-                            )}
+                          <div className="px-4 pb-4 pt-0">
+                            <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-2">
+                              {splitType === 'percentage' && (
+                                <>
+                                  <span className="text-sm text-muted-foreground font-medium pl-2">Percentage:</span>
+                                  <Input
+                                    type="number"
+                                    value={split?.percentage || 0}
+                                    onChange={(e) => updateSplitValue(member.id, 'percentage', parseFloat(e.target.value) || 0)}
+                                    className="flex-1 h-10 text-right font-mono text-base"
+                                    min={0}
+                                    max={100}
+                                  />
+                                  <span className="text-base font-medium text-muted-foreground pr-2">%</span>
+                                </>
+                              )}
+                              {splitType === 'shares' && (
+                                <>
+                                  <span className="text-sm text-muted-foreground font-medium pl-2">Shares:</span>
+                                  <Input
+                                    type="number"
+                                    value={split?.shares || 1}
+                                    onChange={(e) => updateSplitValue(member.id, 'shares', parseInt(e.target.value) || 1)}
+                                    className="flex-1 h-10 text-right font-mono text-base"
+                                    min={1}
+                                  />
+                                </>
+                              )}
+                              {splitType === 'exact' && (
+                                <>
+                                  <span className="text-sm text-muted-foreground font-medium pl-2">Amount:</span>
+                                  <Input
+                                    type="number"
+                                    value={split?.amount || 0}
+                                    onChange={(e) => updateSplitValue(member.id, 'amount', parseFloat(e.target.value) || 0)}
+                                    className="flex-1 h-10 text-right font-mono text-base"
+                                    min={0}
+                                  />
+                                </>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -391,12 +425,12 @@ export function SplitConfig({
 
                 {/* Split validation */}
                 <div className={cn(
-                  "mt-4 p-3 rounded-lg text-sm",
-                  isSplitValid ? "bg-green-500/10 text-green-700" : "bg-amber-500/10 text-amber-700"
+                  "mt-4 p-4 rounded-xl text-sm font-medium",
+                  isSplitValid ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 )}>
                   {isSplitValid ? (
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4" />
+                      <Check className="h-5 w-5" />
                       Split adds up to total
                     </div>
                   ) : (
@@ -418,18 +452,18 @@ export function SplitConfig({
           {(!isPaymentValid || !isSplitValid) && (
             <div className="w-full text-sm text-center">
               {!isPaymentValid && hasSelectedPayments && (
-                <p className="text-destructive">
+                <p className="text-destructive font-medium">
                   Payment total ({formatCurrency(paymentTotal, currency)}) doesn't match expense ({formatCurrency(amount, currency)})
                 </p>
               )}
               {!isSplitValid && hasSelectedSplits && (
-                <p className="text-destructive">
+                <p className="text-destructive font-medium">
                   Split total ({formatCurrency(splitTotal, currency)}) doesn't match expense ({formatCurrency(amount, currency)})
                 </p>
               )}
             </div>
           )}
-          <Button onClick={handleSave} disabled={!isValid} className="w-full">
+          <Button onClick={handleSave} disabled={!isValid} className="w-full h-12 text-base font-semibold">
             Save
           </Button>
         </SheetFooter>

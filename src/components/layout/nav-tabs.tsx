@@ -31,8 +31,8 @@ export function NavTabs() {
   const activeTab = pathname.startsWith('/groups') ? '/groups' : '/';
 
   return (
-    <div className="border-b">
-      <div className="container px-4">
+    <div className="border-b overflow-x-hidden">
+      <div className="w-full max-w-4xl mx-auto px-4">
         <Tabs value={activeTab} className="w-full">
           <TabsList className="w-full justify-start h-12 bg-transparent p-0 border-0">
             {navItems.map((item) => {

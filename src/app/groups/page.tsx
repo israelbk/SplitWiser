@@ -79,7 +79,7 @@ export default function GroupsPage() {
 
   return (
     <AppShell onAddClick={handleAddGroup}>
-      <div className="container px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

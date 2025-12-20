@@ -20,7 +20,7 @@ export function AppShell({ children, onAddClick }: AppShellProps) {
   const { canWrite } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Header */}
       <Header />
 
@@ -30,7 +30,7 @@ export function AppShell({ children, onAddClick }: AppShellProps) {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 sm:pb-4">
+      <main className="flex-1 pb-20 sm:pb-4 overflow-x-hidden">
         {children}
       </main>
 

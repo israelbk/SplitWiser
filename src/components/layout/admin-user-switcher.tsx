@@ -53,19 +53,19 @@ export function AdminUserSwitcher() {
         <Button 
           variant={isViewingAsOther ? "secondary" : "outline"} 
           size="sm" 
-          className="gap-2"
+          className="gap-1 sm:gap-2 max-w-[180px] sm:max-w-none"
         >
           {isViewingAsOther && (
-            <Eye className="h-4 w-4 text-amber-500" />
+            <Eye className="h-4 w-4 text-amber-500 flex-shrink-0" />
           )}
-          <UserAvatar user={effectiveUser!} size="sm" />
-          <span className="max-w-[100px] truncate">{effectiveUser?.name}</span>
+          <UserAvatar user={effectiveUser!} size="sm" className="flex-shrink-0" />
+          <span className="max-w-[60px] sm:max-w-[100px] truncate">{effectiveUser?.name}</span>
           {isViewingAsOther && (
-            <Badge variant="secondary" className="ml-1 text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400">
+            <Badge variant="secondary" className="hidden sm:inline-flex ml-1 text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400">
               Viewing
             </Badge>
           )}
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
