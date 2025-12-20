@@ -35,7 +35,7 @@ export function CategoryPicker({
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled || isLoading}>
-      <SelectTrigger className={cn('w-full', className)}>
+      <SelectTrigger className={cn('w-full h-10', className)}>
         <SelectValue placeholder="Select category">
           {selectedCategory && (
             <span className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export function CategoryPicker({
                   />
                 );
               })()}
-              {selectedCategory.name}
+              <span className="truncate">{selectedCategory.name}</span>
             </span>
           )}
         </SelectValue>
@@ -60,7 +60,7 @@ export function CategoryPicker({
             <SelectItem key={category.id} value={category.id}>
               <span className="flex items-center gap-2">
                 <Icon size={16} style={{ color: category.color }} />
-                {category.name}
+                <span className="truncate">{category.name}</span>
               </span>
             </SelectItem>
           );

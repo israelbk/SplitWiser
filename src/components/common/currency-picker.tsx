@@ -59,13 +59,13 @@ export function CurrencyPicker({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            'justify-between font-normal',
-            compact ? 'w-[70px] px-2' : 'w-full',
+            'justify-between font-normal h-10',
+            compact ? 'w-[60px] sm:w-[70px] px-2' : 'w-full',
             className
           )}
         >
           {value ? (
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1 sm:gap-1.5">
               <span className="font-medium">{selectedCurrency.symbol}</span>
               {!compact && (
                 <span className="text-muted-foreground">
@@ -76,7 +76,7 @@ export function CurrencyPicker({
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
           )}
-          <ChevronDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronDown className="ml-0.5 sm:ml-1 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[220px] p-0" align="start">

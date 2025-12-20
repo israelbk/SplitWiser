@@ -3,8 +3,12 @@
 /**
  * Auth provider with admin view-as functionality
  * Integrates with Supabase Auth for Google OAuth
+ * 
+ * DEV MODE: Set NEXT_PUBLIC_DEV_MODE=true in .env.local to skip OAuth
+ * and auto-login as the first admin user in the database.
  */
 
+import { env } from '@/config/env';
 import { supabase } from '@/config/supabase';
 import { AuthContext } from '@/hooks/use-current-user';
 import { ViewAsContext } from '@/hooks/use-view-as';
@@ -69,6 +73,45 @@ export function UserProvider({ children }: UserProviderProps) {
     let mounted = true;
     console.log('[Auth] useEffect starting...');
 
+    // ==========================================================================
+    // DEV MODE: Skip OAuth and auto-login as admin
+    // ==========================================================================
+    if (env.isDevMode) {
+      console.log('[Auth] DEV MODE enabled - auto-logging in as admin');
+      
+      const devModeLogin = async () => {
+        try {
+          // Get all users and find an admin, or just use the first user
+          const users = await userService.getAllUsers();
+          const adminUser = users.find(u => u.role === 'admin') || users[0];
+          
+          if (adminUser) {
+            console.log('[Auth] DEV MODE: Logged in as', adminUser.email, '(role:', adminUser.role, ')');
+            if (mounted) {
+              setAuthUser(adminUser);
+              setIsLoading(false);
+            }
+          } else {
+            console.warn('[Auth] DEV MODE: No users found in database');
+            if (mounted) {
+              setIsLoading(false);
+            }
+          }
+        } catch (error) {
+          console.error('[Auth] DEV MODE error:', error);
+          if (mounted) {
+            setIsLoading(false);
+          }
+        }
+      };
+      
+      devModeLogin();
+      return () => { mounted = false; };
+    }
+
+    // ==========================================================================
+    // PRODUCTION MODE: Normal OAuth flow
+    // ==========================================================================
     const handleSession = async (session: Session | null) => {
       console.log('[Auth] handleSession called, session:', session?.user?.email || 'none');
       
@@ -146,10 +189,24 @@ export function UserProvider({ children }: UserProviderProps) {
   }, []);
 
   const signIn = useCallback(async () => {
+    // In dev mode, just refresh - we auto-login anyway
+    if (env.isDevMode) {
+      window.location.reload();
+      return;
+    }
     await authService.signInWithGoogle();
   }, []);
 
   const signOut = useCallback(async () => {
+    // In dev mode, sign out doesn't really work (no OAuth session)
+    // Just clear local state and redirect to login
+    if (env.isDevMode) {
+      console.log('[Auth] DEV MODE: Sign out is a no-op, refresh to re-login');
+      setAuthUser(null);
+      setViewingAsState(null);
+      localStorage.removeItem(VIEW_AS_STORAGE_KEY);
+      return;
+    }
     await authService.signOut();
     setAuthUser(null);
     setViewingAsState(null);

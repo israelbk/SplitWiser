@@ -4,6 +4,7 @@
  * Create a .env.local file with:
  * NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
  * NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+ * NEXT_PUBLIC_DEV_MODE=true  (optional - enables dev mode with auto-login)
  */
 
 export const env = {
@@ -11,6 +12,8 @@ export const env = {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
     anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   },
+  // Dev mode bypasses Google OAuth and auto-logs in as admin
+  isDevMode: process.env.NEXT_PUBLIC_DEV_MODE === 'true',
 } as const;
 
 // Validate environment variables (call this explicitly when needed)

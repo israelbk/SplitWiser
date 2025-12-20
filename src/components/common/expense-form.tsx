@@ -191,17 +191,17 @@ export function ExpenseForm({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <DialogHeader>
-              <DialogTitle>{title}</DialogTitle>
-              <DialogDescription>{description}</DialogDescription>
+            <DialogHeader className="pb-2">
+              <DialogTitle className="text-lg">{title}</DialogTitle>
+              <DialogDescription className="text-sm">{description}</DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
               {/* Amount with Currency */}
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="amount" className="text-sm">Amount</Label>
                 <div className="flex">
                   <Controller
                     control={form.control}
@@ -214,7 +214,7 @@ export function ExpenseForm({
                           field.onChange(value); // Update form state
                         }}
                         currency={currentCurrency}
-                        className="rounded-r-none flex-1"
+                        className="rounded-r-none flex-1 h-10"
                       />
                     )}
                   />
@@ -226,75 +226,77 @@ export function ExpenseForm({
                         value={field.value}
                         onChange={field.onChange}
                         compact
-                        className="rounded-l-none border-l-0"
+                        className="rounded-l-none border-l-0 h-10"
                       />
                     )}
                   />
                 </div>
                 {form.formState.errors.amount && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.amount.message}
                   </p>
                 )}
               </div>
 
               {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="description" className="text-sm">Description</Label>
                 <Input
                   id="description"
                   placeholder="What was this expense for?"
+                  className="h-10"
                   {...form.register('description')}
                 />
                 {form.formState.errors.description && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.description.message}
                   </p>
                 )}
               </div>
 
               {/* Category */}
-              <div className="space-y-2">
-                <Label>Category</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-sm">Category</Label>
                 <CategoryPicker
                   value={form.watch('categoryId')}
                   onChange={(value) => form.setValue('categoryId', value)}
                 />
                 {form.formState.errors.categoryId && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.categoryId.message}
                   </p>
                 )}
               </div>
 
               {/* Date */}
-              <div className="space-y-2">
-                <Label>Date</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-sm">Date</Label>
                 <DatePicker
                   value={form.watch('date')}
                   onChange={(date) => date && form.setValue('date', date)}
                 />
                 {form.formState.errors.date && (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs sm:text-sm text-destructive">
                     {form.formState.errors.date.message}
                   </p>
                 )}
               </div>
 
               {/* Notes (optional) */}
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optional)</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="notes" className="text-sm">Notes (optional)</Label>
                 <Input
                   id="notes"
                   placeholder="Add any additional notes..."
+                  className="h-10"
                   {...form.register('notes')}
                 />
               </div>
 
               {/* Split Configuration Trigger (for group expenses) */}
               {isGroupExpense && groupMembers && currentUserId && (
-                <div className="space-y-2">
-                  <Label>Split</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-sm">Split</Label>
                   <SplitConfigTrigger
                     onClick={() => setSplitConfigOpen(true)}
                     config={splitConfig}
@@ -307,16 +309,17 @@ export function ExpenseForm({
               )}
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
+                className="w-full sm:w-auto h-10"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto h-10">
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {expense?.id ? 'Update' : 'Add'}
               </Button>

@@ -81,8 +81,8 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
     };
 
     return (
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+      <div className="relative flex-1">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
           {currencyInfo.symbol}
         </span>
         <Input
@@ -92,7 +92,7 @@ export const AmountInput = forwardRef<HTMLInputElement, AmountInputProps>(
           value={inputValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={cn('pl-8 text-right font-mono', className)}
+          className={cn('pl-8 text-right font-mono h-10', className)}
           disabled={disabled}
           placeholder={placeholder}
         />

@@ -4,6 +4,7 @@
  * Expense card component
  * Displays a single expense with details
  * Supports currency conversion display
+ * Mobile-first design with progressive enhancement for desktop
  */
 
 import { Badge } from '@/components/ui/badge';
@@ -97,15 +98,15 @@ export function ExpenseCard({
   return (
     <Card
       className={cn(
-        'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
+        'p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer',
         className
       )}
       onClick={handleCardClick}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Category Icon */}
         <div
-          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+          className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
           style={{
             backgroundColor: expense.category
               ? `${expense.category.color}20`
@@ -114,7 +115,15 @@ export function ExpenseCard({
         >
           {Icon && (
             <Icon
+              size={18}
+              className="sm:hidden"
+              style={{ color: expense.category?.color || '#64748b' }}
+            />
+          )}
+          {Icon && (
+            <Icon
               size={20}
+              className="hidden sm:block"
               style={{ color: expense.category?.color || '#64748b' }}
             />
           )}
@@ -122,25 +131,24 @@ export function ExpenseCard({
 
         {/* Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h4 className="font-medium truncate">{expense.description}</h4>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h4 className="font-medium truncate text-sm sm:text-base">{expense.description}</h4>
             {isGroupExpense && (
-              <Badge variant="secondary" className="flex-shrink-0 text-xs gap-1">
-                <Users className="h-3 w-3" />
-                {groupName || 'Group'}
+              <Badge variant="secondary" className="flex-shrink-0 text-[10px] sm:text-xs gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0 sm:py-0.5">
+                <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="hidden sm:inline">{groupName || 'Group'}</span>
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
             <span>{format(expense.date, 'MMM d')}</span>
+            {/* Payer info - hidden on mobile */}
             {showPayer && payer && (
-              <>
+              <span className="hidden sm:flex items-center gap-1.5">
                 <span>•</span>
-                <span className="flex items-center gap-1">
-                  <UserAvatar user={payer} size="sm" />
-                  <span className="truncate">{payer.name}</span>
-                </span>
-              </>
+                <UserAvatar user={payer} size="sm" />
+                <span className="truncate">{payer.name}</span>
+              </span>
             )}
           </div>
         </div>
@@ -149,12 +157,13 @@ export function ExpenseCard({
         <div className="flex-shrink-0 text-right">
           {showUserShare && isGroupExpense ? (
             <>
-              <div className="font-semibold text-primary flex items-center justify-end gap-1">
+              <div className="font-semibold text-primary flex items-center justify-end gap-1 text-sm sm:text-base">
+                {/* Conversion icon - hidden on mobile */}
                 {isConverted && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                        <ArrowRightLeft className="h-3 w-3 text-muted-foreground hidden sm:block" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <ConversionTooltip 
@@ -167,7 +176,8 @@ export function ExpenseCard({
                 )}
                 {formatCurrency(displayAmount, displayCurrency)}
               </div>
-              <div className="text-xs text-muted-foreground">
+              {/* Secondary amount info - hidden on mobile */}
+              <div className="text-xs text-muted-foreground hidden sm:block">
                 {isConverted ? (
                   <span>
                     {formatCurrency(baseAmount, expense.currency)} @ {conversion!.converted!.rate.toFixed(4)}
@@ -181,11 +191,12 @@ export function ExpenseCard({
             </>
           ) : isConverted ? (
             <>
-              <div className="font-semibold flex items-center justify-end gap-1">
+              <div className="font-semibold flex items-center justify-end gap-1 text-sm sm:text-base">
+                {/* Conversion icon - hidden on mobile */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <ArrowRightLeft className="h-3 w-3 text-muted-foreground" />
+                      <ArrowRightLeft className="h-3 w-3 text-muted-foreground hidden sm:block" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <ConversionTooltip 
@@ -197,17 +208,21 @@ export function ExpenseCard({
                 </TooltipProvider>
                 {formatCurrency(displayAmount, displayCurrency)}
               </div>
-              <div className="text-xs text-muted-foreground">
+              {/* Conversion details - hidden on mobile */}
+              <div className="text-xs text-muted-foreground hidden sm:block">
                 {formatCurrency(baseAmount, expense.currency)} @ {conversion!.converted!.rate.toFixed(4)}
               </div>
             </>
           ) : (
-            <div className="font-semibold">
+            <div className="font-semibold text-sm sm:text-base">
               {formatCurrency(displayAmount, displayCurrency)}
             </div>
           )}
+          {/* Category badge - hidden on mobile */}
           {expense.category && (
-            <CategoryBadge category={expense.category} size="sm" showIcon={false} />
+            <div className="hidden sm:block">
+              <CategoryBadge category={expense.category} size="sm" showIcon={false} />
+            </div>
           )}
         </div>
 
@@ -218,7 +233,7 @@ export function ExpenseCard({
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="flex-shrink-0"
+                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreVertical className="h-4 w-4" />

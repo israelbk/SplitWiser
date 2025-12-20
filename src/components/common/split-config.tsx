@@ -519,28 +519,28 @@ export function SplitConfigTrigger({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-full justify-between h-auto py-3 px-4",
+        "w-full justify-between h-auto min-h-10 py-2 px-3 sm:px-4",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <div className="flex items-center gap-3 text-left">
-        <div className="flex -space-x-2">
+      <div className="flex items-center gap-2 sm:gap-3 text-left min-w-0 flex-1">
+        <div className="flex -space-x-2 flex-shrink-0">
           {payers.slice(0, 2).map((user) => (
             <UserAvatar key={user.id} user={user} size="sm" className="ring-2 ring-background" />
           ))}
         </div>
-        <div>
-          <p className="text-sm font-medium">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">
             {disabled ? 'Enter amount first' : summaryText}
           </p>
           {!disabled && userShare > 0 && amount > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               Your share: {formatCurrency(userShare, currency)}
             </p>
           )}
         </div>
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
     </Button>
   );
 }
