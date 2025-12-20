@@ -116,8 +116,12 @@ export function GroupForm({
   // Sync memberIds with form when selection changes
   const handleMemberSelectionChange = (ids: string[]) => {
     setSelectedMemberIds(ids);
-    form.setValue('memberIds', ids);
+    form.setValue('memberIds', ids, { shouldValidate: true });
   };
+
+  // Watch form values to enable/disable submit button
+  const watchedName = form.watch('name');
+  const isFormValid = watchedName.trim().length > 0 && selectedMemberIds.length >= 2;
 
   const handleSubmit = (data: GroupFormData) => {
     onSubmit(data);
@@ -232,7 +236,7 @@ export function GroupForm({
             >
               {tCommon('cancel')}
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !isFormValid}>
               {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {group?.id ? tCommon('update') : tCommon('create')}
             </Button>
