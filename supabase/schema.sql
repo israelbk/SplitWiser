@@ -113,13 +113,23 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
 );
 
 -- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_expenses_group ON expenses(group_id);
+-- Composite index for group expenses sorted by date (covers both group lookup and sorted queries)
+CREATE INDEX IF NOT EXISTS idx_expenses_group_date ON expenses(group_id, date DESC);
+-- Date index for date-range filtering
 CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+-- Created_by for user's expenses lookup
 CREATE INDEX IF NOT EXISTS idx_expenses_created_by ON expenses(created_by);
+-- Partial index for personal expenses (faster than scanning all expenses)
+CREATE INDEX IF NOT EXISTS idx_expenses_personal ON expenses(created_by) WHERE group_id IS NULL;
+-- Contributions lookup by expense (for batch fetching)
 CREATE INDEX IF NOT EXISTS idx_expense_contributions_expense ON expense_contributions(expense_id);
 CREATE INDEX IF NOT EXISTS idx_expense_contributions_user ON expense_contributions(user_id);
+-- Splits lookup by expense (for batch fetching) and by user (for user's expenses)
 CREATE INDEX IF NOT EXISTS idx_expense_splits_expense ON expense_splits(expense_id);
 CREATE INDEX IF NOT EXISTS idx_expense_splits_user ON expense_splits(user_id);
+-- Group members by user (for fetching user's groups)
+CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+-- Exchange rates composite lookup
 CREATE INDEX IF NOT EXISTS idx_exchange_rates_lookup ON exchange_rates(base_currency, target_currency, rate_date);
 
 -- Enable Row Level Security (for future auth)

@@ -44,6 +44,14 @@ export class GroupService {
   }
 
   /**
+   * Get multiple groups by IDs (batch query - single DB call)
+   */
+  async getGroupsByIds(ids: string[]): Promise<Group[]> {
+    if (ids.length === 0) return [];
+    return this.repository.findByIds(ids);
+  }
+
+  /**
    * Get group with members populated
    */
   async getGroupWithMembers(id: string): Promise<GroupWithMembers | null> {
@@ -63,6 +71,55 @@ export class GroupService {
       ...group,
       members: membersWithUsers,
     };
+  }
+
+  /**
+   * Get multiple groups with members populated (batch - optimized)
+   * Much faster than calling getGroupWithMembers for each group
+   */
+  async getGroupsWithMembers(groupIds: string[]): Promise<GroupWithMembers[]> {
+    if (groupIds.length === 0) return [];
+
+    // Batch fetch all groups
+    const groups = await this.repository.findByIds(groupIds);
+    if (groups.length === 0) return [];
+
+    // Batch fetch all members for all groups
+    const allMembers = await this.repository.getMembersByGroupIds(groupIds);
+    
+    // Collect all unique user IDs
+    const allUserIds = [...new Set(allMembers.map(m => m.userId))];
+    
+    // Batch fetch all users
+    const allUsers = await userService.getUsersByIds(allUserIds);
+    const userMap = new Map(allUsers.map(u => [u.id, u]));
+
+    // Group members by group ID
+    const membersByGroup = new Map<string, typeof allMembers>();
+    for (const member of allMembers) {
+      const existing = membersByGroup.get(member.groupId) || [];
+      existing.push(member);
+      membersByGroup.set(member.groupId, existing);
+    }
+
+    // Assemble final result
+    return groups.map(group => ({
+      ...group,
+      members: (membersByGroup.get(group.id) || []).map(member => ({
+        ...member,
+        user: userMap.get(member.userId)!,
+      })),
+    }));
+  }
+
+  /**
+   * Get groups for a user WITH members already populated (optimized)
+   */
+  async getGroupsForUserWithMembers(userId: string): Promise<GroupWithMembers[]> {
+    const groups = await this.repository.findByUserId(userId);
+    if (groups.length === 0) return [];
+    
+    return this.getGroupsWithMembers(groups.map(g => g.id));
   }
 
   /**

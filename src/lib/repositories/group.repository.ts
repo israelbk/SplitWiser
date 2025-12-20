@@ -100,6 +100,26 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
   }
 
   /**
+   * Find multiple groups by IDs in a single query (batch)
+   */
+  async findByIds(ids: string[]): Promise<Group[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .in('id', ids);
+
+    if (error) {
+      throw new Error(`Failed to fetch groups by IDs: ${error.message}`);
+    }
+
+    return (data as GroupRow[]).map(row => this.fromRow(row));
+  }
+
+  /**
    * Create a group with domain input type
    * Uses emails - no need to know if users exist or not
    */
@@ -203,6 +223,26 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
       .from('group_members')
       .select('*')
       .eq('group_id', groupId);
+
+    if (error) {
+      throw new Error(`Failed to fetch group members: ${error.message}`);
+    }
+
+    return (data as GroupMemberRow[]).map((row) => groupMemberFromRow(row));
+  }
+
+  /**
+   * Get members for multiple groups at once (batch query)
+   */
+  async getMembersByGroupIds(groupIds: string[]): Promise<GroupMember[]> {
+    if (groupIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from('group_members')
+      .select('*')
+      .in('group_id', groupIds);
 
     if (error) {
       throw new Error(`Failed to fetch group members: ${error.message}`);

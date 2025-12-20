@@ -29,6 +29,7 @@ export class BalanceService {
   /**
    * Calculate balances for all members of a group
    * Optionally converts all amounts to a single display currency
+   * Optimized: runs queries in parallel where possible
    */
   async calculateGroupBalances(
     groupId: string,
@@ -36,16 +37,17 @@ export class BalanceService {
   ): Promise<GroupBalanceSummary> {
     const { displayCurrency, conversionMode = 'off' } = options || {};
 
-    // Get group members
-    const members = await groupService.getGroupMembers(groupId);
+    // Run all initial queries in parallel
+    const [members, expenses, contributions, splits] = await Promise.all([
+      groupService.getGroupMembers(groupId),
+      expenseRepository.findByGroupId(groupId),
+      expenseRepository.getGroupContributions(groupId),
+      expenseRepository.getGroupSplits(groupId),
+    ]);
+
     const memberIds = members.map((m) => m.userId);
     const users = await userService.getUsersByIds(memberIds);
     const userMap = new Map(users.map((u) => [u.id, u]));
-
-    // Get all expenses, contributions and splits for this group
-    const expenses = await expenseRepository.findByGroupId(groupId);
-    const contributions = await expenseRepository.getGroupContributions(groupId);
-    const splits = await expenseRepository.getGroupSplits(groupId);
 
     // Create expense lookup for currency info
     const expenseMap = new Map(expenses.map(e => [e.id, e]));

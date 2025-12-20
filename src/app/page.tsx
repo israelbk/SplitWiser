@@ -3,6 +3,11 @@
 /**
  * All Expenses page
  * Main page showing all expenses (personal + group share)
+ * 
+ * Performance optimizations:
+ * - Uses lightweight query for fast initial render
+ * - Pre-fetches full data in background for editing
+ * - Currency conversions load independently (don't block list)
  */
 
 import { ExpenseForm } from '@/components/common';
@@ -24,7 +29,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { useAllExpenses, useConvertedExpenses, useCreateExpense, useCurrencyPreferences, useDeleteExpense, useUpdateExpense } from '@/hooks/queries';
+import { useAllExpenses, useAllExpensesLight, useConvertedExpenses, useCreateExpense, useCurrencyPreferences, useDeleteExpense, useUpdateExpense } from '@/hooks/queries';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { UnifiedExpense } from '@/lib/services';
 import { isAfter, startOfMonth, startOfWeek, startOfYear } from 'date-fns';
@@ -38,7 +43,17 @@ export default function AllExpensesPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const { canWrite } = useAuth();
-  const { data: expenses, isLoading } = useAllExpenses(currentUser?.id);
+  
+  // Fast lightweight query for list display (3 DB calls)
+  const { data: expensesLight, isLoading: isLoadingLight } = useAllExpensesLight(currentUser?.id);
+  
+  // Full query for editing (4 DB calls) - pre-fetch in background
+  const { data: expensesFull } = useAllExpenses(currentUser?.id);
+  
+  // Use lightweight for display, full when available for editing
+  const expenses = expensesLight;
+  const isLoading = isLoadingLight;
+  
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
@@ -48,13 +63,13 @@ export default function AllExpensesPage() {
   // Currency conversion
   const { displayCurrency, conversionMode } = useCurrencyPreferences();
   
-  // Always fetch conversions for percentage calculation (using current rates when mode is 'off')
+  // Fetch conversions - runs independently, doesn't block list rendering
   // When mode is 'smart', use historical rates for both display and percentages
   const effectiveModeForConversion = conversionMode === 'smart' ? 'smart' : 'simple';
   const { conversions, isConverting } = useConvertedExpenses({
     expenses: expenses ?? [],
     conversionMode: effectiveModeForConversion,
-    enabled: true, // Always fetch for percentage calculations
+    enabled: !!expenses?.length, // Only when we have expenses
   });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -231,6 +246,7 @@ export default function AllExpensesPage() {
         </div>
 
         {/* Summary Card - shows user's actual spending */}
+        {/* Summary can wait for conversions since it needs them for accurate totals */}
         <ExpenseSummary 
           expenses={filteredExpenses} 
           isLoading={isLoading || isConverting} 
@@ -247,10 +263,10 @@ export default function AllExpensesPage() {
           showTypeFilter={true}
         />
 
-        {/* Expense List - shows user's share */}
+        {/* Expense List - shows immediately, doesn't wait for conversions */}
         <ExpenseList
           expenses={filteredExpenses}
-          isLoading={isLoading || isConverting}
+          isLoading={isLoading}
           onClick={handleExpenseClick}
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}

@@ -3,14 +3,17 @@
 /**
  * Groups list page
  * List all groups the user is part of
+ * 
+ * Performance: Uses batch query to fetch all groups with members
+ * in just 3 DB calls instead of N+1
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppShell } from '@/components/layout';
 import { GroupList, GroupForm } from '@/components/features/groups';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
-import { useGroupsForUser, useCreateGroup } from '@/hooks/queries';
-import { groupService, userService, GroupWithMembers } from '@/lib/services';
+import { useGroupsForUserWithMembers, useCreateGroup } from '@/hooks/queries';
+import { userService } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,39 +22,12 @@ import { useTranslations } from 'next-intl';
 export default function GroupsPage() {
   const { currentUser } = useCurrentUser();
   const { canWrite } = useAuth();
-  // Only fetch groups where current user is a member
-  const { data: groups, isLoading } = useGroupsForUser(currentUser?.id);
+  // Optimized: fetch groups WITH members in a single batch query
+  const { data: groupsWithMembers, isLoading } = useGroupsForUserWithMembers(currentUser?.id);
   const createGroup = useCreateGroup();
   const t = useTranslations('groups');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [groupsWithMembers, setGroupsWithMembers] = useState<GroupWithMembers[]>([]);
-  const [loadingMembers, setLoadingMembers] = useState(true);
-
-  // Load groups with members
-  useEffect(() => {
-    async function loadGroupsWithMembers() {
-      if (!groups) {
-        setGroupsWithMembers([]);
-        setLoadingMembers(false);
-        return;
-      }
-
-      try {
-        const enriched = await Promise.all(
-          groups.map((group) => groupService.getGroupWithMembers(group.id))
-        );
-        setGroupsWithMembers(enriched.filter((g): g is GroupWithMembers => g !== null));
-      } catch (error) {
-        console.error('Failed to load group members:', error);
-      } finally {
-        setLoadingMembers(false);
-      }
-    }
-
-    setLoadingMembers(true);
-    loadGroupsWithMembers();
-  }, [groups]);
 
   const handleAddGroup = () => {
     setIsFormOpen(true);
@@ -108,8 +84,8 @@ export default function GroupsPage() {
 
         {/* Group List */}
         <GroupList
-          groups={groupsWithMembers}
-          isLoading={isLoading || loadingMembers}
+          groups={groupsWithMembers ?? []}
+          isLoading={isLoading}
           onAddClick={handleAddGroup}
         />
       </div>

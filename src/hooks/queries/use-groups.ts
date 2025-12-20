@@ -31,6 +31,18 @@ export function useGroupsForUser(userId: string | undefined) {
 }
 
 /**
+ * Get groups for a specific user WITH members (optimized batch query)
+ * This is MUCH faster than fetching each group's members separately
+ */
+export function useGroupsForUserWithMembers(userId: string | undefined) {
+  return useQuery({
+    queryKey: [...queryKeys.groups.forUser(userId!), 'withMembers'] as const,
+    queryFn: () => groupService.getGroupsForUserWithMembers(userId!),
+    enabled: !!userId,
+  });
+}
+
+/**
  * Get group by ID
  */
 export function useGroup(id: string | undefined) {

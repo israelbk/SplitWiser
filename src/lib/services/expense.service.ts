@@ -117,18 +117,24 @@ export class ExpenseService {
 
   /**
    * Get ALL expenses for a user (personal + group) with their share calculated
+   * Optimized: batches all queries including group names
    */
   async getAllUserExpenses(userId: string): Promise<UnifiedExpense[]> {
     const expenses = await this.repository.findAllUserExpenses(userId);
-    const enriched = await this.enrichExpenses(expenses);
     
     // Import group service dynamically to avoid circular dependency
     const { groupService } = await import('./group.service');
     
-    // Get all unique group IDs
+    // Get all unique group IDs for batch fetch
     const groupIds = [...new Set(expenses.filter(e => e.groupId).map(e => e.groupId!))];
-    const groups = await Promise.all(groupIds.map(id => groupService.getGroupById(id)));
-    const groupMap = new Map(groups.filter(g => g !== null).map(g => [g!.id, g!]));
+    
+    // Batch fetch groups AND enrich expenses in parallel
+    const [groups, enriched] = await Promise.all([
+      groupIds.length > 0 ? groupService.getGroupsByIds(groupIds) : Promise.resolve([]),
+      this.enrichExpenses(expenses),
+    ]);
+    
+    const groupMap = new Map(groups.map(g => [g.id, g]));
 
     // Map to unified expenses with user's share
     return enriched.map(expense => {
@@ -141,6 +147,48 @@ export class ExpenseService {
       return {
         ...expense,
         userShare,
+        isPersonal: !expense.groupId,
+        groupName: group?.name,
+      };
+    });
+  }
+
+  /**
+   * Get ALL expenses for a user - LIGHTWEIGHT version for list display
+   * Returns minimal data needed for list view (faster than full enrichment)
+   * Use this when you only need to display the list, not edit details
+   */
+  async getAllUserExpensesLight(userId: string): Promise<UnifiedExpense[]> {
+    const expenses = await this.repository.findAllUserExpenses(userId);
+    if (expenses.length === 0) return [];
+
+    const expenseIds = expenses.map(e => e.id);
+    
+    // Import group service dynamically
+    const { groupService } = await import('./group.service');
+    const groupIds = [...new Set(expenses.filter(e => e.groupId).map(e => e.groupId!))];
+    
+    // Batch fetch: categories, splits (for userShare), and groups - skip contributions & user details
+    const [categories, splitsMap, groups] = await Promise.all([
+      categoryService.getCategoriesByIds([...new Set(expenses.map(e => e.categoryId))]),
+      this.repository.getSplitsByExpenseIds(expenseIds),
+      groupIds.length > 0 ? groupService.getGroupsByIds(groupIds) : Promise.resolve([]),
+    ]);
+
+    const categoryMap = new Map(categories.map(c => [c.id, c]));
+    const groupMap = new Map(groups.map(g => [g.id, g]));
+
+    return expenses.map(expense => {
+      const splits = splitsMap.get(expense.id) || [];
+      const userSplit = splits.find(s => s.userId === userId);
+      const group = expense.groupId ? groupMap.get(expense.groupId) : undefined;
+
+      return {
+        ...expense,
+        category: categoryMap.get(expense.categoryId),
+        contributions: [], // Empty - not needed for list display
+        splits: splits.map(s => ({ ...s, user: undefined })), // Keep amounts, skip user details
+        userShare: userSplit?.amount ?? expense.amount,
         isPersonal: !expense.groupId,
         groupName: group?.name,
       };
