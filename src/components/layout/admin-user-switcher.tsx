@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-current-user';
 import { useUsers } from '@/hooks/queries';
 import { UserAvatar } from '@/components/common';
-import { ChevronDown, Eye, User as UserIcon, ArrowLeft, LogOut } from 'lucide-react';
+import { Eye, User as UserIcon, ArrowLeft, LogOut } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function AdminUserSwitcher() {
@@ -52,20 +52,14 @@ export function AdminUserSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button 
           variant={isViewingAsOther ? "secondary" : "outline"} 
-          size="sm" 
-          className="gap-1 sm:gap-2 max-w-[180px] sm:max-w-none"
+          size="icon"
+          className={`h-9 w-9 rounded-full p-0 relative ${isViewingAsOther ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-background' : ''}`}
         >
+          <UserAvatar user={effectiveUser!} size="sm" />
           {isViewingAsOther && (
-            <Eye className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            <Eye className="absolute -bottom-0.5 -end-0.5 h-4 w-4 text-amber-500 bg-background rounded-full p-0.5" />
           )}
-          <UserAvatar user={effectiveUser!} size="sm" className="flex-shrink-0" />
-          <span className="max-w-[60px] sm:max-w-[100px] truncate">{effectiveUser?.name}</span>
-          {isViewingAsOther && (
-            <Badge variant="secondary" className="hidden sm:inline-flex ml-1 text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400">
-              Viewing
-            </Badge>
-          )}
-          <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+          <span className="sr-only">{effectiveUser?.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

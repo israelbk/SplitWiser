@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-current-user';
 import { UserAvatar } from '@/components/common';
-import { ChevronDown, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function UserMenu() {
@@ -44,10 +44,9 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full p-0">
           <UserAvatar user={authUser} size="sm" />
-          <span className="max-w-[100px] truncate">{authUser.name}</span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <span className="sr-only">{authUser.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

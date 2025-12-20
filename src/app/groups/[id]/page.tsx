@@ -7,7 +7,7 @@
 
 import { ExpenseForm, UserAvatar } from '@/components/common';
 import { ExpenseList } from '@/components/features/expenses';
-import { AddMembersDialog, GroupBalances } from '@/components/features/groups';
+import { AddMembersDialog, GroupBalances, GroupSettingsDialog } from '@/components/features/groups';
 import { AppShell } from '@/components/layout';
 import {
   AlertDialog,
@@ -29,10 +29,11 @@ import {
   useGroupExpenses,
   useGroupWithMembers,
   useUpdateExpense,
+  useUpdateGroup,
 } from '@/hooks/queries';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
 import { ExpenseWithDetails } from '@/lib/services';
-import { ArrowLeft, Plus, Receipt, Scale, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Receipt, Scale, Settings, UserPlus } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -51,15 +52,18 @@ export default function GroupDetailPage() {
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const addMember = useAddGroupMember();
+  const updateGroup = useUpdateGroup();
   const t = useTranslations('expenses');
   const tGroups = useTranslations('groups');
   const tGroupDetail = useTranslations('groupDetail');
+  const tGroupSettings = useTranslations('groupSettings');
   const tExpenseForm = useTranslations('expenseForm');
   const tCommon = useTranslations('common');
   const tAddMembers = useTranslations('addMembers');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAddMembersOpen, setIsAddMembersOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseWithDetails | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<ExpenseWithDetails | null>(null);
   const [activeTab, setActiveTab] = useState('expenses');
@@ -178,6 +182,31 @@ export default function GroupDetailPage() {
     }
   };
 
+  const handleUpdateGroup = async (data: {
+    name: string;
+    description?: string;
+    type: import('@/lib/types').GroupType;
+    defaultCurrency: string;
+  }) => {
+    if (!group) return;
+
+    try {
+      await updateGroup.mutateAsync({
+        id: group.id,
+        input: {
+          name: data.name,
+          description: data.description,
+          type: data.type,
+          defaultCurrency: data.defaultCurrency,
+        },
+      });
+      toast.success(tGroupSettings('groupUpdated'));
+      setIsSettingsOpen(false);
+    } catch (error) {
+      toast.error(tGroupSettings('failedToUpdate'));
+    }
+  };
+
   if (groupLoading) {
     return (
       <AppShell>
@@ -220,7 +249,20 @@ export default function GroupDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold truncate">{group.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold truncate">{group.name}</h1>
+              {canWrite && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="h-8 w-8 flex-shrink-0"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="sr-only">{tGroupDetail('editGroup')}</span>
+                </Button>
+              )}
+            </div>
             {group.description && (
               <p className="text-sm text-muted-foreground truncate">
                 {group.description}
@@ -347,6 +389,22 @@ export default function GroupDetailPage() {
           existingMembers={group.members.map(m => m.user).filter((u): u is NonNullable<typeof u> => !!u)}
           onAddMembers={handleAddMembers}
           isLoading={addMember.isPending}
+        />
+      )}
+
+      {/* Group Settings Dialog */}
+      {group && (
+        <GroupSettingsDialog
+          open={isSettingsOpen}
+          onOpenChange={setIsSettingsOpen}
+          onSubmit={handleUpdateGroup}
+          group={{
+            name: group.name,
+            description: group.description,
+            type: group.type,
+            defaultCurrency: group.defaultCurrency,
+          }}
+          isLoading={updateGroup.isPending}
         />
       )}
     </AppShell>

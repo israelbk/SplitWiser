@@ -172,7 +172,16 @@
     "balances": "Balances",
     "noExpenses": "No expenses in this group",
     "noExpensesDescription": "Add the first expense to start splitting costs.",
-    "addMember": "Add Member"
+    "addMember": "Add Member",
+    "editGroup": "Edit Group"
+  },
+  "groupSettings": {
+    "title": "Group Settings",
+    "description": "Update the group details and preferences.",
+    "defaultCurrency": "Default Currency",
+    "defaultCurrencyHint": "Used for new expenses and balance calculations",
+    "groupUpdated": "Group updated",
+    "failedToUpdate": "Failed to update group"
   },
   "addMembers": {
     "title": "Add Members",

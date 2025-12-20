@@ -172,7 +172,16 @@
     "balances": "איזונים",
     "noExpenses": "אין הוצאות בקבוצה זו",
     "noExpensesDescription": "הוסף את ההוצאה הראשונה כדי להתחיל לחלק עלויות.",
-    "addMember": "הוסף חבר"
+    "addMember": "הוסף חבר",
+    "editGroup": "ערוך קבוצה"
+  },
+  "groupSettings": {
+    "title": "הגדרות קבוצה",
+    "description": "עדכן את פרטי הקבוצה וההעדפות.",
+    "defaultCurrency": "מטבע ברירת מחדל",
+    "defaultCurrencyHint": "משמש להוצאות חדשות ולחישובי יתרות",
+    "groupUpdated": "הקבוצה עודכנה",
+    "failedToUpdate": "עדכון הקבוצה נכשל"
   },
   "addMembers": {
     "title": "הוספת חברים",

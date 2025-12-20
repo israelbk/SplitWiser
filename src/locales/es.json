@@ -172,7 +172,16 @@
     "balances": "Balances",
     "noExpenses": "Sin gastos en este grupo",
     "noExpensesDescription": "Añade el primer gasto para empezar a dividir costos.",
-    "addMember": "Añadir miembro"
+    "addMember": "Añadir miembro",
+    "editGroup": "Editar grupo"
+  },
+  "groupSettings": {
+    "title": "Configuración del grupo",
+    "description": "Actualiza los detalles y preferencias del grupo.",
+    "defaultCurrency": "Moneda predeterminada",
+    "defaultCurrencyHint": "Se usa para nuevos gastos y cálculos de balance",
+    "groupUpdated": "Grupo actualizado",
+    "failedToUpdate": "Error al actualizar el grupo"
   },
   "addMembers": {
     "title": "Añadir miembros",
