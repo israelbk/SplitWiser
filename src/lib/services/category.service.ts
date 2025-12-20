@@ -59,13 +59,13 @@ export class CategoryService {
   }
 
   /**
-   * Get multiple categories by IDs
+   * Get multiple categories by IDs (batch query - single DB call)
    */
   async getCategoriesByIds(ids: string[]): Promise<Category[]> {
-    const categories = await Promise.all(
-      ids.map((id) => this.repository.findById(id))
-    );
-    return categories.filter((c): c is Category => c !== null);
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.repository.findByIds(ids);
   }
 }
 

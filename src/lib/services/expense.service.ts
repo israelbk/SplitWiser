@@ -182,45 +182,55 @@ export class ExpenseService {
 
   /**
    * Enrich expenses with category and user details
+   * Uses batched queries for optimal performance (4 queries total instead of 3N)
    */
   private async enrichExpenses(expenses: Expense[]): Promise<ExpenseWithDetails[]> {
-    // Get unique category IDs
-    const categoryIds = [...new Set(expenses.map((e) => e.categoryId))];
-    const categories = await categoryService.getCategoriesByIds(categoryIds);
-    const categoryMap = new Map(categories.map((c) => [c.id, c]));
+    if (expenses.length === 0) {
+      return [];
+    }
 
-    // Get contributions and splits for all expenses
-    const enriched = await Promise.all(
-      expenses.map(async (expense) => {
-        const contributions = await this.repository.getContributions(expense.id);
-        const splits = await this.repository.getSplits(expense.id);
+    const expenseIds = expenses.map(e => e.id);
 
-        // Get unique user IDs from contributions and splits
-        const userIds = [
-          ...new Set([
-            ...contributions.map((c) => c.userId),
-            ...splits.map((s) => s.userId),
-          ]),
-        ];
-        const users = await userService.getUsersByIds(userIds);
-        const userMap = new Map(users.map((u) => [u.id, u]));
+    // Batch fetch all data in parallel (4 queries total, regardless of expense count)
+    const [contributionsMap, splitsMap, categories] = await Promise.all([
+      this.repository.getContributionsByExpenseIds(expenseIds),
+      this.repository.getSplitsByExpenseIds(expenseIds),
+      categoryService.getCategoriesByIds([...new Set(expenses.map(e => e.categoryId))]),
+    ]);
 
-        return {
-          ...expense,
-          category: categoryMap.get(expense.categoryId),
-          contributions: contributions.map((c) => ({
-            ...c,
-            user: userMap.get(c.userId),
-          })),
-          splits: splits.map((s) => ({
-            ...s,
-            user: userMap.get(s.userId),
-          })),
-        };
-      })
-    );
+    const categoryMap = new Map(categories.map(c => [c.id, c]));
 
-    return enriched;
+    // Collect all unique user IDs from contributions and splits
+    const userIds = new Set<string>();
+    contributionsMap.forEach(contributions => {
+      contributions.forEach(c => userIds.add(c.userId));
+    });
+    splitsMap.forEach(splits => {
+      splits.forEach(s => userIds.add(s.userId));
+    });
+
+    // Single batch fetch for all users
+    const users = await userService.getUsersByIds([...userIds]);
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    // Map everything together in memory (no more DB calls)
+    return expenses.map(expense => {
+      const contributions = contributionsMap.get(expense.id) || [];
+      const splits = splitsMap.get(expense.id) || [];
+
+      return {
+        ...expense,
+        category: categoryMap.get(expense.categoryId),
+        contributions: contributions.map(c => ({
+          ...c,
+          user: userMap.get(c.userId),
+        })),
+        splits: splits.map(s => ({
+          ...s,
+          user: userMap.get(s.userId),
+        })),
+      };
+    });
   }
 }
 

@@ -270,6 +270,26 @@ export class UserRepository extends BaseRepository<UserRow, User, UserCreateRow,
     }
     return user;
   }
+
+  /**
+   * Find multiple users by IDs in a single query (batch)
+   */
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .in('id', ids);
+
+    if (error) {
+      throw new Error(`Failed to fetch users by IDs: ${error.message}`);
+    }
+
+    return (data as UserRow[]).map(row => this.fromRow(row));
+  }
 }
 
 // Singleton instance

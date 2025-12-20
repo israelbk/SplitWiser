@@ -410,6 +410,66 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
     return (data as ExpenseSplitRow[]).map((row) => splitFromRow(row));
   }
+
+  /**
+   * Get contributions for multiple expenses at once (batch query)
+   * Returns a Map of expenseId -> contributions array
+   */
+  async getContributionsByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpenseContribution[]>> {
+    if (expenseIds.length === 0) {
+      return new Map();
+    }
+
+    const { data, error } = await this.client
+      .from('expense_contributions')
+      .select('*')
+      .in('expense_id', expenseIds);
+
+    if (error) {
+      throw new Error(`Failed to fetch contributions: ${error.message}`);
+    }
+
+    // Group by expense_id
+    const result = new Map<string, ExpenseContribution[]>();
+    for (const row of data as ExpenseContributionRow[]) {
+      const contribution = contributionFromRow(row);
+      const existing = result.get(contribution.expenseId) || [];
+      existing.push(contribution);
+      result.set(contribution.expenseId, existing);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get splits for multiple expenses at once (batch query)
+   * Returns a Map of expenseId -> splits array
+   */
+  async getSplitsByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpenseSplit[]>> {
+    if (expenseIds.length === 0) {
+      return new Map();
+    }
+
+    const { data, error } = await this.client
+      .from('expense_splits')
+      .select('*')
+      .in('expense_id', expenseIds);
+
+    if (error) {
+      throw new Error(`Failed to fetch splits: ${error.message}`);
+    }
+
+    // Group by expense_id
+    const result = new Map<string, ExpenseSplit[]>();
+    for (const row of data as ExpenseSplitRow[]) {
+      const split = splitFromRow(row);
+      const existing = result.get(split.expenseId) || [];
+      existing.push(split);
+      result.set(split.expenseId, existing);
+    }
+
+    return result;
+  }
 }
 
 // Singleton instance

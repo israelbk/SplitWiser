@@ -89,6 +89,26 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
 
     return this.update(id, updateData);
   }
+
+  /**
+   * Find multiple categories by IDs in a single query (batch)
+   */
+  async findByIds(ids: string[]): Promise<Category[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .in('id', ids);
+
+    if (error) {
+      throw new Error(`Failed to fetch categories by IDs: ${error.message}`);
+    }
+
+    return (data as CategoryRow[]).map(row => this.fromRow(row));
+  }
 }
 
 // Singleton instance

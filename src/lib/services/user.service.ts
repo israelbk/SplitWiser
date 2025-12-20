@@ -63,13 +63,13 @@ export class UserService {
   }
 
   /**
-   * Get multiple users by IDs
+   * Get multiple users by IDs (batch query - single DB call)
    */
   async getUsersByIds(ids: string[]): Promise<User[]> {
-    const users = await Promise.all(
-      ids.map((id) => this.repository.findById(id))
-    );
-    return users.filter((u): u is User => u !== null);
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.repository.findByIds(ids);
   }
 
   /**
