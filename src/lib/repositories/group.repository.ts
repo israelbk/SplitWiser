@@ -101,34 +101,31 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
 
   /**
    * Create a group with domain input type
+   * Uses a SECURITY DEFINER function to bypass RLS for group creation
    */
   async createGroup(input: CreateGroupInput): Promise<Group> {
-    // Start a transaction by creating the group first
-    const group = await this.create({
-      name: input.name,
-      description: input.description,
-      type: input.type,
-      default_currency: input.defaultCurrency,
-      cover_image_url: input.coverImageUrl,
-      created_by: input.createdBy,
+    // Use the SECURITY DEFINER function that handles group + members atomically
+    // Parameter order: p_name, p_created_by, p_member_ids, p_description, p_type, p_default_currency, p_cover_image_url
+    const { data, error } = await this.client.rpc('create_group_with_members', {
+      p_name: input.name,
+      p_created_by: input.createdBy,
+      p_member_ids: input.memberIds,
+      p_description: input.description ?? null,
+      p_type: input.type ?? 'trip',
+      p_default_currency: input.defaultCurrency ?? 'ILS',
+      p_cover_image_url: input.coverImageUrl ?? null,
     });
 
-    // Add the creator as owner
-    await this.addMember({
-      groupId: group.id,
-      userId: input.createdBy,
-      role: 'owner',
-    });
+    if (error) {
+      throw new Error(`Failed to create group: ${error.message}`);
+    }
 
-    // Add other members
-    for (const memberId of input.memberIds) {
-      if (memberId !== input.createdBy) {
-        await this.addMember({
-          groupId: group.id,
-          userId: memberId,
-          role: 'member',
-        });
-      }
+    // The function returns the group ID, fetch the full group
+    const groupId = data as string;
+    const group = await this.findById(groupId);
+    
+    if (!group) {
+      throw new Error('Group was created but could not be retrieved');
     }
 
     return group;
@@ -152,23 +149,33 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
 
   /**
    * Add a member to a group
+   * Uses a SECURITY DEFINER function to bypass RLS
    */
   async addMember(input: AddMemberInput): Promise<GroupMember> {
-    const { data, error } = await this.client
-      .from('group_members')
-      .insert({
-        group_id: input.groupId,
-        user_id: input.userId,
-        role: input.role ?? 'member',
-      } as GroupMemberCreateRow)
-      .select()
-      .single();
+    // Use the SECURITY DEFINER function
+    const { error } = await this.client.rpc('add_group_member', {
+      p_group_id: input.groupId,
+      p_user_id: input.userId,
+      p_role: input.role ?? 'member',
+    });
 
     if (error) {
       throw new Error(`Failed to add member: ${error.message}`);
     }
 
-    return groupMemberFromRow(data as GroupMemberRow);
+    // Fetch and return the member record
+    const { data: memberData, error: fetchError } = await this.client
+      .from('group_members')
+      .select('*')
+      .eq('group_id', input.groupId)
+      .eq('user_id', input.userId)
+      .single();
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch member after adding: ${fetchError.message}`);
+    }
+
+    return groupMemberFromRow(memberData as GroupMemberRow);
   }
 
   /**
