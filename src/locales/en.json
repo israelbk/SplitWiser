@@ -275,6 +275,7 @@
     "customCategories": "My Categories",
     "systemCategories": "Default Categories",
     "systemCategoriesNote": "Default categories cannot be deleted and are used for group expenses.",
+    "allCategories": "Categories",
     "deleteTitle": "Delete Category",
     "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
     "deleteWithExpenses": "You have {count, plural, =1 {1 expense} other {# expenses}} using \"{name}\". Choose a category to move them to:",

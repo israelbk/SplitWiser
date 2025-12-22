@@ -275,6 +275,7 @@
     "customCategories": "Mis categorías",
     "systemCategories": "Categorías predeterminadas",
     "systemCategoriesNote": "Las categorías predeterminadas no se pueden eliminar y se usan para gastos grupales.",
+    "allCategories": "Categorías",
     "deleteTitle": "Eliminar categoría",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar \"{name}\"?",
     "deleteWithExpenses": "Tienes {count, plural, =1 {1 gasto} other {# gastos}} usando \"{name}\". Elige una categoría a la que moverlos:",

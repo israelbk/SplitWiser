@@ -275,6 +275,7 @@
     "customCategories": "הקטגוריות שלי",
     "systemCategories": "קטגוריות ברירת מחדל",
     "systemCategoriesNote": "לא ניתן למחוק קטגוריות ברירת מחדל והן משמשות להוצאות קבוצתיות.",
+    "allCategories": "קטגוריות",
     "deleteTitle": "מחיקת קטגוריה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק את \"{name}\"?",
     "deleteWithExpenses": "יש לך {count, plural, =1 {הוצאה אחת} other {# הוצאות}} המשתמשת ב\"{name}\". בחר קטגוריה להעביר אליה:",

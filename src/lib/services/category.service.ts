@@ -139,9 +139,10 @@ export class CategoryService {
   }
 
   /**
-   * Reorder custom categories for a user
+   * Reorder categories for a user
    * Updates the sort_order of the specified categories
-   * Only allows reordering of user's own custom categories
+   * Allows reordering both system and custom categories
+   * Note: For POC - system category order changes affect all users
    */
   async reorderCategories(
     userId: string,
@@ -149,15 +150,13 @@ export class CategoryService {
   ): Promise<void> {
     if (categoryOrders.length === 0) return;
 
-    // Verify all categories belong to the user and are custom
+    // Verify all categories exist and custom ones belong to the user
     const categoryIds = categoryOrders.map((c) => c.id);
     const categories = await this.repository.findByIds(categoryIds);
 
     for (const category of categories) {
-      if (category.isSystem) {
-        throw new Error('Cannot reorder system categories');
-      }
-      if (category.createdBy !== userId) {
+      // Custom categories must belong to the user
+      if (!category.isSystem && category.createdBy !== userId) {
         throw new Error('Cannot reorder categories created by another user');
       }
     }

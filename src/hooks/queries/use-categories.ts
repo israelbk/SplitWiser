@@ -6,7 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { categoryService } from '@/lib/services';
-import { CreateCategoryInput, UpdateCategoryInput } from '@/lib/types';
+import { Category, CreateCategoryInput, UpdateCategoryInput } from '@/lib/types';
 import { queryKeys } from './query-keys';
 
 /**
@@ -178,7 +178,8 @@ export function useDeleteCategoryWithReplacement() {
 
 /**
  * Reorder categories mutation
- * Updates the sort order of custom categories for drag-and-drop reordering
+ * Updates the sort order of categories for drag-and-drop reordering
+ * Uses optimistic updates for instant visual feedback
  */
 export function useReorderCategories() {
   const queryClient = useQueryClient();
@@ -191,14 +192,56 @@ export function useReorderCategories() {
       userId: string;
       categoryOrders: { id: string; sortOrder: number }[];
     }) => categoryService.reorderCategories(userId, categoryOrders),
-    onSuccess: (_result, variables) => {
-      // Invalidate category queries to refresh the order
-      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+    
+    // Optimistic update for instant visual feedback
+    onMutate: async ({ userId, categoryOrders }) => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ 
+        queryKey: queryKeys.categories.forUser(userId) 
+      });
+
+      // Snapshot the previous value
+      const previousCategories = queryClient.getQueryData<Category[]>(
+        queryKeys.categories.forUser(userId)
+      );
+
+      // Optimistically update the cache with new sort orders
+      if (previousCategories) {
+        const orderMap = new Map(
+          categoryOrders.map((c) => [c.id, c.sortOrder])
+        );
+        
+        const updatedCategories = previousCategories
+          .map((cat) => ({
+            ...cat,
+            sortOrder: orderMap.has(cat.id) ? orderMap.get(cat.id)! : cat.sortOrder,
+          }))
+          .sort((a, b) => a.sortOrder - b.sortOrder);
+
+        queryClient.setQueryData(
+          queryKeys.categories.forUser(userId),
+          updatedCategories
+        );
+      }
+
+      // Return context with previous value for rollback
+      return { previousCategories };
+    },
+
+    // Rollback on error
+    onError: (_error, variables, context) => {
+      if (context?.previousCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories.forUser(variables.userId),
+          context.previousCategories
+        );
+      }
+    },
+
+    // Refetch after mutation settles (success or error)
+    onSettled: (_result, _error, variables) => {
       queryClient.invalidateQueries({ 
         queryKey: queryKeys.categories.forUser(variables.userId) 
-      });
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.categories.customForUser(variables.userId) 
       });
     },
   });

@@ -64,14 +64,13 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
 
   /**
    * Get categories for a specific user (system + user's custom categories)
-   * Returns system categories first, then user's custom categories by sort_order
+   * Returns all categories ordered by sort_order (user's preferred order)
    */
   async findByUser(userId: string): Promise<Category[]> {
     const { data, error } = await this.client
       .from(this.tableName)
       .select('*')
       .or(`is_system.eq.true,created_by.eq.${userId}`)
-      .order('is_system', { ascending: false }) // System first
       .order('sort_order', { ascending: true });
 
     if (error) {
