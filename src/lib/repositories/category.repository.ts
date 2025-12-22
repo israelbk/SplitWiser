@@ -166,6 +166,31 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
     const lastOrder = data?.[0]?.sort_order ?? 99;
     return lastOrder + 1;
   }
+
+  /**
+   * Update sort orders for multiple categories in batch
+   * Used for drag-and-drop reordering
+   */
+  async updateSortOrders(updates: { id: string; sortOrder: number }[]): Promise<void> {
+    if (updates.length === 0) return;
+
+    // Supabase doesn't support batch updates in a single call,
+    // so we execute them sequentially but could use a transaction via RPC
+    const promises = updates.map(({ id, sortOrder }) =>
+      this.client
+        .from(this.tableName)
+        .update({ sort_order: sortOrder })
+        .eq('id', id)
+    );
+
+    const results = await Promise.all(promises);
+
+    // Check for errors
+    const errors = results.filter((r) => r.error);
+    if (errors.length > 0) {
+      throw new Error(`Failed to update sort orders: ${errors[0].error?.message}`);
+    }
+  }
 }
 
 // Singleton instance

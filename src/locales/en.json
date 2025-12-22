@@ -286,7 +286,9 @@
     "createError": "Failed to create category",
     "deleteSuccess": "Category deleted",
     "deleteSuccessWithMigration": "{count, plural, =1 {1 expense moved} other {# expenses moved}} to new category",
-    "deleteError": "Failed to delete category"
+    "deleteError": "Failed to delete category",
+    "reorderHint": "Drag to reorder",
+    "reorderError": "Failed to reorder categories"
   },
   "categoryForm": {
     "selectIcon": "Select icon",

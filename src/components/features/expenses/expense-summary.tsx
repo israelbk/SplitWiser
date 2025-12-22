@@ -397,8 +397,16 @@ export function ExpenseSummary({
               ? ((convertedTotal / totalInDisplayCurrency) * 100).toFixed(0) 
               : '0';
             
-            // Translate category name based on icon
-            const getCategoryTranslation = (icon: string | undefined) => {
+            // Get category name - only translate system categories, use actual name for custom
+            const getCategoryName = () => {
+              if (!category) return t('categories.other');
+              
+              // Custom categories: always use their actual name
+              if (!category.isSystem) {
+                return category.name || t('categories.other');
+              }
+              
+              // System categories: translate based on icon
               const iconToKey: Record<string, string> = {
                 'utensils': 'food',
                 'car': 'transportation',
@@ -407,12 +415,12 @@ export function ExpenseSummary({
                 'receipt': 'bills',
                 'heart-pulse': 'health',
                 'plane': 'travel',
-                'shopping-cart': 'shopping',
-                'home': 'other',
+                'shopping-cart': 'groceries',
+                'home': 'housing',
                 'more-horizontal': 'other',
               };
-              const key = icon ? iconToKey[icon] : 'other';
-              return key ? t(`categories.${key}`) : category?.name || t('categories.other');
+              const key = iconToKey[category.icon] || 'other';
+              return t(`categories.${key}`);
             };
 
             return (
@@ -429,7 +437,7 @@ export function ExpenseSummary({
                   </div>
                 )}
                 <span className="text-sm truncate flex-1">
-                  {getCategoryTranslation(category?.icon)}
+                  {getCategoryName()}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {percentage}%

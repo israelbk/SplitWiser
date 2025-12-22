@@ -176,3 +176,31 @@ export function useDeleteCategoryWithReplacement() {
   });
 }
 
+/**
+ * Reorder categories mutation
+ * Updates the sort order of custom categories for drag-and-drop reordering
+ */
+export function useReorderCategories() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      categoryOrders,
+    }: {
+      userId: string;
+      categoryOrders: { id: string; sortOrder: number }[];
+    }) => categoryService.reorderCategories(userId, categoryOrders),
+    onSuccess: (_result, variables) => {
+      // Invalidate category queries to refresh the order
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.categories.forUser(variables.userId) 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.categories.customForUser(variables.userId) 
+      });
+    },
+  });
+}
+

@@ -286,7 +286,9 @@
     "createError": "Error al crear la categoría",
     "deleteSuccess": "Categoría eliminada",
     "deleteSuccessWithMigration": "{count, plural, =1 {1 gasto movido} other {# gastos movidos}} a la nueva categoría",
-    "deleteError": "Error al eliminar la categoría"
+    "deleteError": "Error al eliminar la categoría",
+    "reorderHint": "Arrastra para reordenar",
+    "reorderError": "Error al reordenar las categorías"
   },
   "categoryForm": {
     "selectIcon": "Seleccionar icono",

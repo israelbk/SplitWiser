@@ -2,10 +2,10 @@
 
 /**
  * Category manager component
- * Allows users to view, create, and delete custom categories
+ * Allows users to view, create, delete, and reorder custom categories
  */
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-current-user';
 import {
@@ -14,6 +14,7 @@ import {
   useCreateCategory,
   useDeleteCategoryWithReplacement,
   useCategoryExpenseCount,
+  useReorderCategories,
 } from '@/hooks/queries';
 import { Category } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -33,7 +34,7 @@ import { IconPicker } from '@/components/common/icon-picker';
 import { ColorPicker } from '@/components/common/color-picker';
 import { DeleteCategoryDialog } from './delete-category-dialog';
 import { getIconByName, AVAILABLE_COLORS } from '@/lib/constants/icons';
-import { Plus, Trash2, Lock, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Lock, Loader2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CategoryManagerProps {
@@ -54,6 +55,7 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
   // Mutations
   const createCategory = useCreateCategory();
   const deleteCategoryWithReplacement = useDeleteCategoryWithReplacement();
+  const reorderCategories = useReorderCategories();
 
   // Form state for new category
   const [isCreating, setIsCreating] = useState(false);
@@ -64,6 +66,11 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
   // Delete dialog state
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
   const [deleteExpenseCount, setDeleteExpenseCount] = useState(0);
+
+  // Drag and drop state
+  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
+  const dragNodeRef = useRef<HTMLDivElement | null>(null);
 
   // Get expense count for category being deleted
   const { data: expenseCount } = useCategoryExpenseCount(
@@ -151,6 +158,79 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
   const systemCats = categories?.filter(c => c.isSystem) ?? [];
   const customCats = categories?.filter(c => !c.isSystem) ?? [];
 
+  // Drag handlers for reordering
+  const handleDragStart = useCallback((e: React.DragEvent, categoryId: string) => {
+    setDraggedCategoryId(categoryId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', categoryId);
+    // Add a slight delay to allow the drag image to be captured
+    setTimeout(() => {
+      if (dragNodeRef.current) {
+        dragNodeRef.current.style.opacity = '0.4';
+      }
+    }, 0);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedCategoryId(null);
+    setDragOverCategoryId(null);
+    if (dragNodeRef.current) {
+      dragNodeRef.current.style.opacity = '1';
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDragEnter = useCallback((categoryId: string) => {
+    if (categoryId !== draggedCategoryId) {
+      setDragOverCategoryId(categoryId);
+    }
+  }, [draggedCategoryId]);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverCategoryId(null);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent, targetCategoryId: string) => {
+    e.preventDefault();
+    
+    if (!draggedCategoryId || draggedCategoryId === targetCategoryId || !userId) {
+      setDraggedCategoryId(null);
+      setDragOverCategoryId(null);
+      return;
+    }
+
+    // Find indices
+    const draggedIndex = customCats.findIndex(c => c.id === draggedCategoryId);
+    const targetIndex = customCats.findIndex(c => c.id === targetCategoryId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Create new order
+    const reorderedCats = [...customCats];
+    const [removed] = reorderedCats.splice(draggedIndex, 1);
+    reorderedCats.splice(targetIndex, 0, removed);
+
+    // Calculate new sort orders (starting from 100 for custom categories)
+    const categoryOrders = reorderedCats.map((cat, index) => ({
+      id: cat.id,
+      sortOrder: 100 + index,
+    }));
+
+    try {
+      await reorderCategories.mutateAsync({ userId, categoryOrders });
+    } catch (error) {
+      toast.error(t('reorderError'));
+      console.error('Failed to reorder categories:', error);
+    }
+
+    setDraggedCategoryId(null);
+    setDragOverCategoryId(null);
+  }, [draggedCategoryId, customCats, userId, reorderCategories, t]);
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -230,9 +310,16 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
               {/* Custom categories */}
               {customCats.length > 0 && (
                 <section>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                    {t('customCategories')}
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t('customCategories')}
+                    </h3>
+                    {customCats.length > 1 && (
+                      <span className="text-xs text-muted-foreground">
+                        {t('reorderHint')}
+                      </span>
+                    )}
+                  </div>
                   <div className="space-y-2">
                     {customCats.map((category) => (
                       <CategoryRow
@@ -240,6 +327,16 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
                         category={category}
                         displayName={getCategoryName(category)}
                         onDelete={() => handleDeleteClick(category)}
+                        draggable={customCats.length > 1}
+                        isDragging={draggedCategoryId === category.id}
+                        isDragOver={dragOverCategoryId === category.id}
+                        onDragStart={(e) => handleDragStart(e, category.id)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={handleDragOver}
+                        onDragEnter={() => handleDragEnter(category.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, category.id)}
+                        dragNodeRef={draggedCategoryId === category.id ? dragNodeRef : undefined}
                       />
                     ))}
                   </div>
@@ -294,19 +391,60 @@ interface CategoryRowProps {
   displayName: string;
   isSystem?: boolean;
   onDelete?: () => void;
+  // Drag and drop props
+  draggable?: boolean;
+  isDragging?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragEnter?: () => void;
+  onDragLeave?: () => void;
+  onDrop?: (e: React.DragEvent) => void;
+  dragNodeRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-function CategoryRow({ category, displayName, isSystem, onDelete }: CategoryRowProps) {
+function CategoryRow({ 
+  category, 
+  displayName, 
+  isSystem, 
+  onDelete,
+  draggable,
+  isDragging,
+  isDragOver,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragEnter,
+  onDragLeave,
+  onDrop,
+  dragNodeRef,
+}: CategoryRowProps) {
   const Icon = getIconByName(category.icon);
 
   return (
     <div
+      ref={dragNodeRef}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       className={cn(
         'flex items-center gap-3 p-3 rounded-xl border border-border',
-        'bg-card',
-        isSystem && 'opacity-80'
+        'bg-card transition-all duration-200',
+        isSystem && 'opacity-80',
+        draggable && 'cursor-grab active:cursor-grabbing',
+        isDragging && 'opacity-50 scale-95',
+        isDragOver && 'border-primary border-2 bg-primary/5'
       )}
     >
+      {/* Drag handle for custom categories */}
+      {draggable && (
+        <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      )}
       <span
         className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0"
         style={{ backgroundColor: `${category.color}25` }}

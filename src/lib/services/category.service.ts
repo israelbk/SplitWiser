@@ -137,6 +137,34 @@ export class CategoryService {
     }
     return this.repository.findByIds(ids);
   }
+
+  /**
+   * Reorder custom categories for a user
+   * Updates the sort_order of the specified categories
+   * Only allows reordering of user's own custom categories
+   */
+  async reorderCategories(
+    userId: string,
+    categoryOrders: { id: string; sortOrder: number }[]
+  ): Promise<void> {
+    if (categoryOrders.length === 0) return;
+
+    // Verify all categories belong to the user and are custom
+    const categoryIds = categoryOrders.map((c) => c.id);
+    const categories = await this.repository.findByIds(categoryIds);
+
+    for (const category of categories) {
+      if (category.isSystem) {
+        throw new Error('Cannot reorder system categories');
+      }
+      if (category.createdBy !== userId) {
+        throw new Error('Cannot reorder categories created by another user');
+      }
+    }
+
+    // Perform the batch update
+    await this.repository.updateSortOrders(categoryOrders);
+  }
 }
 
 // Singleton instance
