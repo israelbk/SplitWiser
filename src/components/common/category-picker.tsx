@@ -3,6 +3,8 @@
 /**
  * Category picker component
  * Dropdown selector for expense categories
+ * For group expenses, only shows system categories
+ * For personal expenses, shows system + user's custom categories
  */
 
 import {
@@ -12,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCategories } from '@/hooks/queries';
+import { useUserCategories, useSystemCategories } from '@/hooks/queries';
+import { useAuth } from '@/hooks/use-current-user';
 import { getCategoryIcon, iconToTranslationKey } from './category-badge';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
@@ -22,6 +25,8 @@ interface CategoryPickerProps {
   onChange: (value: string) => void;
   className?: string;
   disabled?: boolean;
+  /** When true, only shows system categories (for group expenses) */
+  isGroupExpense?: boolean;
 }
 
 export function CategoryPicker({
@@ -29,17 +34,32 @@ export function CategoryPicker({
   onChange,
   className,
   disabled,
+  isGroupExpense = false,
 }: CategoryPickerProps) {
   const t = useTranslations('categories');
   const tForm = useTranslations('expenseForm');
-  const { data: categories, isLoading } = useCategories();
+  const { effectiveUser } = useAuth();
+  const userId = effectiveUser?.id;
+
+  // Use system categories for group expenses, user categories for personal
+  const { data: userCategories, isLoading: isLoadingUser } = useUserCategories(
+    isGroupExpense ? undefined : userId
+  );
+  const { data: systemCategories, isLoading: isLoadingSystem } = useSystemCategories();
+
+  const categories = isGroupExpense ? systemCategories : userCategories;
+  const isLoading = isGroupExpense ? isLoadingSystem : isLoadingUser;
 
   const selectedCategory = categories?.find((c) => c.id === value);
   
   // Helper to get translated category name
-  const getCategoryName = (icon: string, fallbackName: string) => {
-    const key = iconToTranslationKey[icon];
-    return key ? t(key) : fallbackName;
+  const getCategoryName = (icon: string, fallbackName: string, isSystem: boolean) => {
+    // Only translate system categories
+    if (isSystem) {
+      const key = iconToTranslationKey[icon];
+      return key ? t(key) : fallbackName;
+    }
+    return fallbackName;
   };
 
   return (
@@ -57,7 +77,9 @@ export function CategoryPicker({
                   />
                 );
               })()}
-              <span className="truncate">{getCategoryName(selectedCategory.icon, selectedCategory.name)}</span>
+              <span className="truncate">
+                {getCategoryName(selectedCategory.icon, selectedCategory.name, selectedCategory.isSystem)}
+              </span>
             </span>
           )}
         </SelectValue>
@@ -69,7 +91,9 @@ export function CategoryPicker({
             <SelectItem key={category.id} value={category.id}>
               <span className="flex items-center gap-2">
                 <Icon size={16} style={{ color: category.color }} />
-                <span className="truncate">{getCategoryName(category.icon, category.name)}</span>
+                <span className="truncate">
+                  {getCategoryName(category.icon, category.name, category.isSystem)}
+                </span>
               </span>
             </SelectItem>
           );

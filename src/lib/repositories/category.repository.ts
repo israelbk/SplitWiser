@@ -63,6 +63,43 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
   }
 
   /**
+   * Get categories for a specific user (system + user's custom categories)
+   * Returns system categories first, then user's custom categories by sort_order
+   */
+  async findByUser(userId: string): Promise<Category[]> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .or(`is_system.eq.true,created_by.eq.${userId}`)
+      .order('is_system', { ascending: false }) // System first
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch categories for user: ${error.message}`);
+    }
+
+    return (data as CategoryRow[]).map((row) => this.fromRow(row));
+  }
+
+  /**
+   * Get only custom categories for a specific user
+   */
+  async findCustomByUser(userId: string): Promise<Category[]> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('is_system', false)
+      .eq('created_by', userId)
+      .order('sort_order', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to fetch custom categories for user: ${error.message}`);
+    }
+
+    return (data as CategoryRow[]).map((row) => this.fromRow(row));
+  }
+
+  /**
    * Create a category with domain input type
    */
   async createCategory(input: CreateCategoryInput): Promise<Category> {
@@ -108,6 +145,26 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
     }
 
     return (data as CategoryRow[]).map(row => this.fromRow(row));
+  }
+
+  /**
+   * Get the next sort order for a user's custom categories
+   */
+  async getNextSortOrder(userId: string): Promise<number> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('sort_order')
+      .eq('created_by', userId)
+      .order('sort_order', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      throw new Error(`Failed to get next sort order: ${error.message}`);
+    }
+
+    // Start custom categories at sort_order 100+ to keep them after system categories
+    const lastOrder = data?.[0]?.sort_order ?? 99;
+    return lastOrder + 1;
   }
 }
 

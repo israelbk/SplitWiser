@@ -8,19 +8,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Category } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import {
-  Utensils,
-  Car,
-  Film,
-  ShoppingBag,
-  Receipt,
-  HeartPulse,
-  Plane,
-  ShoppingCart,
-  Home,
-  MoreHorizontal,
-  LucideIcon,
-} from 'lucide-react';
+import { getIconByName } from '@/lib/constants/icons';
+import { MoreHorizontal, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 interface CategoryBadgeProps {
@@ -29,20 +18,6 @@ interface CategoryBadgeProps {
   showIcon?: boolean;
   className?: string;
 }
-
-// Map icon names to Lucide icons
-const iconMap: Record<string, LucideIcon> = {
-  utensils: Utensils,
-  car: Car,
-  film: Film,
-  'shopping-bag': ShoppingBag,
-  receipt: Receipt,
-  'heart-pulse': HeartPulse,
-  plane: Plane,
-  'shopping-cart': ShoppingCart,
-  home: Home,
-  'more-horizontal': MoreHorizontal,
-};
 
 const sizeClasses = {
   sm: 'text-xs px-2 py-0.5',
@@ -75,11 +50,13 @@ export function CategoryBadge({
   className,
 }: CategoryBadgeProps) {
   const t = useTranslations('categories');
-  const Icon = iconMap[category.icon] || MoreHorizontal;
+  const Icon = getIconByName(category.icon);
   
-  // Get translated category name
+  // Get translated category name (only for system categories)
   const translationKey = iconToTranslationKey[category.icon];
-  const categoryName = translationKey ? t(translationKey) : category.name;
+  const categoryName = category.isSystem && translationKey 
+    ? t(translationKey) 
+    : category.name;
 
   return (
     <Badge
@@ -105,6 +82,6 @@ export function CategoryBadge({
  * Get icon component for a category
  */
 export function getCategoryIcon(iconName: string): LucideIcon {
-  return iconMap[iconName] || MoreHorizontal;
+  return getIconByName(iconName);
 }
 

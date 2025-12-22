@@ -480,6 +480,52 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
     return result;
   }
+
+  /**
+   * Count personal expenses by category for a user
+   * Only counts personal expenses (group_id IS NULL)
+   */
+  async countByCategory(categoryId: string, userId: string): Promise<number> {
+    const { count, error } = await this.client
+      .from(this.tableName)
+      .select('*', { count: 'exact', head: true })
+      .eq('category_id', categoryId)
+      .eq('created_by', userId)
+      .is('group_id', null);
+
+    if (error) {
+      throw new Error(`Failed to count expenses by category: ${error.message}`);
+    }
+
+    return count ?? 0;
+  }
+
+  /**
+   * Migrate personal expenses from one category to another for a user
+   * Only affects personal expenses (group_id IS NULL)
+   */
+  async migrateCategory(
+    fromCategoryId: string,
+    toCategoryId: string,
+    userId: string
+  ): Promise<number> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .update({ 
+        category_id: toCategoryId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('category_id', fromCategoryId)
+      .eq('created_by', userId)
+      .is('group_id', null)
+      .select('id');
+
+    if (error) {
+      throw new Error(`Failed to migrate category: ${error.message}`);
+    }
+
+    return data?.length ?? 0;
+  }
 }
 
 // Singleton instance

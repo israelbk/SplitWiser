@@ -280,6 +280,7 @@ export function ExpenseForm({
                 <CategoryPicker
                   value={form.watch('categoryId')}
                   onChange={(value) => form.setValue('categoryId', value)}
+                  isGroupExpense={isGroupExpense}
                 />
                 {form.formState.errors.categoryId && (
                   <p className="text-xs sm:text-sm text-destructive">

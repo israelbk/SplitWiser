@@ -16,7 +16,11 @@ export const queryKeys = {
   categories: {
     all: ['categories'] as const,
     system: ['categories', 'system'] as const,
+    forUser: (userId: string) => ['categories', 'user', userId] as const,
+    customForUser: (userId: string) => ['categories', 'custom', userId] as const,
     detail: (id: string) => ['categories', id] as const,
+    expenseCount: (categoryId: string, userId: string) => 
+      ['categories', categoryId, 'expense-count', userId] as const,
   },
 
   // Groups

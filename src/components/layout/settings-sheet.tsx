@@ -6,6 +6,7 @@
  * - Theme (Light/Dark/System)
  * - Language (English/Hebrew/Spanish)
  * - Currency display and conversion mode
+ * - Category management
  */
 
 import { useState } from 'react';
@@ -35,18 +36,25 @@ import {
   Zap,
   X,
   Loader2,
+  Tags,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCurrencySettings, useLanguageSettings } from '@/hooks/queries';
+import { useCurrencySettings, useLanguageSettings, useCustomCategories } from '@/hooks/queries';
+import { useAuth } from '@/hooks/use-current-user';
 import { CurrencyPicker } from '@/components/common/currency-picker';
+import { CategoryManager } from '@/components/features/categories';
 import { LOCALES, Locale, SUPPORTED_LOCALES } from '@/lib/types/locale';
 import { ConversionMode } from '@/lib/types';
+import { DirectionalIcon } from '@/components/common/rtl-icon';
 
 export function SettingsSheet() {
   const [open, setOpen] = useState(false);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const t = useTranslations('settings');
   const tCurrency = useTranslations('currency');
   const tLanguage = useTranslations('language');
+  const tCategories = useTranslations('categoryManager');
   
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { language, setLanguage, isUpdating: isUpdatingLanguage } = useLanguageSettings();
@@ -58,6 +66,11 @@ export function SettingsSheet() {
     setDisplayCurrency,
     setConversionMode,
   } = useCurrencySettings();
+  
+  // Get user's custom categories count
+  const { effectiveUser } = useAuth();
+  const { data: customCategories } = useCustomCategories(effectiveUser?.id);
+  const customCategoryCount = customCategories?.length ?? 0;
 
   const isUpdating = isUpdatingLanguage || isUpdatingCurrency;
 
@@ -100,6 +113,7 @@ export function SettingsSheet() {
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
@@ -118,7 +132,7 @@ export function SettingsSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 mt-4">
+        <ScrollArea className="flex-1 mt-4 overflow-y-auto">
           <div className="space-y-6 px-4 sm:px-6 pb-6">
             {/* ============================================================
                 APPEARANCE SECTION
@@ -216,6 +230,40 @@ export function SettingsSheet() {
             <Separator />
 
             {/* ============================================================
+                CATEGORIES SECTION
+                ============================================================ */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Tags className="h-4 w-4 text-muted-foreground" />
+                <Label className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {tCategories('settingsTitle')}
+                </Label>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCategoryManagerOpen(true)}
+                className={cn(
+                  'w-full flex items-center gap-3 rounded-xl border-2 p-3 text-start transition-all',
+                  'border-border bg-card hover:bg-accent'
+                )}
+              >
+                <Tags className="h-5 w-5 text-muted-foreground" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium">{tCategories('manageCategories')}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {customCategoryCount > 0
+                      ? tCategories('customCount', { count: customCategoryCount })
+                      : tCategories('noCustomCategories')}
+                  </div>
+                </div>
+                <DirectionalIcon icon="chevron-right" className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </section>
+
+            <Separator />
+
+            {/* ============================================================
                 CURRENCY SECTION
                 ============================================================ */}
             <section>
@@ -298,6 +346,13 @@ export function SettingsSheet() {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+
+    {/* Category Manager Sheet */}
+    <CategoryManager
+      open={categoryManagerOpen}
+      onOpenChange={setCategoryManagerOpen}
+    />
+  </>
   );
 }
 

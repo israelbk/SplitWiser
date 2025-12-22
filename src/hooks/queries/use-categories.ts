@@ -10,13 +10,38 @@ import { CreateCategoryInput, UpdateCategoryInput } from '@/lib/types';
 import { queryKeys } from './query-keys';
 
 /**
- * Get all categories
+ * Get all categories (deprecated - use useUserCategories instead)
+ * @deprecated Use useUserCategories for proper user-scoped categories
  */
 export function useCategories() {
   return useQuery({
     queryKey: queryKeys.categories.all,
     queryFn: () => categoryService.getAllCategories(),
     staleTime: 5 * 60 * 1000, // Categories don't change often
+  });
+}
+
+/**
+ * Get categories for a specific user (system + user's custom categories)
+ */
+export function useUserCategories(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.categories.forUser(userId!),
+    queryFn: () => categoryService.getCategoriesForUser(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Get only custom categories for a specific user
+ */
+export function useCustomCategories(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.categories.customForUser(userId!),
+    queryFn: () => categoryService.getCustomCategoriesForUser(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -43,6 +68,17 @@ export function useCategory(id: string | undefined) {
 }
 
 /**
+ * Get expense count for a category
+ */
+export function useCategoryExpenseCount(categoryId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.categories.expenseCount(categoryId!, userId!),
+    queryFn: () => categoryService.getExpenseCount(categoryId!, userId!),
+    enabled: !!categoryId && !!userId,
+  });
+}
+
+/**
  * Create category mutation
  */
 export function useCreateCategory() {
@@ -50,8 +86,17 @@ export function useCreateCategory() {
 
   return useMutation({
     mutationFn: (input: CreateCategoryInput) => categoryService.createCategory(input),
-    onSuccess: () => {
+    onSuccess: (_category, variables) => {
+      // Invalidate both the all list and user-specific list
       queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+      if (variables.createdBy) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.categories.forUser(variables.createdBy) 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.categories.customForUser(variables.createdBy) 
+        });
+      }
     },
   });
 }
@@ -68,12 +113,20 @@ export function useUpdateCategory() {
     onSuccess: (category) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.categories.detail(category.id) });
+      if (category.createdBy) {
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.categories.forUser(category.createdBy) 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: queryKeys.categories.customForUser(category.createdBy) 
+        });
+      }
     },
   });
 }
 
 /**
- * Delete category mutation
+ * Delete category mutation (simple - no expense migration)
  */
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
@@ -82,6 +135,43 @@ export function useDeleteCategory() {
     mutationFn: (id: string) => categoryService.deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+    },
+  });
+}
+
+/**
+ * Delete category with replacement mutation
+ * Migrates all expenses from the deleted category to the replacement category
+ */
+export function useDeleteCategoryWithReplacement() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      categoryId,
+      replacementCategoryId,
+      userId,
+    }: {
+      categoryId: string;
+      replacementCategoryId: string;
+      userId: string;
+    }) => categoryService.deleteCategoryWithReplacement(categoryId, replacementCategoryId, userId),
+    onSuccess: (_result, variables) => {
+      // Invalidate category queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.categories.forUser(variables.userId) 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.categories.customForUser(variables.userId) 
+      });
+      // Invalidate expense queries since we migrated categories
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.expenses.personal(variables.userId) 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.expenses.all(variables.userId) 
+      });
     },
   });
 }
