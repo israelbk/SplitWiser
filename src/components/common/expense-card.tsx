@@ -9,15 +9,12 @@
  */
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -215,18 +212,18 @@ export function ExpenseCard({
 
   return (
     <>
-      {/* Long Press Action Dialog */}
-      <AlertDialog open={showActionDialog} onOpenChange={setShowActionDialog}>
-        <AlertDialogContent className="max-w-[300px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center truncate">
+      {/* Long Press Action Dialog - closes when clicking outside */}
+      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <DialogContent className="max-w-[300px] p-4" showCloseButton={false}>
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-center truncate text-base">
               {expense.description}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
+            </DialogTitle>
+            <DialogDescription className="text-center">
               {t('chooseAction')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex flex-col gap-2 py-2">
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
             {onEdit && (
               <Button
                 variant="outline"
@@ -253,12 +250,16 @@ export function ExpenseCard({
                 {tCommon('delete')}
               </Button>
             )}
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setShowActionDialog(false)}
+            >
+              {tCommon('cancel')}
+            </Button>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="w-full">{tCommon('cancel')}</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
       <Card
         className={cn(
           'p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer select-none',
