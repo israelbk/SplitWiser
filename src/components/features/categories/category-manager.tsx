@@ -66,7 +66,8 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
 
   // Drag and drop state
   const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
-  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
+  // Track drop position: which category and whether to drop before or after it
+  const [dropPosition, setDropPosition] = useState<{ categoryId: string; position: 'before' | 'after' } | null>(null);
   const [isDragCollapsed, setIsDragCollapsed] = useState(false); // Delayed collapse for drag image capture
   const dragNodeRef = useRef<HTMLDivElement | null>(null);
 
@@ -168,99 +169,89 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
 
   const handleDragEnd = useCallback(() => {
     setDraggedCategoryId(null);
-    setDragOverCategoryId(null);
+    setDropPosition(null);
     setIsDragCollapsed(false);
   }, []);
 
-  // Use onDragOver to set the target - more reliable than enter/leave
+  // Calculate drop position based on cursor Y relative to item center
   const handleDragOver = useCallback((e: React.DragEvent, categoryId: string) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    // Set the drag over target on every dragOver event
-    if (categoryId !== draggedCategoryId && dragOverCategoryId !== categoryId) {
-      setDragOverCategoryId(categoryId);
+    
+    if (categoryId === draggedCategoryId) return;
+    
+    // Get cursor position relative to the target element
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cursorY = e.clientY;
+    const elementMiddle = rect.top + rect.height / 2;
+    
+    // Determine if dropping before or after based on cursor position
+    const position: 'before' | 'after' = cursorY < elementMiddle ? 'before' : 'after';
+    
+    // Only update state if position changed
+    if (dropPosition?.categoryId !== categoryId || dropPosition?.position !== position) {
+      setDropPosition({ categoryId, position });
     }
-  }, [draggedCategoryId, dragOverCategoryId]);
+  }, [draggedCategoryId, dropPosition]);
 
   // Only clear on drag leave if we're leaving the entire list area
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    // Check if we're leaving to outside the current target
     const relatedTarget = e.relatedTarget as HTMLElement;
     const currentTarget = e.currentTarget as HTMLElement;
     
-    // Only clear if we're truly leaving (not entering a child element)
     if (!currentTarget.contains(relatedTarget)) {
-      setDragOverCategoryId(null);
+      setDropPosition(null);
     }
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent, targetCategoryId: string) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     
-    if (!draggedCategoryId || draggedCategoryId === targetCategoryId || !userId) {
+    if (!draggedCategoryId || !dropPosition || !userId) {
       setDraggedCategoryId(null);
-      setDragOverCategoryId(null);
+      setDropPosition(null);
       return;
     }
 
-    // Find the dragged category and target index
-    const draggedCategory = allCategories.find(c => c.id === draggedCategoryId);
-    const draggedIndex = allCategories.findIndex(c => c.id === draggedCategoryId);
-    const targetIndex = allCategories.findIndex(c => c.id === targetCategoryId);
-
-    if (!draggedCategory || draggedIndex === -1 || targetIndex === -1) return;
-
-    // Calculate new sortOrder using floating point average
-    // This only updates the dragged item, not all items
-    let newSortOrder: number;
+    const { categoryId: targetCategoryId, position } = dropPosition;
     
-    // Get the list without the dragged item to find correct neighbors
-    const listWithoutDragged = allCategories.filter(c => c.id !== draggedCategoryId);
-    const adjustedTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex;
-    
-    if (adjustedTargetIndex === 0) {
-      // Dropping at the top: average of 0 and first item
-      const firstItem = listWithoutDragged[0];
-      newSortOrder = firstItem.sortOrder / 2;
-    } else {
-      // Dropping in the middle: average of item above and target
-      const itemAbove = listWithoutDragged[adjustedTargetIndex - 1];
-      const targetItem = listWithoutDragged[adjustedTargetIndex];
-      newSortOrder = (itemAbove.sortOrder + targetItem.sortOrder) / 2;
-    }
-
-    try {
-      await reorderCategories.mutateAsync({ 
-        userId, 
-        categoryOrders: [{ id: draggedCategoryId, sortOrder: newSortOrder }]
-      });
-    } catch (error) {
-      toast.error(t('reorderError'));
-      console.error('Failed to reorder categories:', error);
-    }
-
-    setDraggedCategoryId(null);
-    setDragOverCategoryId(null);
-  }, [draggedCategoryId, allCategories, userId, reorderCategories, t]);
-
-  // Handle dropping at the bottom of the list
-  const handleDropAtBottom = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    
-    if (!draggedCategoryId || !userId) {
+    if (draggedCategoryId === targetCategoryId) {
       setDraggedCategoryId(null);
-      setDragOverCategoryId(null);
+      setDropPosition(null);
       return;
     }
 
     // Get the list without the dragged item
     const listWithoutDragged = allCategories.filter(c => c.id !== draggedCategoryId);
-    
-    if (listWithoutDragged.length === 0) return;
+    const targetIndex = listWithoutDragged.findIndex(c => c.id === targetCategoryId);
 
-    // New sortOrder = average of last item and 2x last item = 1.5 * last item
-    const lastItem = listWithoutDragged[listWithoutDragged.length - 1];
-    const newSortOrder = lastItem.sortOrder * 1.5;
+    if (targetIndex === -1) return;
+
+    // Calculate new sortOrder based on position (before/after)
+    let newSortOrder: number;
+    
+    if (position === 'before') {
+      if (targetIndex === 0) {
+        // Dropping before the first item: half of first item's order
+        newSortOrder = listWithoutDragged[0].sortOrder / 2;
+      } else {
+        // Dropping between previous item and target
+        const itemAbove = listWithoutDragged[targetIndex - 1];
+        const targetItem = listWithoutDragged[targetIndex];
+        newSortOrder = (itemAbove.sortOrder + targetItem.sortOrder) / 2;
+      }
+    } else {
+      // position === 'after'
+      if (targetIndex === listWithoutDragged.length - 1) {
+        // Dropping after the last item: 1.5x last item's order
+        newSortOrder = listWithoutDragged[targetIndex].sortOrder * 1.5;
+      } else {
+        // Dropping between target and next item
+        const targetItem = listWithoutDragged[targetIndex];
+        const itemBelow = listWithoutDragged[targetIndex + 1];
+        newSortOrder = (targetItem.sortOrder + itemBelow.sortOrder) / 2;
+      }
+    }
 
     try {
       await reorderCategories.mutateAsync({ 
@@ -273,8 +264,8 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
     }
 
     setDraggedCategoryId(null);
-    setDragOverCategoryId(null);
-  }, [draggedCategoryId, allCategories, userId, reorderCategories, t]);
+    setDropPosition(null);
+  }, [draggedCategoryId, dropPosition, allCategories, userId, reorderCategories, t]);
 
   return (
     <>
@@ -375,42 +366,20 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
                         onDelete={!category.isSystem ? () => handleDeleteClick(category) : undefined}
                         draggable={allCategories.length > 1}
                         isDragging={draggedCategoryId === category.id && isDragCollapsed}
-                        isDragOver={dragOverCategoryId === category.id}
+                        dropIndicator={
+                          dropPosition?.categoryId === category.id 
+                            ? dropPosition.position 
+                            : null
+                        }
                         onDragStart={(e) => handleDragStart(e, category.id)}
                         onDragEnd={handleDragEnd}
                         onDragOver={(e) => handleDragOver(e, category.id)}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, category.id)}
+                        onDrop={handleDrop}
                         dragNodeRef={draggedCategoryId === category.id ? dragNodeRef : undefined}
                         isSystem={category.isSystem}
                       />
                     ))}
-                    {/* Bottom drop zone for dragging to end of list */}
-                    {draggedCategoryId && allCategories.length > 1 && (
-                      <div
-                        className={cn(
-                          'h-16 rounded-xl border-2 border-dashed transition-all duration-200',
-                          dragOverCategoryId === 'bottom'
-                            ? 'border-primary bg-primary/10'
-                            : 'border-muted-foreground/30 bg-muted/30'
-                        )}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = 'move';
-                          if (dragOverCategoryId !== 'bottom') {
-                            setDragOverCategoryId('bottom');
-                          }
-                        }}
-                        onDragLeave={(e) => {
-                          const relatedTarget = e.relatedTarget as HTMLElement;
-                          const currentTarget = e.currentTarget as HTMLElement;
-                          if (!currentTarget.contains(relatedTarget)) {
-                            setDragOverCategoryId(null);
-                          }
-                        }}
-                        onDrop={handleDropAtBottom}
-                      />
-                    )}
                   </div>
                 </section>
               )}
@@ -441,7 +410,7 @@ interface CategoryRowProps {
   // Drag and drop props
   draggable?: boolean;
   isDragging?: boolean;
-  isDragOver?: boolean;
+  dropIndicator?: 'before' | 'after' | null; // Show drop zone before or after this item
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
   onDragOver?: (e: React.DragEvent) => void;
@@ -457,7 +426,7 @@ function CategoryRow({
   onDelete,
   draggable,
   isDragging,
-  isDragOver,
+  dropIndicator,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -478,13 +447,19 @@ function CategoryRow({
       onDrop={onDrop}
       className={cn(
         'relative transition-all duration-200 ease-out',
-        isDragOver && 'pt-[72px]', // Open space equal to item height for natural drop zone
+        dropIndicator === 'before' && 'pt-[72px]', // Open space above for drop zone
+        dropIndicator === 'after' && 'pb-[72px]', // Open space below for drop zone
         isDragging && 'hidden' // Fully hide to preserve natural spacing from space-y-2
       )}
     >
       {/* Drop zone indicator - ghost of where item will land */}
-      {isDragOver && (
-        <div className="absolute top-0 left-0 right-0 h-[68px] flex items-center px-2">
+      {dropIndicator === 'before' && (
+        <div className="absolute top-0 left-0 right-0 h-[68px] flex items-center">
+          <div className="w-full h-full rounded-xl border-2 border-dashed border-primary/50 bg-primary/5" />
+        </div>
+      )}
+      {dropIndicator === 'after' && (
+        <div className="absolute bottom-0 left-0 right-0 h-[68px] flex items-center">
           <div className="w-full h-full rounded-xl border-2 border-dashed border-primary/50 bg-primary/5" />
         </div>
       )}
@@ -493,8 +468,7 @@ function CategoryRow({
           'flex items-center gap-3 p-3 rounded-xl border border-border',
           'bg-card transition-all duration-200',
           isSystem && 'opacity-80',
-          draggable && 'cursor-grab active:cursor-grabbing',
-          isDragOver && 'border-primary/50'
+          draggable && 'cursor-grab active:cursor-grabbing'
         )}
       >
         {/* Drag handle - made prominent for discoverability */}
