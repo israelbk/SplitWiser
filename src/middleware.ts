@@ -8,10 +8,16 @@
  * This middleware runs on every request to ensure:
  * - Expired sessions are refreshed
  * - Session cookies are always up to date
+ * 
+ * DEV MODE: When NEXT_PUBLIC_DEV_MODE=true, auth checks are skipped
+ * because the UserProvider handles auto-login in React state.
  */
 
 import { createMiddlewareSupabaseClient } from '@/lib/supabase/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
+
+// Check if DEV MODE is enabled (auth is handled client-side)
+const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/auth/callback'];
@@ -24,6 +30,12 @@ export async function middleware(request: NextRequest) {
 
   // Skip middleware for static assets and API routes
   if (BYPASS_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
+
+  // DEV MODE: Skip all auth checks - auth is handled client-side by UserProvider
+  // This allows the fake auto-login to work without middleware interference
+  if (isDevMode) {
     return NextResponse.next();
   }
 

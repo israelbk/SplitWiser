@@ -103,7 +103,8 @@
   "expenseCard": {
     "historicalRate": "שער היסטורי",
     "currentRate": "שער עדכני",
-    "paid": "שילמ/ה"
+    "paid": "שילמ/ה",
+    "chooseAction": "מה תרצה לעשות?"
   },
   "split": {
     "title": "אפשרויות חלוקה",

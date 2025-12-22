@@ -123,3 +123,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute to authenticated users
 GRANT EXECUTE ON FUNCTION link_shadow_user(TEXT, UUID, TEXT, TEXT) TO authenticated;
 
+

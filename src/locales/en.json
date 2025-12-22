@@ -103,7 +103,8 @@
   "expenseCard": {
     "historicalRate": "Historical Rate",
     "currentRate": "Current Rate",
-    "paid": "paid"
+    "paid": "paid",
+    "chooseAction": "What would you like to do?"
   },
   "split": {
     "title": "Split Options",

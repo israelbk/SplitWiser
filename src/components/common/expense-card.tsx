@@ -5,17 +5,22 @@
  * Displays a single expense with details
  * Supports currency conversion display
  * Mobile-first design with progressive enhancement for desktop
+ * Long-press to show edit/delete options
  */
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -27,10 +32,14 @@ import { ExpenseWithDetails, UnifiedExpense } from '@/lib/services';
 import { ConversionMode, ConvertedAmount } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { ArrowRightLeft, MoreVertical, Pencil, Trash2, Users } from 'lucide-react';
+import { ArrowRightLeft, Pencil, Trash2, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useCallback, useRef, useState } from 'react';
 import { CategoryBadge, getCategoryIcon } from './category-badge';
 import { UserAvatar } from './user-avatar';
+
+// Long press duration in milliseconds
+const LONG_PRESS_DURATION = 500;
 
 interface ExpenseCardProps {
   expense: ExpenseWithDetails | UnifiedExpense;
@@ -65,6 +74,11 @@ export function ExpenseCard({
 }: ExpenseCardProps) {
   const t = useTranslations('expenseCard');
   const tCommon = useTranslations('common');
+  
+  // Long press state
+  const [showActionDialog, setShowActionDialog] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
   
   const payer = expense.contributions?.[0]?.user;
   const Icon = expense.category ? getCategoryIcon(expense.category.icon) : null;
@@ -134,18 +148,131 @@ export function ExpenseCard({
     ? userBalance * conversion.converted.rate
     : userBalance;
 
+  // Long press handlers
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const startLongPress = useCallback(() => {
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      // Trigger haptic feedback on mobile if available
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+      setShowActionDialog(true);
+    }, LONG_PRESS_DURATION);
+  }, []);
+
   const handleCardClick = () => {
-    onClick?.();
+    // Only trigger click if it wasn't a long press
+    if (!isLongPress.current) {
+      onClick?.();
+    }
+    isLongPress.current = false;
+  };
+
+  // Mouse event handlers (for desktop long-press support)
+  const handleMouseDown = () => {
+    if (onEdit || onDelete) {
+      startLongPress();
+    }
+  };
+
+  const handleMouseUp = () => {
+    clearLongPressTimer();
+  };
+
+  const handleMouseLeave = () => {
+    clearLongPressTimer();
+  };
+
+  // Touch event handlers (for mobile long-press support)
+  const handleTouchStart = () => {
+    if (onEdit || onDelete) {
+      startLongPress();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    clearLongPressTimer();
+  };
+
+  const handleTouchCancel = () => {
+    clearLongPressTimer();
+  };
+
+  // Prevent context menu on long press
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (onEdit || onDelete) {
+      e.preventDefault();
+    }
   };
 
   return (
-    <Card
-      className={cn(
-        'p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer',
-        className
-      )}
-      onClick={handleCardClick}
-    >
+    <>
+      {/* Long Press Action Dialog */}
+      <AlertDialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <AlertDialogContent className="max-w-[300px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center truncate">
+              {expense.description}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              {t('chooseAction')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2 py-2">
+            {onEdit && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  setShowActionDialog(false);
+                  onEdit();
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+                {tCommon('edit')}
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+                onClick={() => {
+                  setShowActionDialog(false);
+                  onDelete();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                {tCommon('delete')}
+              </Button>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="w-full">{tCommon('cancel')}</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Card
+        className={cn(
+          'p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer select-none',
+          className
+        )}
+        onClick={handleCardClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        onContextMenu={handleContextMenu}
+      >
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Category Icon */}
         <div
@@ -260,40 +387,9 @@ export function ExpenseCard({
           )}
         </div>
 
-        {/* Actions */}
-        {(onEdit || onDelete) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {onEdit && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-                  <Pencil className="h-4 w-4 me-2" />
-                  {tCommon('edit')}
-                </DropdownMenuItem>
-              )}
-              {onDelete && (
-                <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 me-2" />
-                  {tCommon('delete')}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
       </div>
-    </Card>
+      </Card>
+    </>
   );
 }
 

@@ -351,6 +351,10 @@ export default function GroupDetailPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSubmit={handleFormSubmit}
+        onDelete={editingExpense ? () => {
+          setIsFormOpen(false);
+          setDeletingExpense(editingExpense);
+        } : undefined}
         expense={editingExpense ?? undefined}
         title={editingExpense ? tExpenseForm('editTitle') : tExpenseForm('groupTitle')}
         description={editingExpense ? tExpenseForm('editDescription') : tExpenseForm('groupDescription')}

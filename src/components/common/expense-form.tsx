@@ -21,7 +21,7 @@ import { useCurrencyPreferences } from '@/hooks/queries';
 import { DEFAULT_CATEGORY_ID, DEFAULT_CURRENCY } from '@/lib/constants';
 import { Expense, SplitConfiguration, User } from '@/lib/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -51,10 +51,12 @@ interface ExpenseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ExpenseFormSubmitData) => void;
+  onDelete?: () => void;  // Called when delete button is clicked
   expense?: Partial<Expense>;
   title?: string;
   description?: string;
   isLoading?: boolean;
+  isDeleting?: boolean;  // Shows loading state on delete button
   // Group expense props
   groupMembers?: User[];
   currentUserId?: string;
@@ -64,10 +66,12 @@ export function ExpenseForm({
   open,
   onOpenChange,
   onSubmit,
+  onDelete,
   expense,
   title,
   description,
   isLoading = false,
+  isDeleting = false,
   groupMembers,
   currentUserId,
 }: ExpenseFormProps) {
@@ -325,20 +329,45 @@ export function ExpenseForm({
               )}
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-                className="w-full sm:w-auto h-10"
-              >
-                {tCommon('cancel')}
-              </Button>
-              <Button type="submit" disabled={isLoading} className="w-full sm:w-auto h-10">
-                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                {expense?.id ? tCommon('update') : tCommon('add')}
-              </Button>
+            <DialogFooter className="pt-2">
+              <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+                {/* Delete button - only shown when editing */}
+                {expense?.id && onDelete ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onDelete}
+                    disabled={isLoading || isDeleting}
+                    className="w-full sm:w-auto h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="me-2 h-4 w-4" />
+                    )}
+                    {tCommon('delete')}
+                  </Button>
+                ) : (
+                  <div className="hidden sm:block" /> // Spacer for alignment
+                )}
+                
+                {/* Cancel and Submit buttons */}
+                <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    disabled={isLoading || isDeleting}
+                    className="w-full sm:w-auto h-10"
+                  >
+                    {tCommon('cancel')}
+                  </Button>
+                  <Button type="submit" disabled={isLoading || isDeleting} className="w-full sm:w-auto h-10">
+                    {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                    {expense?.id ? tCommon('update') : tCommon('add')}
+                  </Button>
+                </div>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>

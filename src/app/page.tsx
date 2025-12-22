@@ -284,6 +284,10 @@ export default function AllExpensesPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSubmit={handleFormSubmit}
+        onDelete={editingExpense ? () => {
+          setIsFormOpen(false);
+          setDeletingExpense(editingExpense);
+        } : undefined}
         expense={editingExpense ?? undefined}
         title={editingExpense ? t('editExpense') : t('addExpense')}
         isLoading={createExpense.isPending || updateExpense.isPending}

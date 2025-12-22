@@ -103,7 +103,8 @@
   "expenseCard": {
     "historicalRate": "Tasa histórica",
     "currentRate": "Tasa actual",
-    "paid": "pagó"
+    "paid": "pagó",
+    "chooseAction": "¿Qué te gustaría hacer?"
   },
   "split": {
     "title": "Opciones de división",
