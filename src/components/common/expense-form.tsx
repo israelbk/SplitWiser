@@ -211,7 +211,10 @@ export function ExpenseForm({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent 
+          className="sm:max-w-[425px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <DialogHeader className="pb-2">
               <DialogTitle className="text-lg">{displayTitle}</DialogTitle>

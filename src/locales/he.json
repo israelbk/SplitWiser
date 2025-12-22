@@ -287,7 +287,7 @@
     "deleteSuccess": "הקטגוריה נמחקה",
     "deleteSuccessWithMigration": "{count, plural, =1 {הוצאה אחת הועברה} other {# הוצאות הועברו}} לקטגוריה חדשה",
     "deleteError": "מחיקת הקטגוריה נכשלה",
-    "reorderHint": "גרור לשינוי סדר",
+    "reorderHint": "גרור לשינוי סדר הקטגוריות",
     "reorderError": "שינוי סדר הקטגוריות נכשל"
   },
   "categoryForm": {

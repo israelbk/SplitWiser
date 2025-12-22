@@ -315,7 +315,8 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
                       {t('customCategories')}
                     </h3>
                     {customCats.length > 1 && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <GripVertical className="h-3 w-3" />
                         {t('reorderHint')}
                       </span>
                     )}
@@ -441,9 +442,11 @@ function CategoryRow({
         isDragOver && 'border-primary border-2 bg-primary/5'
       )}
     >
-      {/* Drag handle for custom categories */}
+      {/* Drag handle for custom categories - made prominent for discoverability */}
       {draggable && (
-        <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+        <div className="flex items-center justify-center h-8 w-6 -ms-1 rounded hover:bg-muted/80 transition-colors">
+          <GripVertical className="h-5 w-5 text-muted-foreground/70" />
+        </div>
       )}
       <span
         className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0"
