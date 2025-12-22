@@ -203,25 +203,70 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
       return;
     }
 
-    // Find indices in the full list
+    // Find the dragged category and target index
+    const draggedCategory = allCategories.find(c => c.id === draggedCategoryId);
     const draggedIndex = allCategories.findIndex(c => c.id === draggedCategoryId);
     const targetIndex = allCategories.findIndex(c => c.id === targetCategoryId);
 
-    if (draggedIndex === -1 || targetIndex === -1) return;
+    if (!draggedCategory || draggedIndex === -1 || targetIndex === -1) return;
 
-    // Create new order
-    const reorderedCats = [...allCategories];
-    const [removed] = reorderedCats.splice(draggedIndex, 1);
-    reorderedCats.splice(targetIndex, 0, removed);
-
-    // Calculate new sort orders for all categories
-    const categoryOrders = reorderedCats.map((cat, index) => ({
-      id: cat.id,
-      sortOrder: index,
-    }));
+    // Calculate new sortOrder using floating point average
+    // This only updates the dragged item, not all items
+    let newSortOrder: number;
+    
+    // Get the list without the dragged item to find correct neighbors
+    const listWithoutDragged = allCategories.filter(c => c.id !== draggedCategoryId);
+    const adjustedTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex;
+    
+    if (adjustedTargetIndex === 0) {
+      // Dropping at the top: average of 0 and first item
+      const firstItem = listWithoutDragged[0];
+      newSortOrder = firstItem.sortOrder / 2;
+    } else {
+      // Dropping in the middle: average of item above and target
+      const itemAbove = listWithoutDragged[adjustedTargetIndex - 1];
+      const targetItem = listWithoutDragged[adjustedTargetIndex];
+      newSortOrder = (itemAbove.sortOrder + targetItem.sortOrder) / 2;
+    }
 
     try {
-      await reorderCategories.mutateAsync({ userId, categoryOrders });
+      await reorderCategories.mutateAsync({ 
+        userId, 
+        categoryOrders: [{ id: draggedCategoryId, sortOrder: newSortOrder }]
+      });
+    } catch (error) {
+      toast.error(t('reorderError'));
+      console.error('Failed to reorder categories:', error);
+    }
+
+    setDraggedCategoryId(null);
+    setDragOverCategoryId(null);
+  }, [draggedCategoryId, allCategories, userId, reorderCategories, t]);
+
+  // Handle dropping at the bottom of the list
+  const handleDropAtBottom = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    
+    if (!draggedCategoryId || !userId) {
+      setDraggedCategoryId(null);
+      setDragOverCategoryId(null);
+      return;
+    }
+
+    // Get the list without the dragged item
+    const listWithoutDragged = allCategories.filter(c => c.id !== draggedCategoryId);
+    
+    if (listWithoutDragged.length === 0) return;
+
+    // New sortOrder = average of last item and 2x last item = 1.5 * last item
+    const lastItem = listWithoutDragged[listWithoutDragged.length - 1];
+    const newSortOrder = lastItem.sortOrder * 1.5;
+
+    try {
+      await reorderCategories.mutateAsync({ 
+        userId, 
+        categoryOrders: [{ id: draggedCategoryId, sortOrder: newSortOrder }]
+      });
     } catch (error) {
       toast.error(t('reorderError'));
       console.error('Failed to reorder categories:', error);
@@ -340,6 +385,32 @@ export function CategoryManager({ open, onOpenChange }: CategoryManagerProps) {
                         isSystem={category.isSystem}
                       />
                     ))}
+                    {/* Bottom drop zone for dragging to end of list */}
+                    {draggedCategoryId && allCategories.length > 1 && (
+                      <div
+                        className={cn(
+                          'h-16 rounded-xl border-2 border-dashed transition-all duration-200',
+                          dragOverCategoryId === 'bottom'
+                            ? 'border-primary bg-primary/10'
+                            : 'border-muted-foreground/30 bg-muted/30'
+                        )}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          if (dragOverCategoryId !== 'bottom') {
+                            setDragOverCategoryId('bottom');
+                          }
+                        }}
+                        onDragLeave={(e) => {
+                          const relatedTarget = e.relatedTarget as HTMLElement;
+                          const currentTarget = e.currentTarget as HTMLElement;
+                          if (!currentTarget.contains(relatedTarget)) {
+                            setDragOverCategoryId(null);
+                          }
+                        }}
+                        onDrop={handleDropAtBottom}
+                      />
+                    )}
                   </div>
                 </section>
               )}
