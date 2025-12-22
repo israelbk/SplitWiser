@@ -148,10 +148,10 @@ export function GroupBalances({ groupId, currency = 'ILS' }: GroupBalancesProps)
 
       {/* All Settled */}
       {simplifiedDebts.length === 0 && totalExpenses > 0 && (
-        <Card className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+        <Card className="bg-success/10 border-success/30">
           <CardContent className="pt-6 text-center">
-            <p className="text-green-700 dark:text-green-400 font-medium">{t('allSettled')}</p>
-            <p className="text-sm text-green-600 dark:text-green-500">
+            <p className="text-success font-medium">{t('allSettled')}</p>
+            <p className="text-sm text-success/80">
               {t('allSettledDescription')}
             </p>
           </CardContent>

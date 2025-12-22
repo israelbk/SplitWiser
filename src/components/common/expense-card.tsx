@@ -276,25 +276,23 @@ export function ExpenseCard({
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Category Icon */}
         <div
-          className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
-          style={{
-            backgroundColor: expense.category
-              ? `${expense.category.color}20`
-              : '#f1f5f9',
-          }}
+          className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-muted"
+          style={expense.category ? {
+            backgroundColor: `${expense.category.color}20`,
+          } : undefined}
         >
           {Icon && (
             <Icon
               size={18}
-              className="sm:hidden"
-              style={{ color: expense.category?.color || '#64748b' }}
+              className="sm:hidden text-muted-foreground"
+              style={expense.category?.color ? { color: expense.category.color } : undefined}
             />
           )}
           {Icon && (
             <Icon
               size={20}
-              className="hidden sm:block"
-              style={{ color: expense.category?.color || '#64748b' }}
+              className="hidden sm:block text-muted-foreground"
+              style={expense.category?.color ? { color: expense.category.color } : undefined}
             />
           )}
         </div>

@@ -51,9 +51,17 @@
     "usingCurrentRates": "Usando tasas de cambio actuales"
   },
   "language": {
-    "settings": "Configuración de idioma",
-    "selectLanguage": "Seleccionar idioma",
+    "settings": "Idioma",
+    "selectLanguage": "Selecciona tu idioma preferido",
     "currentLanguage": "Idioma actual"
+  },
+  "settings": {
+    "title": "Configuración",
+    "description": "Personaliza tus preferencias de la app",
+    "appearance": "Apariencia",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema"
   },
   "expenses": {
     "title": "Todos los gastos",

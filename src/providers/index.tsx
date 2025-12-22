@@ -6,6 +6,7 @@
  */
 
 import { ReactNode } from 'react';
+import { ThemeProvider } from 'next-themes';
 import { QueryProvider } from './query-provider';
 import { UserProvider } from './user-provider';
 import { LocaleProvider } from './locale-provider';
@@ -18,16 +19,23 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <QueryProvider>
-      <UserProvider>
-        <LocaleProvider>
-          <AuthGuard>
-            {children}
-          </AuthGuard>
-          <Toaster position="top-center" />
-        </LocaleProvider>
-      </UserProvider>
-    </QueryProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <QueryProvider>
+        <UserProvider>
+          <LocaleProvider>
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+            <Toaster position="top-center" />
+          </LocaleProvider>
+        </UserProvider>
+      </QueryProvider>
+    </ThemeProvider>
   );
 }
 

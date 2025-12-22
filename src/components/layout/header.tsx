@@ -2,13 +2,12 @@
 
 /**
  * App header component
- * Logo, title, user menu/admin switcher, and currency/language settings
+ * Logo, title, user menu/admin switcher, and settings
  */
 
 import { AdminUserSwitcher } from './admin-user-switcher';
 import { UserMenu } from './user-menu';
-import { CurrencySelector } from './currency-selector';
-import { LanguageSelector } from './language-selector';
+import { SettingsSheet } from './settings-sheet';
 import { useAuth } from '@/hooks/use-current-user';
 import { Wallet, Eye } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -34,33 +33,27 @@ export function Header() {
 
           {/* Only show controls when authenticated */}
           {authUser && (
-            <>
-              {/* Language Selector */}
-              <LanguageSelector />
+            <div className="flex items-center gap-1">
+              {/* Settings (theme, language, currency) */}
+              <SettingsSheet />
 
               {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" aria-hidden="true" />
-
-              {/* Currency Selector */}
-              <CurrencySelector />
-
-              {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" aria-hidden="true" />
+              <div className="h-6 w-px bg-border mx-1" aria-hidden="true" />
 
               {/* User Menu - for admins show switcher, for regular users show simple menu */}
               {isAdmin ? <AdminUserSwitcher /> : <UserMenu />}
-            </>
+            </div>
           )}
         </div>
       </header>
 
       {/* View-as banner for admins */}
       {isViewingAsOther && (
-        <div className="sticky top-14 z-40 bg-amber-500/10 border-b border-amber-500/20 overflow-x-hidden">
+        <div className="sticky top-14 z-40 bg-warning/10 border-b border-warning/20 overflow-x-hidden">
           <div className="w-full max-w-4xl mx-auto px-4 py-2">
             <div className="flex items-center gap-2 text-sm">
-              <Eye className="h-4 w-4 text-amber-500 flex-shrink-0" />
-              <p className="text-amber-700 dark:text-amber-300">
+              <Eye className="h-4 w-4 text-warning flex-shrink-0" />
+              <p className="text-warning-foreground">
                 <span className="font-medium">{t('viewOnlyMode')}</span> {t('viewingAs')}{' '}
                 <span className="font-semibold">{viewingAs?.name}</span>.
                 {!canWrite && ` ${t('actionsDisabled')}`}

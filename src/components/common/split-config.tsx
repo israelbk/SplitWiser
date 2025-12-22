@@ -291,7 +291,7 @@ export function SplitConfig({
                 {/* Payment validation */}
                 <div className={cn(
                   "mt-4 p-4 rounded-xl text-sm font-medium",
-                  isPaymentValid ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  isPaymentValid ? "bg-success/10 text-success" : "bg-warning/10 text-warning-foreground"
                 )}>
                   {isPaymentValid ? (
                     <div className="flex items-center gap-2">
@@ -432,7 +432,7 @@ export function SplitConfig({
                 {/* Split validation */}
                 <div className={cn(
                   "mt-4 p-4 rounded-xl text-sm font-medium",
-                  isSplitValid ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  isSplitValid ? "bg-success/10 text-success" : "bg-warning/10 text-warning-foreground"
                 )}>
                   {isSplitValid ? (
                     <div className="flex items-center gap-2">

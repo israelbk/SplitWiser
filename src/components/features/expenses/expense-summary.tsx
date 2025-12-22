@@ -420,7 +420,8 @@ export function ExpenseSummary({
                 {Icon ? (
                   <Icon
                     size={16}
-                    style={{ color: category?.color || '#6b7280' }}
+                    className="text-muted-foreground"
+                    style={category?.color ? { color: category.color } : undefined}
                   />
                 ) : (
                   <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center">

@@ -51,9 +51,17 @@
     "usingCurrentRates": "Using current exchange rates"
   },
   "language": {
-    "settings": "Language Settings",
-    "selectLanguage": "Select Language",
+    "settings": "Language",
+    "selectLanguage": "Select your preferred language",
     "currentLanguage": "Current language"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Customize your app preferences",
+    "appearance": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "expenses": {
     "title": "All Expenses",

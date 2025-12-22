@@ -335,9 +335,114 @@ if (error) {
 
 - Use Tailwind CSS v4 with CSS variables
 - Colors defined in `src/app/globals.css`
-- Dark mode supported via `.dark` class
+- Dark mode supported via `.dark` class (managed by `next-themes`)
 - Mobile-first responsive design
 - Use `safe-area-inset-*` for notched devices
+
+## 🌗 Dark Theme Support (REQUIRED)
+
+**All components MUST support both light and dark themes.** The app uses `next-themes` for theme management with system preference detection.
+
+### Theme Architecture
+
+- **ThemeProvider**: Wraps the app in `src/providers/index.tsx`
+- **CSS Variables**: All colors defined as CSS variables in `src/app/globals.css`
+- **Theme Modes**: Light, Dark, and System (auto-detect from OS)
+- **Settings**: Theme toggle available in Settings sheet (gear icon in header)
+
+### Semantic Color Tokens
+
+Use these semantic tokens instead of raw Tailwind colors:
+
+| Token | Use For | Light | Dark |
+|-------|---------|-------|------|
+| `bg-background` | Page backgrounds | Light gray | Dark blue-gray |
+| `bg-card` | Card backgrounds | White | Slightly lighter dark |
+| `text-foreground` | Primary text | Dark | Light |
+| `text-muted-foreground` | Secondary text | Gray | Muted light |
+| `bg-primary` | Primary actions | Purple | Lighter purple |
+| `text-primary` | Primary accent text | Purple | Lighter purple |
+| `bg-destructive` | Delete/error backgrounds | Red | Lighter red |
+| `text-destructive` | Error text | Red | Lighter red |
+| `bg-success` | Success backgrounds | Green | Lighter green |
+| `text-success` | Positive values (balances) | Green | Lighter green |
+| `bg-warning` | Warning backgrounds | Amber | Lighter amber |
+| `text-warning-foreground` | Warning text | Dark amber | Light amber |
+| `border-border` | Default borders | Light gray | Dark gray |
+
+### Color Patterns
+
+```typescript
+// ✅ CORRECT - Use semantic tokens
+<div className="bg-card text-card-foreground border-border">
+<span className="text-success">+$50.00</span>  // Positive balance
+<span className="text-destructive">-$30.00</span>  // Negative balance
+<div className="bg-warning/10 text-warning-foreground">  // Warning state
+
+// ❌ WRONG - Hardcoded colors break in dark mode
+<div className="bg-white text-gray-900 border-gray-200">
+<span className="text-green-600">+$50.00</span>
+<span className="text-red-600">-$30.00</span>
+<div className="bg-amber-100 text-amber-800">
+```
+
+### Dynamic Colors with Opacity
+
+When you need opacity variations of semantic colors:
+
+```typescript
+// ✅ Use with opacity modifier
+<div className="bg-primary/10">  // 10% primary background
+<div className="bg-success/10 text-success">  // Success state
+<div className="bg-destructive/10 border-destructive/30">
+
+// For inline styles with category colors, use fallback patterns:
+<div 
+  className="bg-muted"
+  style={category?.color ? { backgroundColor: `${category.color}20` } : undefined}
+>
+```
+
+### Avoiding Hardcoded Colors
+
+When using inline styles (e.g., for dynamic category colors), ALWAYS provide a theme-aware fallback:
+
+```typescript
+// ✅ CORRECT - className fallback for missing colors
+<Icon
+  className="text-muted-foreground"
+  style={expense.category?.color ? { color: expense.category.color } : undefined}
+/>
+
+// ❌ WRONG - Hardcoded hex fallback
+<Icon style={{ color: expense.category?.color || '#64748b' }} />
+```
+
+### Dark Mode Checklist for New Components
+
+Before submitting any new component:
+
+1. ☐ Uses semantic color tokens (`bg-card`, `text-foreground`, etc.)
+2. ☐ No hardcoded hex colors (`#ffffff`, `#f1f5f9`, etc.)
+3. ☐ No raw Tailwind colors for semantic meaning (`text-green-600`, `text-red-600`)
+4. ☐ Balance/status colors use `text-success`/`text-destructive`
+5. ☐ Warning states use `bg-warning/10 text-warning-foreground`
+6. ☐ Inline styles have className fallbacks
+7. ☐ Tested in BOTH light and dark modes
+
+### Theme-Aware Patterns by Use Case
+
+| Use Case | Pattern |
+|----------|---------|
+| Positive balance | `text-success` |
+| Negative balance | `text-destructive` |
+| Validation success | `bg-success/10 text-success` |
+| Validation warning | `bg-warning/10 text-warning-foreground` |
+| Error message | `text-destructive` |
+| Secondary text | `text-muted-foreground` |
+| Card container | `bg-card border-border` |
+| Hover state | `hover:bg-accent` |
+| Selected state | `border-primary bg-primary/5` |
 
 ## 🌍 Localization & RTL Support (REQUIRED)
 
@@ -443,6 +548,7 @@ Before submitting any new component or feature:
 | `categories` | Category names |
 | `currency` | Currency settings |
 | `language` | Language settings |
+| `settings` | Settings sheet (theme, appearance) |
 | `datePicker` | Date picker placeholders |
 
 ## Environment Variables
@@ -469,6 +575,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 | **Add translations** | `src/locales/{en,he,es}.json` |
 | **RTL icon component** | `src/components/common/rtl-icon.tsx` |
 | **Locale provider** | `src/providers/locale-provider.tsx` |
+| **Theme provider** | `src/providers/index.tsx` (next-themes) |
+| **Settings sheet** | `src/components/layout/settings-sheet.tsx` |
+| **Color tokens** | `src/app/globals.css` (:root and .dark) |
 | DB migrations | `supabase/migrations/` |
 | Run dev server | `pnpm dev` (port 3333) |
 | Build | `pnpm build` |

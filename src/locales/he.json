@@ -51,9 +51,17 @@
     "usingCurrentRates": "משתמש בשערי חליפין עדכניים"
   },
   "language": {
-    "settings": "הגדרות שפה",
-    "selectLanguage": "בחר שפה",
+    "settings": "שפה",
+    "selectLanguage": "בחר את השפה המועדפת עליך",
     "currentLanguage": "שפה נוכחית"
+  },
+  "settings": {
+    "title": "הגדרות",
+    "description": "התאם את העדפות האפליקציה",
+    "appearance": "מראה",
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "אוטומטי"
   },
   "expenses": {
     "title": "כל ההוצאות",

@@ -28,11 +28,12 @@ const groupTypeIcons = {
   other: MoreHorizontal,
 };
 
+// Colors for group type icons - these are brand colors that work in both light/dark modes
 const groupTypeColors = {
-  trip: '#06b6d4',
-  household: '#8b5cf6',
-  couple: '#ec4899',
-  other: '#6b7280',
+  trip: 'oklch(0.65 0.18 195)',      // cyan - vibrant in both modes
+  household: 'oklch(0.6 0.2 290)',   // purple - vibrant in both modes
+  couple: 'oklch(0.65 0.2 350)',     // pink - vibrant in both modes
+  other: 'oklch(0.55 0.02 250)',     // gray - neutral
 };
 
 export function GroupCard({ group, currentUserBalance, className }: GroupCardProps) {

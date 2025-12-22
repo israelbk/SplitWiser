@@ -41,9 +41,9 @@ export function BalanceAmount({
   const isZero = amount === 0;
 
   const colorClass = isPositive
-    ? 'text-green-600'
+    ? 'text-success'
     : isNegative
-    ? 'text-red-600'
+    ? 'text-destructive'
     : 'text-muted-foreground';
 
   const displayAmount = Math.abs(amount);
