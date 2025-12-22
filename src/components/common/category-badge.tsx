@@ -38,8 +38,8 @@ export const iconToTranslationKey: Record<string, string> = {
   'receipt': 'bills',
   'heart-pulse': 'health',
   'plane': 'travel',
-  'shopping-cart': 'shopping',
-  'home': 'other',
+  'shopping-cart': 'groceries',
+  'home': 'housing',
   'more-horizontal': 'other',
 };
 

@@ -3,5 +3,6 @@
  */
 
 export * from './category-manager';
+export * from './create-category-dialog';
 export * from './delete-category-dialog';
 
