@@ -168,7 +168,7 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
 
   /**
    * Update sort orders for multiple categories in batch
-   * Used for drag-and-drop reordering
+   * Used for drag-and-drop reordering of custom categories only
    */
   async updateSortOrders(updates: { id: string; sortOrder: number }[]): Promise<void> {
     if (updates.length === 0) return;
@@ -189,6 +189,87 @@ export class CategoryRepository extends BaseRepository<CategoryRow, Category, Ca
     if (errors.length > 0) {
       throw new Error(`Failed to update sort orders: ${errors[0].error?.message}`);
     }
+  }
+
+  /**
+   * Get user-specific category sort orders
+   * Returns a map of categoryId -> sortOrder
+   */
+  async getUserCategoryOrders(userId: string): Promise<Map<string, number>> {
+    const { data, error } = await this.client
+      .from('user_category_orders')
+      .select('category_id, sort_order')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to fetch user category orders: ${error.message}`);
+    }
+
+    const orderMap = new Map<string, number>();
+    for (const row of data || []) {
+      orderMap.set(row.category_id, row.sort_order);
+    }
+    return orderMap;
+  }
+
+  /**
+   * Upsert a user's category sort order
+   * Used for drag-and-drop reordering
+   */
+  async upsertUserCategoryOrder(
+    userId: string, 
+    categoryId: string, 
+    sortOrder: number
+  ): Promise<void> {
+    const { error } = await this.client
+      .from('user_category_orders')
+      .upsert(
+        { 
+          user_id: userId, 
+          category_id: categoryId, 
+          sort_order: sortOrder,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id,category_id' }
+      );
+
+    if (error) {
+      throw new Error(`Failed to update user category order: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get categories for a user with their custom sort orders applied
+   */
+  async findByUserWithCustomOrder(userId: string): Promise<Category[]> {
+    // Get all categories the user can see
+    const { data: categories, error: catError } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .or(`is_system.eq.true,created_by.eq.${userId}`);
+
+    if (catError) {
+      throw new Error(`Failed to fetch categories: ${catError.message}`);
+    }
+
+    // Get user's custom sort orders
+    const userOrders = await this.getUserCategoryOrders(userId);
+
+    // Map and apply user's sort orders, falling back to default sort_order
+    const categoriesWithOrder = (categories as CategoryRow[]).map((row) => {
+      const category = this.fromRow(row);
+      // Use user's custom order if exists, otherwise use default
+      const customOrder = userOrders.get(category.id);
+      return {
+        ...category,
+        sortOrder: customOrder !== undefined ? customOrder : category.sortOrder,
+      };
+    });
+
+    // Sort by the effective sort order
+    categoriesWithOrder.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    return categoriesWithOrder;
   }
 }
 

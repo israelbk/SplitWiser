@@ -22,9 +22,10 @@ export class CategoryService {
 
   /**
    * Get categories for a specific user (system + user's custom categories)
+   * Returns categories with user's custom sort order applied
    */
   async getCategoriesForUser(userId: string): Promise<Category[]> {
-    return this.repository.findByUser(userId);
+    return this.repository.findByUserWithCustomOrder(userId);
   }
 
   /**
@@ -140,9 +141,8 @@ export class CategoryService {
 
   /**
    * Reorder categories for a user
-   * Updates the sort_order of the specified categories
-   * Allows reordering both system and custom categories
-   * Note: For POC - system category order changes affect all users
+   * Stores user-specific sort order in user_category_orders table
+   * This allows each user to have their own category ordering
    */
   async reorderCategories(
     userId: string,
@@ -155,14 +155,18 @@ export class CategoryService {
     const categories = await this.repository.findByIds(categoryIds);
 
     for (const category of categories) {
-      // Custom categories must belong to the user
+      // Custom categories must belong to the user (can't reorder someone else's category)
       if (!category.isSystem && category.createdBy !== userId) {
         throw new Error('Cannot reorder categories created by another user');
       }
     }
 
-    // Perform the batch update
-    await this.repository.updateSortOrders(categoryOrders);
+    // Store user-specific sort orders (works for both system and custom categories)
+    const promises = categoryOrders.map(({ id, sortOrder }) =>
+      this.repository.upsertUserCategoryOrder(userId, id, sortOrder)
+    );
+    
+    await Promise.all(promises);
   }
 }
 
