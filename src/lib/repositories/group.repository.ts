@@ -32,6 +32,7 @@ interface GroupUpdateRow {
   default_currency?: string;
   cover_image_url?: string;
   is_archived?: boolean;
+  is_deleted?: boolean;
 }
 
 interface GroupMemberCreateRow {
@@ -50,9 +51,72 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
   }
 
   /**
-   * Get all groups for a user
+   * Override findById to exclude deleted groups
    */
-  async findByUserId(userId: string): Promise<Group[]> {
+  async findById(id: string): Promise<Group | null> {
+    const { data, error } = await this.client
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found or deleted
+      }
+      throw new Error(`Failed to fetch group by id: ${error.message}`);
+    }
+
+    return this.fromRow(data as GroupRow);
+  }
+
+  /**
+   * Get all groups for a user
+   * @param userId - The user ID
+   * @param includeArchived - Whether to include archived groups (default: false)
+   * Note: Deleted groups are always excluded
+   */
+  async findByUserId(userId: string, includeArchived: boolean = false): Promise<Group[]> {
+    const { data, error } = await this.client
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to fetch user groups: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    const groupIds = data.map((m) => m.group_id);
+
+    let query = this.client
+      .from(this.tableName)
+      .select('*')
+      .in('id', groupIds)
+      .eq('is_deleted', false); // Always exclude deleted groups
+    
+    if (!includeArchived) {
+      query = query.eq('is_archived', false);
+    }
+    
+    const { data: groups, error: groupsError } = await query.order('created_at', { ascending: false });
+
+    if (groupsError) {
+      throw new Error(`Failed to fetch groups: ${groupsError.message}`);
+    }
+
+    return (groups as GroupRow[]).map((row) => this.fromRow(row));
+  }
+
+  /**
+   * Get archived groups for a user
+   * Note: Deleted groups are always excluded
+   */
+  async findArchivedByUserId(userId: string): Promise<Group[]> {
     const { data, error } = await this.client
       .from('group_members')
       .select('group_id')
@@ -72,24 +136,26 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
       .from(this.tableName)
       .select('*')
       .in('id', groupIds)
-      .eq('is_archived', false)
+      .eq('is_archived', true)
+      .eq('is_deleted', false) // Exclude deleted groups
       .order('created_at', { ascending: false });
 
     if (groupsError) {
-      throw new Error(`Failed to fetch groups: ${groupsError.message}`);
+      throw new Error(`Failed to fetch archived groups: ${groupsError.message}`);
     }
 
     return (groups as GroupRow[]).map((row) => this.fromRow(row));
   }
 
   /**
-   * Get non-archived groups
+   * Get non-archived, non-deleted groups
    */
   async findActive(): Promise<Group[]> {
     const { data, error } = await this.client
       .from(this.tableName)
       .select('*')
       .eq('is_archived', false)
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -101,22 +167,44 @@ export class GroupRepository extends BaseRepository<GroupRow, Group, GroupCreate
 
   /**
    * Find multiple groups by IDs in a single query (batch)
+   * Note: Deleted groups are excluded by default
    */
-  async findByIds(ids: string[]): Promise<Group[]> {
+  async findByIds(ids: string[], includeDeleted: boolean = false): Promise<Group[]> {
     if (ids.length === 0) {
       return [];
     }
 
-    const { data, error } = await this.client
+    let query = this.client
       .from(this.tableName)
       .select('*')
       .in('id', ids);
+    
+    if (!includeDeleted) {
+      query = query.eq('is_deleted', false);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Failed to fetch groups by IDs: ${error.message}`);
     }
 
     return (data as GroupRow[]).map(row => this.fromRow(row));
+  }
+
+  /**
+   * Soft delete a group (sets is_deleted = true)
+   * Does not actually remove data from the database
+   */
+  async softDelete(id: string): Promise<void> {
+    const { error } = await this.client
+      .from(this.tableName)
+      .update({ is_deleted: true })
+      .eq('id', id);
+
+    if (error) {
+      throw new Error(`Failed to delete group: ${error.message}`);
+    }
   }
 
   /**

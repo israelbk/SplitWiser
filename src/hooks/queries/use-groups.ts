@@ -21,11 +21,12 @@ export function useGroups() {
 
 /**
  * Get groups for a specific user
+ * @param includeArchived - Whether to include archived groups (default: false)
  */
-export function useGroupsForUser(userId: string | undefined) {
+export function useGroupsForUser(userId: string | undefined, includeArchived: boolean = false) {
   return useQuery({
-    queryKey: queryKeys.groups.forUser(userId!),
-    queryFn: () => groupService.getGroupsForUser(userId!),
+    queryKey: [...queryKeys.groups.forUser(userId!), { includeArchived }] as const,
+    queryFn: () => groupService.getGroupsForUser(userId!, includeArchived),
     enabled: !!userId,
   });
 }
@@ -33,11 +34,23 @@ export function useGroupsForUser(userId: string | undefined) {
 /**
  * Get groups for a specific user WITH members (optimized batch query)
  * This is MUCH faster than fetching each group's members separately
+ * @param includeArchived - Whether to include archived groups (default: false)
  */
-export function useGroupsForUserWithMembers(userId: string | undefined) {
+export function useGroupsForUserWithMembers(userId: string | undefined, includeArchived: boolean = false) {
   return useQuery({
-    queryKey: [...queryKeys.groups.forUser(userId!), 'withMembers'] as const,
-    queryFn: () => groupService.getGroupsForUserWithMembers(userId!),
+    queryKey: [...queryKeys.groups.forUser(userId!), 'withMembers', { includeArchived }] as const,
+    queryFn: () => groupService.getGroupsForUserWithMembers(userId!, includeArchived),
+    enabled: !!userId,
+  });
+}
+
+/**
+ * Get archived groups for a specific user
+ */
+export function useArchivedGroupsForUser(userId: string | undefined) {
+  return useQuery({
+    queryKey: [...queryKeys.groups.forUser(userId!), 'archived'] as const,
+    queryFn: () => groupService.getArchivedGroupsForUser(userId!),
     enabled: !!userId,
   });
 }
@@ -123,7 +136,23 @@ export function useArchiveGroup() {
 }
 
 /**
+ * Unarchive group mutation
+ */
+export function useUnarchiveGroup() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => groupService.unarchiveGroup(id),
+    onSuccess: (group) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.detail(group.id) });
+    },
+  });
+}
+
+/**
  * Delete group mutation
+ * This permanently deletes the group and all its expenses
  */
 export function useDeleteGroup() {
   const queryClient = useQueryClient();
@@ -131,7 +160,11 @@ export function useDeleteGroup() {
   return useMutation({
     mutationFn: (id: string) => groupService.deleteGroup(id),
     onSuccess: () => {
+      // Invalidate all group queries
       queryClient.invalidateQueries({ queryKey: queryKeys.groups.all });
+      // Also invalidate expense queries since group expenses are deleted
+      // Use partial matching to invalidate all expense queries
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
   });
 }

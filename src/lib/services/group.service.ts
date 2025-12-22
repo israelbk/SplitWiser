@@ -31,9 +31,18 @@ export class GroupService {
 
   /**
    * Get groups for a specific user
+   * @param userId - The user ID
+   * @param includeArchived - Whether to include archived groups (default: false)
    */
-  async getGroupsForUser(userId: string): Promise<Group[]> {
-    return this.repository.findByUserId(userId);
+  async getGroupsForUser(userId: string, includeArchived: boolean = false): Promise<Group[]> {
+    return this.repository.findByUserId(userId, includeArchived);
+  }
+
+  /**
+   * Get archived groups for a specific user
+   */
+  async getArchivedGroupsForUser(userId: string): Promise<Group[]> {
+    return this.repository.findArchivedByUserId(userId);
   }
 
   /**
@@ -114,9 +123,11 @@ export class GroupService {
 
   /**
    * Get groups for a user WITH members already populated (optimized)
+   * @param userId - The user ID
+   * @param includeArchived - Whether to include archived groups (default: false)
    */
-  async getGroupsForUserWithMembers(userId: string): Promise<GroupWithMembers[]> {
-    const groups = await this.repository.findByUserId(userId);
+  async getGroupsForUserWithMembers(userId: string, includeArchived: boolean = false): Promise<GroupWithMembers[]> {
+    const groups = await this.repository.findByUserId(userId, includeArchived);
     if (groups.length === 0) return [];
     
     return this.getGroupsWithMembers(groups.map(g => g.id));
@@ -144,10 +155,19 @@ export class GroupService {
   }
 
   /**
-   * Delete a group
+   * Unarchive a group
+   */
+  async unarchiveGroup(id: string): Promise<Group> {
+    return this.repository.updateGroup(id, { isArchived: false });
+  }
+
+  /**
+   * Soft delete a group
+   * The group and its expenses remain in the database but are marked as deleted
+   * Expenses from deleted groups will not appear in user expense lists
    */
   async deleteGroup(id: string): Promise<void> {
-    return this.repository.delete(id);
+    return this.repository.softDelete(id);
   }
 
   /**

@@ -144,7 +144,10 @@
     "groupNotFound": "הקבוצה לא נמצאה",
     "backToGroups": "חזרה לקבוצות",
     "groupCreated": "הקבוצה נוצרה",
-    "failedToCreate": "שגיאה ביצירת הקבוצה"
+    "failedToCreate": "שגיאה ביצירת הקבוצה",
+    "showArchived": "הצג קבוצות בארכיון",
+    "archivedGroups": "קבוצות בארכיון",
+    "archived": "בארכיון"
   },
   "groupForm": {
     "title": "יצירת קבוצה",
@@ -182,7 +185,24 @@
     "defaultCurrency": "מטבע ברירת מחדל",
     "defaultCurrencyHint": "משמש להוצאות חדשות ולחישובי יתרות",
     "groupUpdated": "הקבוצה עודכנה",
-    "failedToUpdate": "עדכון הקבוצה נכשל"
+    "failedToUpdate": "עדכון הקבוצה נכשל",
+    "dangerZone": "אזור סכנה",
+    "archiveGroup": "העבר לארכיון",
+    "unarchiveGroup": "שחזר קבוצה",
+    "deleteGroup": "מחק קבוצה",
+    "archiveConfirmTitle": "העברה לארכיון",
+    "archiveConfirmDescription": "האם להעביר את \"{name}\" לארכיון? הקבוצה תוסתר אך כל ההוצאות עדיין יופיעו בהיסטוריית ההוצאות האישית שלך.",
+    "unarchiveConfirmTitle": "שחזור קבוצה",
+    "unarchiveConfirmDescription": "האם לשחזר את \"{name}\"? הקבוצה תופיע שוב ברשימת הקבוצות הפעילות שלך.",
+    "deleteConfirmTitle": "מחיקת קבוצה",
+    "deleteConfirmDescription": "האם למחוק לצמיתות את \"{name}\"?",
+    "deleteWarning": "⚠️ אזהרה: כל הוצאות הקבוצה יימחקו לצמיתות ולא יופיעו יותר בהיסטוריית ההוצאות של אף אחד. לא ניתן לבטל פעולה זו.",
+    "groupArchived": "הקבוצה הועברה לארכיון",
+    "groupUnarchived": "הקבוצה שוחזרה",
+    "groupDeleted": "הקבוצה נמחקה",
+    "failedToArchive": "העברה לארכיון נכשלה",
+    "failedToUnarchive": "שחזור הקבוצה נכשל",
+    "failedToDelete": "מחיקת הקבוצה נכשלה"
   },
   "addMembers": {
     "title": "הוספת חברים",

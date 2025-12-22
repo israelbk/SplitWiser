@@ -24,10 +24,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   useAddGroupMember,
+  useArchiveGroup,
   useCreateExpense,
   useDeleteExpense,
+  useDeleteGroup,
   useGroupExpenses,
   useGroupWithMembers,
+  useUnarchiveGroup,
   useUpdateExpense,
   useUpdateGroup,
 } from '@/hooks/queries';
@@ -53,6 +56,9 @@ export default function GroupDetailPage() {
   const deleteExpense = useDeleteExpense();
   const addMember = useAddGroupMember();
   const updateGroup = useUpdateGroup();
+  const archiveGroup = useArchiveGroup();
+  const unarchiveGroup = useUnarchiveGroup();
+  const deleteGroup = useDeleteGroup();
   const t = useTranslations('expenses');
   const tGroups = useTranslations('groups');
   const tGroupDetail = useTranslations('groupDetail');
@@ -208,6 +214,41 @@ export default function GroupDetailPage() {
       setIsSettingsOpen(false);
     } catch (error) {
       toast.error(tGroupSettings('failedToUpdate'));
+    }
+  };
+
+  const handleArchiveGroup = async () => {
+    if (!group) return;
+
+    try {
+      await archiveGroup.mutateAsync(group.id);
+      toast.success(tGroupSettings('groupArchived'));
+      router.push('/groups');
+    } catch (error) {
+      toast.error(tGroupSettings('failedToArchive'));
+    }
+  };
+
+  const handleUnarchiveGroup = async () => {
+    if (!group) return;
+
+    try {
+      await unarchiveGroup.mutateAsync(group.id);
+      toast.success(tGroupSettings('groupUnarchived'));
+    } catch (error) {
+      toast.error(tGroupSettings('failedToUnarchive'));
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!group) return;
+
+    try {
+      await deleteGroup.mutateAsync(group.id);
+      toast.success(tGroupSettings('groupDeleted'));
+      router.push('/groups');
+    } catch (error) {
+      toast.error(tGroupSettings('failedToDelete'));
     }
   };
 
@@ -406,13 +447,19 @@ export default function GroupDetailPage() {
           open={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
           onSubmit={handleUpdateGroup}
+          onArchive={handleArchiveGroup}
+          onUnarchive={handleUnarchiveGroup}
+          onDelete={handleDeleteGroup}
           group={{
             name: group.name,
             description: group.description,
             type: group.type,
             defaultCurrency: group.defaultCurrency,
+            isArchived: group.isArchived,
           }}
           isLoading={updateGroup.isPending}
+          isArchiving={archiveGroup.isPending || unarchiveGroup.isPending}
+          isDeleting={deleteGroup.isPending}
         />
       )}
     </AppShell>

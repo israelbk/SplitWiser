@@ -144,7 +144,10 @@
     "groupNotFound": "Group not found",
     "backToGroups": "Back to groups",
     "groupCreated": "Group created",
-    "failedToCreate": "Failed to create group"
+    "failedToCreate": "Failed to create group",
+    "showArchived": "Show archived groups",
+    "archivedGroups": "Archived Groups",
+    "archived": "Archived"
   },
   "groupForm": {
     "title": "Create Group",
@@ -182,7 +185,24 @@
     "defaultCurrency": "Default Currency",
     "defaultCurrencyHint": "Used for new expenses and balance calculations",
     "groupUpdated": "Group updated",
-    "failedToUpdate": "Failed to update group"
+    "failedToUpdate": "Failed to update group",
+    "dangerZone": "Danger Zone",
+    "archiveGroup": "Archive Group",
+    "unarchiveGroup": "Restore Group",
+    "deleteGroup": "Delete Group",
+    "archiveConfirmTitle": "Archive Group",
+    "archiveConfirmDescription": "Are you sure you want to archive \"{name}\"? The group will be hidden but all expenses will still appear in your personal expense history.",
+    "unarchiveConfirmTitle": "Restore Group",
+    "unarchiveConfirmDescription": "Are you sure you want to restore \"{name}\"? The group will appear in your active groups list again.",
+    "deleteConfirmTitle": "Delete Group",
+    "deleteConfirmDescription": "Are you sure you want to permanently delete \"{name}\"?",
+    "deleteWarning": "⚠️ Warning: All group expenses will be permanently deleted and will no longer appear in anyone's expense history. This action cannot be undone.",
+    "groupArchived": "Group archived",
+    "groupUnarchived": "Group restored",
+    "groupDeleted": "Group deleted",
+    "failedToArchive": "Failed to archive group",
+    "failedToUnarchive": "Failed to restore group",
+    "failedToDelete": "Failed to delete group"
   },
   "addMembers": {
     "title": "Add Members",

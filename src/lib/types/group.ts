@@ -13,6 +13,7 @@ export interface Group {
   defaultCurrency: string;
   coverImageUrl?: string;
   isArchived: boolean;
+  isDeleted: boolean;
   createdBy: string;
   createdAt: Date;
   // Relations (loaded separately)
@@ -62,6 +63,7 @@ export interface GroupRow {
   default_currency: string;
   cover_image_url: string | null;
   is_archived: boolean;
+  is_deleted: boolean;
   created_by: string;
   created_at: string;
 }
@@ -83,6 +85,7 @@ export function groupFromRow(row: GroupRow): Group {
     defaultCurrency: row.default_currency,
     coverImageUrl: row.cover_image_url ?? undefined,
     isArchived: row.is_archived,
+    isDeleted: row.is_deleted,
     createdBy: row.created_by,
     createdAt: new Date(row.created_at),
   };

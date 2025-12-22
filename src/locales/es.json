@@ -144,7 +144,10 @@
     "groupNotFound": "Grupo no encontrado",
     "backToGroups": "Volver a grupos",
     "groupCreated": "Grupo creado",
-    "failedToCreate": "Error al crear el grupo"
+    "failedToCreate": "Error al crear el grupo",
+    "showArchived": "Mostrar grupos archivados",
+    "archivedGroups": "Grupos Archivados",
+    "archived": "Archivado"
   },
   "groupForm": {
     "title": "Crear grupo",
@@ -182,7 +185,24 @@
     "defaultCurrency": "Moneda predeterminada",
     "defaultCurrencyHint": "Se usa para nuevos gastos y cálculos de balance",
     "groupUpdated": "Grupo actualizado",
-    "failedToUpdate": "Error al actualizar el grupo"
+    "failedToUpdate": "Error al actualizar el grupo",
+    "dangerZone": "Zona de Peligro",
+    "archiveGroup": "Archivar Grupo",
+    "unarchiveGroup": "Restaurar Grupo",
+    "deleteGroup": "Eliminar Grupo",
+    "archiveConfirmTitle": "Archivar Grupo",
+    "archiveConfirmDescription": "¿Estás seguro de que quieres archivar \"{name}\"? El grupo se ocultará pero todos los gastos seguirán apareciendo en tu historial de gastos personal.",
+    "unarchiveConfirmTitle": "Restaurar Grupo",
+    "unarchiveConfirmDescription": "¿Estás seguro de que quieres restaurar \"{name}\"? El grupo aparecerá de nuevo en tu lista de grupos activos.",
+    "deleteConfirmTitle": "Eliminar Grupo",
+    "deleteConfirmDescription": "¿Estás seguro de que quieres eliminar permanentemente \"{name}\"?",
+    "deleteWarning": "⚠️ Advertencia: Todos los gastos del grupo serán eliminados permanentemente y ya no aparecerán en el historial de gastos de nadie. Esta acción no se puede deshacer.",
+    "groupArchived": "Grupo archivado",
+    "groupUnarchived": "Grupo restaurado",
+    "groupDeleted": "Grupo eliminado",
+    "failedToArchive": "Error al archivar el grupo",
+    "failedToUnarchive": "Error al restaurar el grupo",
+    "failedToDelete": "Error al eliminar el grupo"
   },
   "addMembers": {
     "title": "Añadir miembros",

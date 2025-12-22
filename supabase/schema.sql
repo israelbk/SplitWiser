@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS groups (
   default_currency TEXT DEFAULT 'ILS',
   cover_image_url TEXT,
   is_archived BOOLEAN DEFAULT false,
+  is_deleted BOOLEAN DEFAULT false,
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -131,6 +132,12 @@ CREATE INDEX IF NOT EXISTS idx_expense_splits_user ON expense_splits(user_id);
 CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
 -- Exchange rates composite lookup
 CREATE INDEX IF NOT EXISTS idx_exchange_rates_lookup ON exchange_rates(base_currency, target_currency, rate_date);
+-- Group status indexes (for archived/deleted filtering)
+CREATE INDEX IF NOT EXISTS idx_groups_is_archived ON groups(is_archived) WHERE is_archived = true;
+CREATE INDEX IF NOT EXISTS idx_groups_is_deleted ON groups(is_deleted) WHERE is_deleted = true;
+CREATE INDEX IF NOT EXISTS idx_groups_active ON groups(is_archived, is_deleted) WHERE is_archived = false AND is_deleted = false;
+-- Index on expenses.group_id for faster joins when filtering by group status
+CREATE INDEX IF NOT EXISTS idx_expenses_group_id ON expenses(group_id) WHERE group_id IS NOT NULL;
 
 -- Enable Row Level Security (for future auth)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;

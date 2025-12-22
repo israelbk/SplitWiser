@@ -328,6 +328,7 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
   /**
    * Get all expenses where a user has a split (both personal and group)
+   * Excludes expenses from deleted groups (group has is_deleted = true)
    */
   async findAllUserExpenses(userId: string): Promise<Expense[]> {
     // Get expense IDs where user has a split
@@ -346,10 +347,10 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
 
     const expenseIds = splitData.map((s) => s.expense_id);
 
-    // Get all those expenses
+    // Get all those expenses with group info to check if group is deleted
     const { data, error } = await this.client
       .from(this.tableName)
-      .select('*')
+      .select('*, groups(id, is_deleted)')
       .in('id', expenseIds)
       .order('date', { ascending: false });
 
@@ -357,7 +358,16 @@ export class ExpenseRepository extends BaseRepository<ExpenseRow, Expense, Expen
       throw new Error(`Failed to fetch user expenses: ${error.message}`);
     }
 
-    return (data as ExpenseRow[]).map((row) => this.fromRow(row));
+    // Filter out expenses where group is deleted
+    const validExpenses = (data as (ExpenseRow & { groups: { id: string; is_deleted: boolean } | null })[])
+      .filter((row) => {
+        // Personal expense (no group) - always include
+        if (!row.group_id) return true;
+        // Group expense - only include if group exists and is not deleted
+        return row.groups !== null && !row.groups.is_deleted;
+      });
+
+    return validExpenses.map((row) => this.fromRow(row as ExpenseRow));
   }
 
   /**

@@ -9,7 +9,8 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { UserAvatar, BalanceAmount, DirectionalIcon } from '@/components/common';
-import { Plane, Home, Heart, MoreHorizontal } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plane, Home, Heart, MoreHorizontal, Archive } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GroupWithMembers } from '@/lib/services';
 import { useTranslations } from 'next-intl';
@@ -36,6 +37,7 @@ const groupTypeColors = {
 
 export function GroupCard({ group, currentUserBalance, className }: GroupCardProps) {
   const t = useTranslations('groupForm');
+  const tGroups = useTranslations('groups');
   const Icon = groupTypeIcons[group.type] || MoreHorizontal;
   const iconColor = groupTypeColors[group.type] || '#6b7280';
   const hasBalance = currentUserBalance !== undefined && currentUserBalance !== 0;
@@ -45,23 +47,36 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
       <Card
         className={cn(
           'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
+          group.isArchived && 'opacity-75 border-dashed',
           className
         )}
       >
         <div className="flex gap-3">
           {/* Group Icon */}
           <div
-            className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
+            className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative"
             style={{ backgroundColor: `${iconColor}15` }}
           >
             <Icon size={22} style={{ color: iconColor }} />
+            {group.isArchived && (
+              <div className="absolute -bottom-1 -end-1 bg-muted rounded-full p-0.5">
+                <Archive className="h-3 w-3 text-muted-foreground" />
+              </div>
+            )}
           </div>
 
           {/* Content Area */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            {/* Top Row: Name + Balance */}
+            {/* Top Row: Name + Badge + Balance */}
             <div className="flex items-center justify-between gap-2">
-              <h3 className="font-semibold text-base truncate">{group.name}</h3>
+              <div className="flex items-center gap-2 min-w-0">
+                <h3 className="font-semibold text-base truncate">{group.name}</h3>
+                {group.isArchived && (
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0 flex-shrink-0">
+                    {tGroups('archived')}
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 {hasBalance && (
                   <BalanceAmount amount={currentUserBalance} size="sm" />
