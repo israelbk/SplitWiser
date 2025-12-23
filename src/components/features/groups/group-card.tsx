@@ -4,24 +4,16 @@
  * Group card component
  * Displays a group with member avatars and balance preview
  * Mobile-first responsive design
- * Long-press to show settings
+ * Long-press to open settings directly
  * Shows loading indicator when navigating
  */
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { UserAvatar, BalanceAmount, DirectionalIcon } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
-import { Plane, Home, Heart, MoreHorizontal, Archive, Settings, Loader2 } from 'lucide-react';
+import { Plane, Home, Heart, MoreHorizontal, Archive, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GroupWithMembers } from '@/lib/services';
 import { useTranslations } from 'next-intl';
@@ -55,14 +47,11 @@ export function GroupCard({ group, currentUserBalance, className, onSettings }: 
   const router = useRouter();
   const t = useTranslations('groupForm');
   const tGroups = useTranslations('groups');
-  const tCommon = useTranslations('common');
-  const tGroupCard = useTranslations('groupCard');
   const Icon = groupTypeIcons[group.type] || MoreHorizontal;
   const iconColor = groupTypeColors[group.type] || '#6b7280';
   const hasBalance = currentUserBalance !== undefined && currentUserBalance !== 0;
 
   // Long press and loading states
-  const [showActionDialog, setShowActionDialog] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
@@ -83,9 +72,8 @@ export function GroupCard({ group, currentUserBalance, className, onSettings }: 
       if ('vibrate' in navigator) {
         navigator.vibrate(50);
       }
-      if (onSettings) {
-        setShowActionDialog(true);
-      }
+      // Open settings directly on long press
+      onSettings?.();
     }, LONG_PRESS_DURATION);
   }, [onSettings]);
 
@@ -136,44 +124,7 @@ export function GroupCard({ group, currentUserBalance, className, onSettings }: 
   };
 
   return (
-    <>
-      {/* Long Press Action Dialog */}
-      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
-        <DialogContent className="max-w-[300px] p-4" showCloseButton={false}>
-          <DialogHeader className="pb-2">
-            <DialogTitle className="text-center truncate text-base">
-              {group.name}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              {tGroupCard('chooseAction')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            {onSettings && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2"
-                onClick={() => {
-                  setShowActionDialog(false);
-                  onSettings();
-                }}
-              >
-                <Settings className="h-4 w-4" />
-                {tGroupCard('settings')}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => setShowActionDialog(false)}
-            >
-              {tCommon('cancel')}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Card
+    <Card
         className={cn(
           'p-4 hover:bg-accent/50 transition-colors cursor-pointer select-none',
           group.isArchived && 'opacity-75 border-dashed',
@@ -256,7 +207,6 @@ export function GroupCard({ group, currentUserBalance, className, onSettings }: 
           </div>
         </div>
       </Card>
-    </>
   );
 }
 
