@@ -15,6 +15,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -84,36 +85,38 @@ export function CreateCategoryDialog({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-auto max-h-[400px] flex flex-col px-0">
+      <SheetContent side="bottom" className="h-[60vh] max-h-[450px] flex flex-col px-0">
         <SheetHeader className="px-4 sm:px-6 text-start flex-shrink-0">
           <SheetTitle>{t('newCategory')}</SheetTitle>
           <SheetDescription>{t('newCategoryDescription')}</SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-4 px-4 sm:px-6 py-4">
-          {/* Icon and Color pickers side by side */}
-          <div className="flex items-start gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">{t('icon')}</Label>
-              <IconPicker value={icon} onChange={setIcon} color={color} />
+        <ScrollArea className="flex-1 mt-4">
+          <div className="space-y-4 px-4 sm:px-6 pb-4">
+            {/* Icon and Color pickers side by side */}
+            <div className="flex items-start gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t('icon')}</Label>
+                <IconPicker value={icon} onChange={setIcon} color={color} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{t('color')}</Label>
+                <ColorPicker value={color} onChange={setColor} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">{t('color')}</Label>
-              <ColorPicker value={color} onChange={setColor} />
-            </div>
-          </div>
 
-          {/* Category name input */}
-          <div className="space-y-2">
-            <Label htmlFor="category-name">{t('categoryName')}</Label>
-            <Input
-              id="category-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('namePlaceholder')}
-            />
+            {/* Category name input */}
+            <div className="space-y-2">
+              <Label htmlFor="category-name">{t('categoryName')}</Label>
+              <Input
+                id="category-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('namePlaceholder')}
+              />
+            </div>
           </div>
-        </div>
+        </ScrollArea>
 
         <SheetFooter className="flex-shrink-0 px-4 sm:px-6 pt-4 border-t flex-row gap-2 sm:justify-end">
           <Button

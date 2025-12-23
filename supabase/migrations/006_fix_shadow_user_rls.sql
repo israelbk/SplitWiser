@@ -124,3 +124,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION link_shadow_user(TEXT, UUID, TEXT, TEXT) TO authenticated;
 
 
+
