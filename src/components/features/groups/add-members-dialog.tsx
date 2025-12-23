@@ -7,13 +7,14 @@
 
 import { useState, useMemo } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { MemberPicker } from '@/components/common';
 import { User } from '@/lib/types';
@@ -70,34 +71,38 @@ export function AddMembersDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
-          <DialogDescription>{t('description')}</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetContent side="bottom" className="h-[70vh] max-h-[500px] flex flex-col px-0">
+        <SheetHeader className="px-4 sm:px-6 text-start flex-shrink-0">
+          <SheetTitle>{t('title')}</SheetTitle>
+          <SheetDescription>{t('description')}</SheetDescription>
+        </SheetHeader>
 
-        <div className="py-4">
-          <MemberPicker
-            currentUser={currentUser}
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-            existingMembers={existingMembers}
-          />
-        </div>
+        <ScrollArea className="flex-1 mt-4">
+          <div className="px-4 sm:px-6 pb-4">
+            <MemberPicker
+              currentUser={currentUser}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              existingMembers={existingMembers}
+            />
+          </div>
+        </ScrollArea>
 
-        <DialogFooter>
+        <SheetFooter className="flex-shrink-0 px-4 sm:px-6 pt-4 border-t flex-row gap-2 sm:justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
+            className="flex-1 sm:flex-none"
           >
             {tCommon('cancel')}
           </Button>
           <Button 
             onClick={handleSubmit} 
             disabled={isLoading || newMemberIds.length === 0}
+            className="flex-1 sm:flex-none"
           >
             {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {newMemberIds.length > 0 
@@ -105,9 +110,9 @@ export function AddMembersDialog({
               : tCommon('done')
             }
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

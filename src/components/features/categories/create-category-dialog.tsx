@@ -8,13 +8,13 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,14 +83,14 @@ export function CreateCategoryDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('newCategory')}</DialogTitle>
-          <DialogDescription>{t('newCategoryDescription')}</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="h-auto max-h-[400px] flex flex-col px-0">
+        <SheetHeader className="px-4 sm:px-6 text-start flex-shrink-0">
+          <SheetTitle>{t('newCategory')}</SheetTitle>
+          <SheetDescription>{t('newCategoryDescription')}</SheetDescription>
+        </SheetHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 px-4 sm:px-6 py-4">
           {/* Icon and Color pickers side by side */}
           <div className="flex items-start gap-4">
             <div className="space-y-2">
@@ -111,22 +111,23 @@ export function CreateCategoryDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('namePlaceholder')}
-              autoFocus
             />
           </div>
         </div>
 
-        <DialogFooter>
+        <SheetFooter className="flex-shrink-0 px-4 sm:px-6 pt-4 border-t flex-row gap-2 sm:justify-end">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={createCategory.isPending}
+            className="flex-1 sm:flex-none"
           >
             {t('cancel')}
           </Button>
           <Button
             onClick={handleCreate}
             disabled={!name.trim() || createCategory.isPending}
+            className="flex-1 sm:flex-none"
           >
             {createCategory.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />
@@ -135,9 +136,9 @@ export function CreateCategoryDialog({
             )}
             {t('create')}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

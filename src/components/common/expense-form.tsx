@@ -8,13 +8,14 @@
 
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCurrencyPreferences } from '@/hooks/queries';
@@ -210,130 +211,132 @@ export function ExpenseForm({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent 
-          className="sm:max-w-[425px] p-4 sm:p-6 max-h-[90vh] overflow-y-auto"
-          onOpenAutoFocus={(e) => e.preventDefault()}
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent 
+          side="bottom" 
+          className="h-[85vh] max-h-[600px] flex flex-col px-0"
         >
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <DialogHeader className="pb-2">
-              <DialogTitle className="text-lg">{displayTitle}</DialogTitle>
-              <DialogDescription className="text-sm">{displayDescription}</DialogDescription>
-            </DialogHeader>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col h-full">
+            <SheetHeader className="px-4 sm:px-6 text-start flex-shrink-0">
+              <SheetTitle className="text-lg">{displayTitle}</SheetTitle>
+              <SheetDescription className="text-sm">{displayDescription}</SheetDescription>
+            </SheetHeader>
 
-            <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
-              {/* Amount with Currency */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="amount" className="text-sm">{t('amount')}</Label>
-                <div className="flex">
-                  <Controller
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <AmountInput
-                        value={field.value}
-                        onChange={(value) => {
-                          setCurrentAmount(value); // Update local state
-                          field.onChange(value); // Update form state
-                        }}
-                        currency={currentCurrency}
-                        className="rounded-e-none flex-1 h-10"
-                      />
-                    )}
-                  />
-                  <Controller
-                    control={form.control}
-                    name="currency"
-                    render={({ field }) => (
-                      <CurrencyPicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        compact
-                        className="rounded-s-none border-s-0 h-10"
-                      />
-                    )}
-                  />
-                </div>
-                {form.formState.errors.amount && (
-                  <p className="text-xs sm:text-sm text-destructive">
-                    {t('validation.amountPositive')}
-                  </p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="description" className="text-sm">{t('descriptionLabel')}</Label>
-                <Input
-                  id="description"
-                  placeholder={t('descriptionPlaceholder')}
-                  className="h-10"
-                  {...form.register('description')}
-                />
-                {form.formState.errors.description && (
-                  <p className="text-xs sm:text-sm text-destructive">
-                    {t('validation.descriptionRequired')}
-                  </p>
-                )}
-              </div>
-
-              {/* Category */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-sm">{t('category')}</Label>
-                <CategoryPicker
-                  value={form.watch('categoryId')}
-                  onChange={(value) => form.setValue('categoryId', value)}
-                  isGroupExpense={isGroupExpense}
-                />
-                {form.formState.errors.categoryId && (
-                  <p className="text-xs sm:text-sm text-destructive">
-                    {t('validation.categoryRequired')}
-                  </p>
-                )}
-              </div>
-
-              {/* Date */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label className="text-sm">{t('date')}</Label>
-                <DatePicker
-                  value={form.watch('date')}
-                  onChange={(date) => date && form.setValue('date', date)}
-                />
-                {form.formState.errors.date && (
-                  <p className="text-xs sm:text-sm text-destructive">
-                    {form.formState.errors.date.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Notes (optional) */}
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="notes" className="text-sm">{t('notes')}</Label>
-                <Input
-                  id="notes"
-                  placeholder={t('notesPlaceholder')}
-                  className="h-10"
-                  {...form.register('notes')}
-                />
-              </div>
-
-              {/* Split Configuration Trigger (for group expenses) */}
-              {isGroupExpense && groupMembers && currentUserId && (
+            <ScrollArea className="flex-1 mt-4">
+              <div className="grid gap-3 sm:gap-4 px-4 sm:px-6 pb-4">
+                {/* Amount with Currency */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <Label className="text-sm">{t('split')}</Label>
-                  <SplitConfigTrigger
-                    onClick={() => setSplitConfigOpen(true)}
-                    config={splitConfig}
-                    amount={currentAmount}
-                    currentUserId={currentUserId}
-                    members={groupMembers}
-                    disabled={currentAmount <= 0}
+                  <Label htmlFor="amount" className="text-sm">{t('amount')}</Label>
+                  <div className="flex">
+                    <Controller
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <AmountInput
+                          value={field.value}
+                          onChange={(value) => {
+                            setCurrentAmount(value); // Update local state
+                            field.onChange(value); // Update form state
+                          }}
+                          currency={currentCurrency}
+                          className="rounded-e-none flex-1 h-10"
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={form.control}
+                      name="currency"
+                      render={({ field }) => (
+                        <CurrencyPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          compact
+                          className="rounded-s-none border-s-0 h-10"
+                        />
+                      )}
+                    />
+                  </div>
+                  {form.formState.errors.amount && (
+                    <p className="text-xs sm:text-sm text-destructive">
+                      {t('validation.amountPositive')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="description" className="text-sm">{t('descriptionLabel')}</Label>
+                  <Input
+                    id="description"
+                    placeholder={t('descriptionPlaceholder')}
+                    className="h-10"
+                    {...form.register('description')}
+                  />
+                  {form.formState.errors.description && (
+                    <p className="text-xs sm:text-sm text-destructive">
+                      {t('validation.descriptionRequired')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Category */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-sm">{t('category')}</Label>
+                  <CategoryPicker
+                    value={form.watch('categoryId')}
+                    onChange={(value) => form.setValue('categoryId', value)}
+                    isGroupExpense={isGroupExpense}
+                  />
+                  {form.formState.errors.categoryId && (
+                    <p className="text-xs sm:text-sm text-destructive">
+                      {t('validation.categoryRequired')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Date */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-sm">{t('date')}</Label>
+                  <DatePicker
+                    value={form.watch('date')}
+                    onChange={(date) => date && form.setValue('date', date)}
+                  />
+                  {form.formState.errors.date && (
+                    <p className="text-xs sm:text-sm text-destructive">
+                      {form.formState.errors.date.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Notes (optional) */}
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="notes" className="text-sm">{t('notes')}</Label>
+                  <Input
+                    id="notes"
+                    placeholder={t('notesPlaceholder')}
+                    className="h-10"
+                    {...form.register('notes')}
                   />
                 </div>
-              )}
-            </div>
 
-            <DialogFooter className="pt-2">
+                {/* Split Configuration Trigger (for group expenses) */}
+                {isGroupExpense && groupMembers && currentUserId && (
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-sm">{t('split')}</Label>
+                    <SplitConfigTrigger
+                      onClick={() => setSplitConfigOpen(true)}
+                      config={splitConfig}
+                      amount={currentAmount}
+                      currentUserId={currentUserId}
+                      members={groupMembers}
+                      disabled={currentAmount <= 0}
+                    />
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <SheetFooter className="flex-shrink-0 px-4 sm:px-6 pt-4 border-t">
               <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-between">
                 {/* Delete button - only shown when editing */}
                 {expense?.id && onDelete ? (
@@ -372,10 +375,10 @@ export function ExpenseForm({
                   </Button>
                 </div>
               </div>
-            </DialogFooter>
+            </SheetFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* Split Configuration Sheet - rendered outside the Dialog */}
       {isGroupExpense && groupMembers && currentUserId && (

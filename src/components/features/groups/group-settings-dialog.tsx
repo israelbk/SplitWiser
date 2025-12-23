@@ -14,13 +14,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -152,142 +153,145 @@ export function GroupSettingsDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{t('title')}</DialogTitle>
-            <DialogDescription>{t('description')}</DialogDescription>
-          </DialogHeader>
+      <Sheet open={open} onOpenChange={handleOpenChange}>
+        <SheetContent side="bottom" className="h-[85vh] max-h-[650px] flex flex-col px-0">
+          <SheetHeader className="px-4 sm:px-6 text-start flex-shrink-0">
+            <SheetTitle>{t('title')}</SheetTitle>
+            <SheetDescription>{t('description')}</SheetDescription>
+          </SheetHeader>
 
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            {/* Group Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">{tGroupForm('groupName')}</Label>
-              <Input
-                id="name"
-                placeholder={tGroupForm('namePlaceholder')}
-                {...form.register('name')}
-              />
-              {form.formState.errors.name && (
-                <p className="text-sm text-destructive">
-                  {tGroupForm('validation.nameRequired')}
-                </p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">{tGroupForm('descriptionLabel')}</Label>
-              <Input
-                id="description"
-                placeholder={tGroupForm('descriptionPlaceholder')}
-                {...form.register('description')}
-              />
-            </div>
-
-            {/* Group Type */}
-            <div className="space-y-2">
-              <Label>{tGroupForm('type')}</Label>
-              <Select
-                value={form.watch('type')}
-                onValueChange={(value) => form.setValue('type', value as GroupType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {groupTypes.map((type) => {
-                    const Icon = type.icon;
-                    return (
-                      <SelectItem key={type.value} value={type.value}>
-                        <span className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          {type.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Default Currency */}
-            <div className="space-y-2">
-              <Label>{t('defaultCurrency')}</Label>
-              <CurrencyPicker
-                value={form.watch('defaultCurrency')}
-                onChange={(currency) => form.setValue('defaultCurrency', currency)}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('defaultCurrencyHint')}
-              </p>
-            </div>
-
-            <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isAnyLoading}
-              >
-                {tCommon('cancel')}
-              </Button>
-              <Button type="submit" disabled={isAnyLoading}>
-                {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-                {tCommon('save')}
-              </Button>
-            </DialogFooter>
-          </form>
-
-          {/* Danger Zone */}
-          {(onArchive || onUnarchive || onDelete) && (
-            <>
-              <Separator className="my-2" />
-              <div className="space-y-3">
-                <Label className="text-destructive">{t('dangerZone')}</Label>
-                <div className="flex flex-col gap-2">
-                  {/* Archive/Unarchive Button */}
-                  {(onArchive || onUnarchive) && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="justify-start"
-                      onClick={() => setShowArchiveConfirm(true)}
-                      disabled={isAnyLoading}
-                    >
-                      {isArchiving ? (
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      ) : group.isArchived ? (
-                        <ArchiveRestore className="me-2 h-4 w-4" />
-                      ) : (
-                        <Archive className="me-2 h-4 w-4" />
-                      )}
-                      {group.isArchived ? t('unarchiveGroup') : t('archiveGroup')}
-                    </Button>
-                  )}
-                  {/* Delete Button */}
-                  {onDelete && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="justify-start"
-                      onClick={() => setShowDeleteConfirm(true)}
-                      disabled={isAnyLoading}
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="me-2 h-4 w-4" />
-                      )}
-                      {t('deleteGroup')}
-                    </Button>
-                  )}
-                </div>
+          <ScrollArea className="flex-1 mt-4">
+            <form id="group-settings-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 px-4 sm:px-6">
+              {/* Group Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name">{tGroupForm('groupName')}</Label>
+                <Input
+                  id="name"
+                  placeholder={tGroupForm('namePlaceholder')}
+                  {...form.register('name')}
+                />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-destructive">
+                    {tGroupForm('validation.nameRequired')}
+                  </p>
+                )}
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">{tGroupForm('descriptionLabel')}</Label>
+                <Input
+                  id="description"
+                  placeholder={tGroupForm('descriptionPlaceholder')}
+                  {...form.register('description')}
+                />
+              </div>
+
+              {/* Group Type */}
+              <div className="space-y-2">
+                <Label>{tGroupForm('type')}</Label>
+                <Select
+                  value={form.watch('type')}
+                  onValueChange={(value) => form.setValue('type', value as GroupType)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupTypes.map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <SelectItem key={type.value} value={type.value}>
+                          <span className="flex items-center gap-2">
+                            <Icon className="h-4 w-4" />
+                            {type.label}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Default Currency */}
+              <div className="space-y-2">
+                <Label>{t('defaultCurrency')}</Label>
+                <CurrencyPicker
+                  value={form.watch('defaultCurrency')}
+                  onChange={(currency) => form.setValue('defaultCurrency', currency)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t('defaultCurrencyHint')}
+                </p>
+              </div>
+
+              {/* Danger Zone */}
+              {(onArchive || onUnarchive || onDelete) && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-3 pb-4">
+                    <Label className="text-destructive">{t('dangerZone')}</Label>
+                    <div className="flex flex-col gap-2">
+                      {/* Archive/Unarchive Button */}
+                      {(onArchive || onUnarchive) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => setShowArchiveConfirm(true)}
+                          disabled={isAnyLoading}
+                        >
+                          {isArchiving ? (
+                            <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                          ) : group.isArchived ? (
+                            <ArchiveRestore className="me-2 h-4 w-4" />
+                          ) : (
+                            <Archive className="me-2 h-4 w-4" />
+                          )}
+                          {group.isArchived ? t('unarchiveGroup') : t('archiveGroup')}
+                        </Button>
+                      )}
+                      {/* Delete Button */}
+                      {onDelete && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          className="justify-start"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          disabled={isAnyLoading}
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="me-2 h-4 w-4" />
+                          )}
+                          {t('deleteGroup')}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </form>
+          </ScrollArea>
+
+          <SheetFooter className="flex-shrink-0 px-4 sm:px-6 pt-4 border-t flex-row gap-2 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isAnyLoading}
+              className="flex-1 sm:flex-none"
+            >
+              {tCommon('cancel')}
+            </Button>
+            <Button type="submit" form="group-settings-form" disabled={isAnyLoading} className="flex-1 sm:flex-none">
+              {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {tCommon('save')}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Archive Confirmation Dialog */}
       <AlertDialog open={showArchiveConfirm} onOpenChange={setShowArchiveConfirm}>
