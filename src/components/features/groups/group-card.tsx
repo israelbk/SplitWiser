@@ -4,21 +4,36 @@
  * Group card component
  * Displays a group with member avatars and balance preview
  * Mobile-first responsive design
+ * Long-press to show settings
+ * Shows loading indicator when navigating
  */
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { UserAvatar, BalanceAmount, DirectionalIcon } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
-import { Plane, Home, Heart, MoreHorizontal, Archive } from 'lucide-react';
+import { Plane, Home, Heart, MoreHorizontal, Archive, Settings, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GroupWithMembers } from '@/lib/services';
 import { useTranslations } from 'next-intl';
+
+// Long press duration in milliseconds
+const LONG_PRESS_DURATION = 500;
 
 interface GroupCardProps {
   group: GroupWithMembers;
   currentUserBalance?: number;
   className?: string;
+  onSettings?: () => void;
 }
 
 const groupTypeIcons = {
@@ -36,21 +51,143 @@ const groupTypeColors = {
   other: 'oklch(0.55 0.02 250)',     // gray - neutral
 };
 
-export function GroupCard({ group, currentUserBalance, className }: GroupCardProps) {
+export function GroupCard({ group, currentUserBalance, className, onSettings }: GroupCardProps) {
+  const router = useRouter();
   const t = useTranslations('groupForm');
   const tGroups = useTranslations('groups');
+  const tCommon = useTranslations('common');
+  const tGroupCard = useTranslations('groupCard');
   const Icon = groupTypeIcons[group.type] || MoreHorizontal;
   const iconColor = groupTypeColors[group.type] || '#6b7280';
   const hasBalance = currentUserBalance !== undefined && currentUserBalance !== 0;
 
+  // Long press and loading states
+  const [showActionDialog, setShowActionDialog] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+
+  // Long press handlers
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const startLongPress = useCallback(() => {
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      // Trigger haptic feedback on mobile if available
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+      if (onSettings) {
+        setShowActionDialog(true);
+      }
+    }, LONG_PRESS_DURATION);
+  }, [onSettings]);
+
+  const handleCardClick = () => {
+    // Only navigate if it wasn't a long press and not already navigating
+    if (!isLongPress.current && !isNavigating) {
+      setIsNavigating(true);
+      router.push(`/groups/${group.id}`);
+    }
+    isLongPress.current = false;
+  };
+
+  // Mouse event handlers (for desktop long-press support)
+  const handleMouseDown = () => {
+    if (onSettings) {
+      startLongPress();
+    }
+  };
+
+  const handleMouseUp = () => {
+    clearLongPressTimer();
+  };
+
+  const handleMouseLeave = () => {
+    clearLongPressTimer();
+  };
+
+  // Touch event handlers (for mobile long-press support)
+  const handleTouchStart = () => {
+    if (onSettings) {
+      startLongPress();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    clearLongPressTimer();
+  };
+
+  const handleTouchCancel = () => {
+    clearLongPressTimer();
+  };
+
+  // Prevent context menu on long press
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (onSettings) {
+      e.preventDefault();
+    }
+  };
+
   return (
-    <Link href={`/groups/${group.id}`}>
+    <>
+      {/* Long Press Action Dialog */}
+      <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
+        <DialogContent className="max-w-[300px] p-4" showCloseButton={false}>
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-center truncate text-base">
+              {group.name}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              {tGroupCard('chooseAction')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {onSettings && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  setShowActionDialog(false);
+                  onSettings();
+                }}
+              >
+                <Settings className="h-4 w-4" />
+                {tGroupCard('settings')}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setShowActionDialog(false)}
+            >
+              {tCommon('cancel')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card
         className={cn(
-          'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
+          'p-4 hover:bg-accent/50 transition-colors cursor-pointer select-none',
           group.isArchived && 'opacity-75 border-dashed',
+          isNavigating && 'opacity-70',
           className
         )}
+        onClick={handleCardClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        onContextMenu={handleContextMenu}
       >
         <div className="flex gap-3">
           {/* Group Icon */}
@@ -58,8 +195,12 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
             className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative"
             style={{ backgroundColor: `${iconColor}15` }}
           >
-            <Icon size={22} style={{ color: iconColor }} />
-            {group.isArchived && (
+            {isNavigating ? (
+              <Loader2 size={22} className="animate-spin" style={{ color: iconColor }} />
+            ) : (
+              <Icon size={22} style={{ color: iconColor }} />
+            )}
+            {group.isArchived && !isNavigating && (
               <div className="absolute -bottom-1 -end-1 bg-muted rounded-full p-0.5">
                 <Archive className="h-3 w-3 text-muted-foreground" />
               </div>
@@ -115,7 +256,7 @@ export function GroupCard({ group, currentUserBalance, className }: GroupCardPro
           </div>
         </div>
       </Card>
-    </Link>
+    </>
   );
 }
 

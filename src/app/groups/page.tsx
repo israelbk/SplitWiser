@@ -10,32 +10,48 @@
 
 import { useState } from 'react';
 import { AppShell } from '@/components/layout';
-import { GroupList, GroupForm } from '@/components/features/groups';
+import { GroupList, GroupForm, GroupSettingsDialog } from '@/components/features/groups';
 import { useCurrentUser, useAuth } from '@/hooks/use-current-user';
-import { useGroupsForUserWithMembers, useCreateGroup } from '@/hooks/queries';
-import { userService } from '@/lib/services';
+import { 
+  useGroupsForUserWithMembers, 
+  useCreateGroup, 
+  useUpdateGroup,
+  useArchiveGroup,
+  useUnarchiveGroup,
+  useDeleteGroup,
+} from '@/hooks/queries';
+import { userService, GroupWithMembers } from '@/lib/services';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Plus, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { GroupType } from '@/lib/types';
 
 export default function GroupsPage() {
   const { currentUser } = useCurrentUser();
   const { canWrite } = useAuth();
   const t = useTranslations('groups');
+  const tGroupSettings = useTranslations('groupSettings');
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [settingsGroup, setSettingsGroup] = useState<GroupWithMembers | null>(null);
 
-  // Optimized: fetch groups WITH members in a single batch query
-  const { data: groupsWithMembers, isLoading } = useGroupsForUserWithMembers(currentUser?.id, showArchived);
+  // Always fetch with includeArchived=true to know if archived groups exist
+  // We'll filter the display based on showArchived state
+  const { data: groupsWithMembers, isLoading } = useGroupsForUserWithMembers(currentUser?.id, true);
   const createGroup = useCreateGroup();
+  const updateGroup = useUpdateGroup();
+  const archiveGroup = useArchiveGroup();
+  const unarchiveGroup = useUnarchiveGroup();
+  const deleteGroup = useDeleteGroup();
 
   // Separate active and archived groups for display
   const activeGroups = groupsWithMembers?.filter(g => !g.isArchived) ?? [];
   const archivedGroups = groupsWithMembers?.filter(g => g.isArchived) ?? [];
+  const hasArchivedGroups = archivedGroups.length > 0;
 
   const handleAddGroup = () => {
     setIsFormOpen(true);
@@ -69,6 +85,74 @@ export default function GroupsPage() {
     }
   };
 
+  // Settings dialog handlers
+  const handleOpenSettings = (group: GroupWithMembers) => {
+    if (canWrite) {
+      setSettingsGroup(group);
+    }
+  };
+
+  const handleUpdateGroup = async (data: {
+    name: string;
+    description?: string;
+    type: GroupType;
+    defaultCurrency: string;
+  }) => {
+    if (!settingsGroup) return;
+
+    try {
+      await updateGroup.mutateAsync({
+        id: settingsGroup.id,
+        input: {
+          name: data.name,
+          description: data.description,
+          type: data.type,
+          defaultCurrency: data.defaultCurrency,
+        },
+      });
+      toast.success(tGroupSettings('groupUpdated'));
+      setSettingsGroup(null);
+    } catch (error) {
+      toast.error(tGroupSettings('failedToUpdate'));
+    }
+  };
+
+  const handleArchiveGroup = async () => {
+    if (!settingsGroup) return;
+
+    try {
+      await archiveGroup.mutateAsync(settingsGroup.id);
+      toast.success(tGroupSettings('groupArchived'));
+      setSettingsGroup(null);
+    } catch (error) {
+      toast.error(tGroupSettings('failedToArchive'));
+    }
+  };
+
+  const handleUnarchiveGroup = async () => {
+    if (!settingsGroup) return;
+
+    try {
+      await unarchiveGroup.mutateAsync(settingsGroup.id);
+      toast.success(tGroupSettings('groupUnarchived'));
+      setSettingsGroup(null);
+    } catch (error) {
+      toast.error(tGroupSettings('failedToUnarchive'));
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!settingsGroup) return;
+
+    try {
+      await deleteGroup.mutateAsync(settingsGroup.id);
+      toast.success(tGroupSettings('groupDeleted'));
+      setSettingsGroup(null);
+    } catch (error) {
+      toast.error(tGroupSettings('failedToDelete'));
+    }
+  };
+
   return (
     <AppShell onAddClick={handleAddGroup}>
       <div className="w-full max-w-4xl mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -95,23 +179,26 @@ export default function GroupsPage() {
           groups={activeGroups}
           isLoading={isLoading}
           onAddClick={handleAddGroup}
+          onSettings={handleOpenSettings}
         />
 
-        {/* Show Archived Toggle */}
-        <div className="flex items-center gap-2 pt-2">
-          <Checkbox
-            id="show-archived"
-            checked={showArchived}
-            onCheckedChange={(checked) => setShowArchived(checked === true)}
-          />
-          <Label 
-            htmlFor="show-archived" 
-            className="text-sm text-muted-foreground cursor-pointer flex items-center gap-2"
-          >
-            <Archive className="h-4 w-4" />
-            {t('showArchived')}
-          </Label>
-        </div>
+        {/* Show Archived Toggle - only shown if there are archived groups */}
+        {hasArchivedGroups && (
+          <div className="flex items-center gap-2 pt-2">
+            <Checkbox
+              id="show-archived"
+              checked={showArchived}
+              onCheckedChange={(checked) => setShowArchived(checked === true)}
+            />
+            <Label 
+              htmlFor="show-archived" 
+              className="text-sm text-muted-foreground cursor-pointer flex items-center gap-2"
+            >
+              <Archive className="h-4 w-4" />
+              {t('showArchived')}
+            </Label>
+          </div>
+        )}
 
         {/* Archived Groups Section */}
         {showArchived && archivedGroups.length > 0 && (
@@ -124,6 +211,7 @@ export default function GroupsPage() {
               <GroupList
                 groups={archivedGroups}
                 isLoading={false}
+                onSettings={handleOpenSettings}
               />
             </div>
           </div>
@@ -137,6 +225,28 @@ export default function GroupsPage() {
         onSubmit={handleFormSubmit}
         isLoading={createGroup.isPending}
       />
+
+      {/* Group Settings Dialog */}
+      {settingsGroup && (
+        <GroupSettingsDialog
+          open={!!settingsGroup}
+          onOpenChange={(open) => !open && setSettingsGroup(null)}
+          onSubmit={handleUpdateGroup}
+          onArchive={handleArchiveGroup}
+          onUnarchive={handleUnarchiveGroup}
+          onDelete={handleDeleteGroup}
+          group={{
+            name: settingsGroup.name,
+            description: settingsGroup.description,
+            type: settingsGroup.type,
+            defaultCurrency: settingsGroup.defaultCurrency,
+            isArchived: settingsGroup.isArchived,
+          }}
+          isLoading={updateGroup.isPending}
+          isArchiving={archiveGroup.isPending || unarchiveGroup.isPending}
+          isDeleting={deleteGroup.isPending}
+        />
+      )}
     </AppShell>
   );
 }

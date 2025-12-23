@@ -114,6 +114,10 @@
     "paid": "pagó",
     "chooseAction": "¿Qué te gustaría hacer?"
   },
+  "groupCard": {
+    "chooseAction": "¿Qué te gustaría hacer?",
+    "settings": "Configuración"
+  },
   "split": {
     "title": "Opciones de división",
     "total": "Total:",

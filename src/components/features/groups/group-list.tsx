@@ -16,6 +16,7 @@ interface GroupListProps {
   isLoading: boolean;
   userBalances?: Record<string, number>;
   onAddClick?: () => void;
+  onSettings?: (group: GroupWithMembers) => void;
 }
 
 export function GroupList({
@@ -23,6 +24,7 @@ export function GroupList({
   isLoading,
   userBalances = {},
   onAddClick,
+  onSettings,
 }: GroupListProps) {
   const t = useTranslations('groups');
 
@@ -55,6 +57,7 @@ export function GroupList({
           key={group.id}
           group={group}
           currentUserBalance={userBalances[group.id]}
+          onSettings={onSettings ? () => onSettings(group) : undefined}
         />
       ))}
     </div>
